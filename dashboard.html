@@ -48,7 +48,7 @@ requireAuth(async (user) => {
 function bookingRow(b, isMentorView) {
   const otherName = isMentorView ? b.MenteeName : b.MentorName;
   const showLink = b.Status === "confirmed" || b.Status === "completed";
-  const showConfirmBtn = isMentorView && b.Status === "pending_confirmation";
+  const awaitingBoslaConfirm = isMentorView && b.Status === "pending_confirmation";
   return `
     <tr>
       <td>${otherName}</td>
@@ -56,7 +56,7 @@ function bookingRow(b, isMentorView) {
       <td><span class="status-pill status-${b.Status}">${STATUS_LABELS[b.Status] || b.Status}</span></td>
       <td>
         ${showLink ? `<a href="${window.__mentorMeetingLink || ''}" target="_blank" class="btn btn-ghost" style="padding:6px 14px">رابط الميتينج</a>` : "—"}
-        ${showConfirmBtn ? `<button class="btn btn-primary" style="padding:6px 14px" onclick="confirmBooking('${b.BookingID}')">تأكيد الحجز</button>` : ""}
+        ${awaitingBoslaConfirm ? `<span class="field-hint">BOSLA بتراجع الإيصال دلوقتي</span>` : ""}
         ${b.PaymentScreenshotURL ? `<a href="${b.PaymentScreenshotURL}" target="_blank" class="field-hint" style="text-decoration:underline">إيصال الدفع</a>` : ""}
       </td>
     </tr>
@@ -66,6 +66,13 @@ function bookingRow(b, isMentorView) {
 async function confirmBooking(bookingId) {
   await apiPost("confirmBooking", { bookingId });
   showToast("اتأكد الحجز");
+  location.reload();
+}
+
+async function confirmSessionDone(bookingId) {
+  if (!confirm("متأكد إن الجلسة اتعملت فعلاً؟ ده هيسمح لينا نحول نصيب المرشد.")) return;
+  await apiPost("confirmSessionDoneByMentee", { bookingId });
+  showToast("شكرًا لتأكيدك!");
   location.reload();
 }
 
@@ -109,9 +116,14 @@ async function renderMenteeDashboard(user, mentee) {
             <td>${b.MentorName}</td>
             <td>${b.SlotDateTime}</td>
             <td><span class="status-pill status-${b.Status}">${STATUS_LABELS[b.Status] || b.Status}</span></td>
-            <td>${(b.Status === "confirmed" || b.Status === "completed") && mentorLinks[b.MentorUID]
-              ? `<a href="${mentorLinks[b.MentorUID]}" target="_blank" class="btn btn-primary" style="padding:6px 14px">ادخل الميتينج</a>`
-              : "—"}</td>
+            <td>
+              ${(b.Status === "confirmed" || b.Status === "completed") && mentorLinks[b.MentorUID]
+                ? `<a href="${mentorLinks[b.MentorUID]}" target="_blank" class="btn btn-primary" style="padding:6px 14px">ادخل الميتينج</a>`
+                : "—"}
+              ${b.Status === "confirmed"
+                ? `<button class="btn btn-ghost" style="padding:6px 14px" onclick="confirmSessionDone('${b.BookingID}')">أكدت إن الجلسة اتعملت</button>`
+                : ""}
+            </td>
           </tr>
         `).join("")}</tbody>
       </table>
