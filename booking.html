@@ -24,9 +24,13 @@ const mentorUid = params.get("mentor");
 const box = document.getElementById("booking-box");
 let mentor = null;
 let currentUser = null;
+let BOSLA_INSTAPAY = "01025406188"; // fallback لحد ما يوصل رد الباك إند
 
 async function init() {
   if (!mentorUid) { box.innerHTML = `<div class="empty-state">مفيش مرشد محدد.</div>`; return; }
+
+  const config = await apiGet("getPlatformConfig");
+  if (config && config.instapay) BOSLA_INSTAPAY = config.instapay;
 
   auth.onAuthStateChanged(async (user) => {
     mentor = await apiGet("getMentor", { uid: mentorUid });
@@ -56,9 +60,12 @@ function renderForm(isLoggedIn) {
       <div class="field-hint">مواعيد المرشد المتاحة: ${mentor.Availability || "تواصل معه لتحديد ميعاد"}</div>
 
       ${Number(mentor.Price) > 0 ? `
-      <label style="margin-top:20px">حوّل ${mentor.Price} ج.م على إنستاباي</label>
+      <label style="margin-top:20px">حوّل ${mentor.Price} ج.م على إنستاباي BOSLA</label>
       <div class="card" style="padding:14px; background:var(--purple-50); border:none">
-        رقم/يوزر إنستاباي المرشد: <strong>${mentor.Instapay || "غير متاح"}</strong>
+        رقم إنستاباي BOSLA: <strong>${BOSLA_INSTAPAY}</strong>
+        <div class="field-hint" style="margin-top:6px">
+          التحويل بيروح لـ BOSLA مش للمرشد مباشرة، وده عشان لو المرشد ماحضرش الميتينج تقدر تسترجع فلوسك.
+        </div>
       </div>
       <label>ارفع صورة سكرين شوت إيصال التحويل</label>
       <input type="file" id="proof" accept="image/*" required>
@@ -90,7 +97,8 @@ async function submitBooking() {
       menteeUid: currentUser.uid,
       menteeName: currentUser.displayName || currentUser.email,
       field: mentor.Field,
-      slot
+      slot,
+      price: mentor.Price
     });
 
     if (proofInput && proofInput.files[0]) {
