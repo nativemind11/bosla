@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>احجز جلسة — BOSLA</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header id="bosla-header"></header>
+
+<div class="form-card" id="booking-box">
+  <div class="spinner">بيحمل بيانات المرشد...</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/app.js"></script>
+<script>
+const params = new URLSearchParams(window.location.search);
+const mentorUid = params.get("mentor");
+const box = document.getElementById("booking-box");
+let mentor = null;
+let currentUser = null;
+
+async function init() {
+  if (!mentorUid) { box.innerHTML = `<div class="empty-state">مفيش مرشد محدد.</div>`; return; }
+
+  auth.onAuthStateChanged(async (user) => {
+    mentor = await apiGet("getMentor", { uid: mentorUid });
+    if (!mentor) { box.innerHTML = `<div class="empty-state">المرشد ده مش موجود.</div>`; return; }
+    currentUser = user;
+    renderForm(!!user);
+  });
+}
+
+function renderForm(isLoggedIn) {
+  const priceLabel = Number(mentor.Price) > 0 ? `${mentor.Price} ج.م` : "مجانًا";
+  box.innerHTML = `
+    <div class="form-title">احجز مع ${mentor.Name}</div>
+    <div class="form-sub">${mentor.Field} · ${mentor.Specialization} — ${priceLabel}</div>
+
+    ${!isLoggedIn ? `
+      <div class="empty-state" style="padding:20px 0">
+        لازم تسجل دخول الأول عشان تحجز.
+        <div class="hero-actions" style="justify-content:center; margin-top:16px">
+          <a href="login.html" class="btn btn-primary">تسجيل الدخول</a>
+          <a href="register-mentee.html" class="btn btn-ghost">حساب جديد</a>
+        </div>
+      </div>
+    ` : `
+      <label>اختار الميعاد المناسب</label>
+      <input type="text" id="slot" placeholder="مثال: السبت 2 أغسطس - 7 مساءً" required>
+      <div class="field-hint">مواعيد المرشد المتاحة: ${mentor.Availability || "تواصل معه لتحديد ميعاد"}</div>
+
+      ${Number(mentor.Price) > 0 ? `
+      <label style="margin-top:20px">حوّل ${mentor.Price} ج.م على إنستاباي</label>
+      <div class="card" style="padding:14px; background:var(--purple-50); border:none">
+        رقم/يوزر إنستاباي المرشد: <strong>${mentor.Instapay || "غير متاح"}</strong>
+      </div>
+      <label>ارفع صورة سكرين شوت إيصال التحويل</label>
+      <input type="file" id="proof" accept="image/*" required>
+      ` : `<input type="hidden" id="proof-skip" value="1">`}
+
+      <button class="btn btn-primary btn-block" style="margin-top:24px" id="book-btn">تأكيد الحجز</button>
+    `}
+  `;
+
+  if (isLoggedIn) {
+    document.getElementById("book-btn").addEventListener("click", submitBooking);
+  }
+}
+
+async function submitBooking() {
+  const btn = document.getElementById("book-btn");
+  const slot = document.getElementById("slot").value;
+  if (!slot) { showToast("اختار ميعاد الأول", "error"); return; }
+
+  const proofInput = document.getElementById("proof");
+  if (proofInput && !proofInput.files[0]) { showToast("ارفع صورة الإيصال", "error"); return; }
+
+  btn.disabled = true; btn.textContent = "بيتم الحجز...";
+
+  try {
+    const bookingRes = await apiPost("createBooking", {
+      mentorUid: mentor.UID,
+      mentorName: mentor.Name,
+      menteeUid: currentUser.uid,
+      menteeName: currentUser.displayName || currentUser.email,
+      field: mentor.Field,
+      slot
+    });
+
+    if (proofInput && proofInput.files[0]) {
+      const base64 = await fileToBase64(proofInput.files[0]);
+      await apiPost("uploadPaymentProof", {
+        bookingId: bookingRes.bookingId,
+        imageBase64: base64,
+        mimeType: proofInput.files[0].type
+      });
+    }
+
+    box.innerHTML = `
+      <div class="form-title">تم الحجز!</div>
+      <p style="color:var(--gray)">
+        ${Number(mentor.Price) > 0
+          ? "المرشد هيراجع إيصال الدفع ويأكد حجزك. هتلاقي رابط الميتينج في لوحة حسابك بعد التأكيد."
+          : "الحجز اتأكد أوتوماتيك لأنها جلسة مجانية. هتلاقي رابط الميتينج في لوحة حسابك."}
+      </p>
+      <a href="dashboard.html" class="btn btn-primary btn-block">روح للوحة حسابي</a>
+    `;
+  } catch (err) {
+    showToast("حصل خطأ في الحجز، جرب تاني", "error");
+    btn.disabled = false; btn.textContent = "تأكيد الحجز";
+  }
+}
+
+init();
+</script>
+</body>
+</html>

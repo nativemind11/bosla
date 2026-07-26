@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سجل كمستفيد — BOSLA</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header id="bosla-header"></header>
+
+<div class="form-card">
+  <div class="form-title">سجل كمستفيد</div>
+  <div class="form-sub">اعمل حساب مجاني عشان تقدر تحجز مع أي مرشد</div>
+
+  <form id="reg-form">
+    <label>الاسم بالكامل</label>
+    <input type="text" id="name" required>
+    <label>رقم الموبايل</label>
+    <input type="tel" id="phone" required placeholder="01xxxxxxxxx">
+    <label>الإيميل</label>
+    <input type="email" id="email" required>
+    <label>كلمة المرور</label>
+    <input type="password" id="password" required minlength="6">
+    <div class="field-hint">6 أحرف على الأقل</div>
+    <button class="btn btn-primary btn-block" style="margin-top:24px" type="submit" id="reg-btn">إنشاء الحساب</button>
+  </form>
+  <p class="field-hint" style="margin-top:20px; text-align:center">
+    عندك حساب؟ <a href="login.html" style="color:var(--purple-700); font-weight:700">سجل دخول</a>
+  </p>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/app.js"></script>
+<script>
+document.getElementById("reg-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById("reg-btn");
+  btn.disabled = true; btn.textContent = "بيتم الإنشاء...";
+
+  const name = document.getElementById("name").value;
+  const phone = document.getElementById("phone").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  try {
+    const cred = await auth.createUserWithEmailAndPassword(email, password);
+    await cred.user.updateProfile({ displayName: name });
+    await apiPost("registerMentee", { uid: cred.user.uid, name, email, phone });
+    showToast("الحساب اتعمل بنجاح!");
+    window.location.href = "mentors.html";
+  } catch (err) {
+    showToast(err.message.includes("email-already") ? "الإيميل ده مسجل قبل كده" : "حصل خطأ، جرب تاني", "error");
+    btn.disabled = false; btn.textContent = "إنشاء الحساب";
+  }
+});
+</script>
+</body>
+</html>

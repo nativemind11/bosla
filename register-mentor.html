@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سجل كمرشد — BOSLA</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header id="bosla-header"></header>
+
+<div class="form-card" style="max-width:640px">
+  <div class="form-title">سجل كمرشد</div>
+  <div class="form-sub">اعمل حسابك وحدد مجالك وسعرك، وابدأ تساعد ناس محتاجة خبرتك</div>
+
+  <form id="reg-form">
+    <label>الاسم بالكامل</label>
+    <input type="text" id="name" required>
+
+    <div class="form-row">
+      <div>
+        <label>الإيميل</label>
+        <input type="email" id="email" required>
+      </div>
+      <div>
+        <label>كلمة المرور</label>
+        <input type="password" id="password" required minlength="6">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div>
+        <label>المجال</label>
+        <select id="field" required></select>
+      </div>
+      <div>
+        <label>التخصص</label>
+        <select id="specialization" required></select>
+      </div>
+    </div>
+
+    <label>مستوى الخبرة</label>
+    <div class="radio-group">
+      <label><input type="radio" name="level" value="جونيور" checked> جونيور (أقل من 3 سنين خبرة)</label>
+      <label><input type="radio" name="level" value="سينيور"> سينيور (3 سنين فأكتر)</label>
+    </div>
+
+    <label>نبذة عنك (هتظهر للمستفيدين)</label>
+    <textarea id="bio" rows="3" placeholder="مثال: مهندس مدني بخبرة 4 سنين في التصميم الإنشائي، اشتغلت في..."></textarea>
+
+    <label>سعر الجلسة (ربع ساعة)</label>
+    <div class="radio-group">
+      <label><input type="radio" name="priceType" value="paid" checked> بسعر محدد</label>
+      <label><input type="radio" name="priceType" value="free"> مجانًا</label>
+    </div>
+    <input type="number" id="price" placeholder="السعر بالجنيه" style="margin-top:10px" min="0">
+
+    <label>رقم إنستاباي لاستقبال الدفع</label>
+    <input type="text" id="instapay" placeholder="اسم المستخدم أو الرقم على إنستاباي">
+
+    <label>رابط الميتينج الثابت بتاعك (زوم / تيمز / جوجل ميت)</label>
+    <input type="url" id="meetingLink" required placeholder="https://meet.google.com/xxx-xxxx-xxx">
+    <div class="field-hint">نفس الرابط ده هيتبعت لكل مستفيد بيحجز معاك بعد ما تأكد الحجز</div>
+
+    <label>المواعيد المتاحة أسبوعيًا</label>
+    <textarea id="availability" rows="2" placeholder="مثال: السبت والاثنين من 6 لـ9 مساءً"></textarea>
+
+    <button class="btn btn-primary btn-block" style="margin-top:24px" type="submit" id="reg-btn">إنشاء حساب المرشد</button>
+  </form>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/app.js"></script>
+<script>
+const fieldSelect = document.getElementById("field");
+const specSelect = document.getElementById("specialization");
+populateFieldsSelect(fieldSelect);
+fieldSelect.addEventListener("change", () => populateSpecializationsSelect(fieldSelect.value, specSelect));
+
+document.querySelectorAll('input[name="priceType"]').forEach(r => {
+  r.addEventListener("change", () => {
+    const priceInput = document.getElementById("price");
+    if (document.querySelector('input[name="priceType"]:checked').value === "free") {
+      priceInput.value = 0; priceInput.disabled = true;
+    } else {
+      priceInput.disabled = false;
+    }
+  });
+});
+
+document.getElementById("reg-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById("reg-btn");
+  btn.disabled = true; btn.textContent = "بيتم الإنشاء...";
+
+  const name = document.getElementById("name").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const field = fieldSelect.value;
+  const specialization = specSelect.value;
+  const level = document.querySelector('input[name="level"]:checked').value;
+  const priceType = document.querySelector('input[name="priceType"]:checked').value;
+  const price = priceType === "free" ? 0 : (document.getElementById("price").value || 0);
+  const instapay = document.getElementById("instapay").value;
+  const meetingLink = document.getElementById("meetingLink").value;
+  const bio = document.getElementById("bio").value;
+  const availability = document.getElementById("availability").value;
+
+  if (!field || !specialization) {
+    showToast("اختار المجال والتخصص", "error");
+    btn.disabled = false; btn.textContent = "إنشاء حساب المرشد";
+    return;
+  }
+
+  try {
+    const cred = await auth.createUserWithEmailAndPassword(email, password);
+    await cred.user.updateProfile({ displayName: name });
+    await apiPost("registerMentor", {
+      uid: cred.user.uid, name, email, field, specialization, level,
+      price, instapay, meetingLink, bio, availability
+    });
+    showToast("اتسجلت كمرشد بنجاح!");
+    window.location.href = "dashboard.html";
+  } catch (err) {
+    showToast(err.message.includes("email-already") ? "الإيميل ده مسجل قبل كده" : "حصل خطأ، جرب تاني", "error");
+    btn.disabled = false; btn.textContent = "إنشاء حساب المرشد";
+  }
+});
+</script>
+</body>
+</html>
