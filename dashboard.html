@@ -69,11 +69,21 @@ async function confirmBooking(bookingId) {
   location.reload();
 }
 
-async function confirmSessionDone(bookingId) {
-  if (!confirm("متأكد إن الجلسة اتعملت فعلاً؟ ده هيسمح لينا نحول نصيب المرشد.")) return;
-  await apiPost("confirmSessionDoneByMentee", { bookingId });
-  showToast("شكرًا لتأكيدك!");
+async function confirmSessionDone(bookingId, role) {
+  if (!confirm("متأكد إن الجلسة اتعملت فعلاً؟ ده هيسمح لينا نحول نصيب المرشد بعد ما الطرف التاني يأكد كمان.")) return;
+  const action = role === "mentor" ? "confirmSessionDoneByMentor" : "confirmSessionDoneByMentee";
+  await apiPost(action, { bookingId });
+  showToast("شكرًا لتأكيدك! مستنيين تأكيد الطرف التاني (لو لسه معملهوش).");
   location.reload();
+}
+
+function completionActionCell(b, isMentorView) {
+  if (b.Status === "completed") return `<span class="field-hint">اتأكدت من الطرفين ✅</span>`;
+  if (b.Status !== "confirmed") return "";
+  const myDone = isMentorView ? !!b.CompletedByMentorAt : !!b.CompletedByMenteeAt;
+  const otherDone = isMentorView ? !!b.CompletedByMenteeAt : !!b.CompletedByMentorAt;
+  if (myDone) return `<span class="field-hint">أكدت، مستنيين ${isMentorView ? "المستفيد" : "المرشد"}</span>`;
+  return `<button class="btn btn-ghost" style="padding:6px 14px" onclick="confirmSessionDone('${b.BookingID}', '${isMentorView ? "mentor" : "mentee"}')">أكدت إن الجلسة اتعملت</button>${otherDone ? `<div class="field-hint">${isMentorView ? "المستفيد" : "المرشد"} أكد بالفعل</div>` : ""}`;
 }
 
 async function renderMentorDashboard(user, mentor) {
@@ -89,8 +99,20 @@ async function renderMentorDashboard(user, mentor) {
     <h3>حجوزاتك</h3>
     ${bookings.length ? `
       <table>
-        <thead><tr><th>المستفيد</th><th>الميعاد</th><th>الحالة</th><th>إجراء</th></tr></thead>
-        <tbody>${bookings.map(b => bookingRow(b, true)).join("")}</tbody>
+        <thead><tr><th>المستفيد</th><th>الميعاد</th><th>الحالة</th><th>الميتينج</th><th>تأكيد إتمام الجلسة</th></tr></thead>
+        <tbody>${bookings.map(b => `
+          <tr>
+            <td>${b.MenteeName}</td>
+            <td>${b.SlotDateTime}</td>
+            <td><span class="status-pill status-${b.Status}">${STATUS_LABELS[b.Status] || b.Status}</span></td>
+            <td>
+              ${(b.Status === "confirmed" || b.Status === "completed") ? `<a href="${mentor.MeetingLink}" target="_blank" class="btn btn-ghost" style="padding:6px 14px">رابط الميتينج</a>` : "—"}
+              ${b.Status === "pending_confirmation" ? `<span class="field-hint">BOSLA بتراجع الإيصال دلوقتي</span>` : ""}
+              ${b.PaymentScreenshotURL ? `<a href="${b.PaymentScreenshotURL}" target="_blank" class="field-hint" style="text-decoration:underline">إيصال الدفع</a>` : ""}
+            </td>
+            <td>${completionActionCell(b, true)}</td>
+          </tr>
+        `).join("")}</tbody>
       </table>
     ` : `<div class="empty-state">لسه مفيش حجوزات.</div>`}
   `;
@@ -110,7 +132,7 @@ async function renderMenteeDashboard(user, mentee) {
     <p class="section-sub">حجوزاتك مع المرشدين</p>
     ${bookings.length ? `
       <table>
-        <thead><tr><th>المرشد</th><th>الميعاد</th><th>الحالة</th><th>إجراء</th></tr></thead>
+        <thead><tr><th>المرشد</th><th>الميعاد</th><th>الحالة</th><th>الميتينج</th><th>تأكيد إتمام الجلسة</th></tr></thead>
         <tbody>${bookings.map(b => `
           <tr>
             <td>${b.MentorName}</td>
@@ -120,10 +142,8 @@ async function renderMenteeDashboard(user, mentee) {
               ${(b.Status === "confirmed" || b.Status === "completed") && mentorLinks[b.MentorUID]
                 ? `<a href="${mentorLinks[b.MentorUID]}" target="_blank" class="btn btn-primary" style="padding:6px 14px">ادخل الميتينج</a>`
                 : "—"}
-              ${b.Status === "confirmed"
-                ? `<button class="btn btn-ghost" style="padding:6px 14px" onclick="confirmSessionDone('${b.BookingID}')">أكدت إن الجلسة اتعملت</button>`
-                : ""}
             </td>
+            <td>${completionActionCell(b, false)}</td>
           </tr>
         `).join("")}</tbody>
       </table>
