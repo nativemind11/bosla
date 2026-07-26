@@ -61,6 +61,20 @@ function render() {
   loadTab("bookings");
 }
 
+async function confirmPayment(bookingId) {
+  if (!confirm("متأكد إنك استلمت الفلوس فعلاً على إنستاباي BOSLA؟")) return;
+  await apiPost("confirmBooking", { bookingId });
+  showToast("اتأكد الحجز وهيتبعت رابط الميتينج للمستفيد");
+  loadTab("bookings");
+}
+
+async function markPaidOut(bookingId) {
+  if (!confirm("متأكد إنك حولت نصيب المرشد فعلاً؟")) return;
+  await apiPost("markMentorPaidOut", { bookingId });
+  showToast("تم تسجيل التحويل");
+  loadTab("bookings");
+}
+
 async function loadTab(name) {
   const body = document.getElementById("tab-body");
   body.innerHTML = `<div class="spinner">بيحمل...</div>`;
@@ -69,13 +83,24 @@ async function loadTab(name) {
     const bookings = await apiGet("getAllBookings");
     body.innerHTML = bookings.length ? `
       <table>
-        <thead><tr><th>#</th><th>المرشد</th><th>المستفيد</th><th>المجال</th><th>الميعاد</th><th>الحالة</th><th>إيصال</th></tr></thead>
+        <thead><tr><th>#</th><th>المرشد</th><th>المستفيد</th><th>المجال</th><th>الميعاد</th><th>الحالة</th><th>إيصال</th><th>عمولة BOSLA</th><th>نصيب المرشد</th><th>تحويل المرشد</th></tr></thead>
         <tbody>${bookings.map(b => `
           <tr>
             <td>${b.BookingID}</td><td>${b.MentorName}</td><td>${b.MenteeName}</td>
             <td>${b.Field}</td><td>${b.SlotDateTime}</td>
             <td><span class="status-pill status-${b.Status}">${STATUS_LABELS[b.Status] || b.Status}</span></td>
-            <td>${b.PaymentScreenshotURL ? `<a href="${b.PaymentScreenshotURL}" target="_blank">عرض</a>` : "—"}</td>
+            <td>${b.PaymentScreenshotURL
+              ? `<a href="${b.PaymentScreenshotURL}" target="_blank">عرض</a>${b.Status === "pending_confirmation" ? `<br><button class="btn btn-primary" style="padding:4px 10px; margin-top:6px" onclick="confirmPayment('${b.BookingID}')">تأكيد استلام الفلوس</button>` : ""}`
+              : "—"}</td>
+            <td>${b.PlatformCommission ? b.PlatformCommission + ' ج.م' : "—"}</td>
+            <td>${b.MentorPayout ? b.MentorPayout + ' ج.م' : "—"}</td>
+            <td>${
+              !b.MentorPayout ? "—"
+              : b.MentorPaidOutAt ? `<span class="field-hint">اتحول ✅</span>`
+              : b.Status === "completed"
+                ? `<button class="btn btn-primary" style="padding:6px 14px" onclick="markPaidOut('${b.BookingID}')">تم التحويل للمرشد</button>`
+                : `<span class="field-hint">مستني تأكيد الجلسة</span>`
+            }</td>
           </tr>
         `).join("")}</tbody>
       </table>
