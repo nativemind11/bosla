@@ -157,9 +157,16 @@ async function renderMentorDashboard(user, mentor) {
   const ratingHtml = reviewsData && reviewsData.count > 0
     ? `<span class="stars">${starsText(reviewsData.avg)}</span> <strong>${reviewsData.avg}</strong> <span class="field-hint" style="margin:0">(${reviewsData.count} تقييم)</span>`
     : `<span class="field-hint" style="margin:0">لسه مفيش تقييمات عليك</span>`;
+  const employerLine = employerExperienceLine(mentor.Employer, mentor.YearsOfExperience);
   container.innerHTML = `
-    <h2 class="section-title">أهلاً ${mentor.Name}</h2>
-    <p class="section-sub">${mentor.Field} · ${mentor.Specialization} — ${Number(mentor.Price) > 0 ? mentor.Price + ' ج.م' : 'مجانًا'}</p>
+    <div class="mentor-header-flex" style="margin-bottom:8px">
+      ${avatarHtml(mentor.Name, mentor.ProfilePhotoURL, "mentor-avatar-lg")}
+      <div>
+        <h2 class="section-title" style="margin-bottom:2px">أهلاً ${mentor.Name}</h2>
+        <p class="section-sub" style="margin-bottom:2px">${mentor.Field} · ${mentor.Specialization} — ${Number(mentor.Price) > 0 ? mentor.Price + ' ج.م' : 'مجانًا'}</p>
+        ${employerLine ? `<span class="mentor-meta-line">🏢 ${employerLine}</span>` : ""}
+      </div>
+    </div>
     <div class="card" style="margin-bottom:30px">
       <strong>رابط الميتينج الحالي:</strong> ${mentor.MeetingLink}<br>
       <strong>المواعيد المتاحة:</strong> ${mentor.Availability || "—"}<br>
@@ -197,8 +204,14 @@ async function renderMenteeDashboard(user, mentee) {
   }));
 
   container.innerHTML = `
-    <h2 class="section-title">أهلاً ${mentee.Name}</h2>
-    <p class="section-sub">حجوزاتك مع المرشدين</p>
+    <div class="mentor-header-flex" style="margin-bottom:8px">
+      ${avatarHtml(mentee.Name, mentee.ProfilePhotoURL, "mentor-avatar-lg")}
+      <div>
+        <h2 class="section-title" style="margin-bottom:2px">أهلاً ${mentee.Name}</h2>
+        <p class="section-sub" style="margin-bottom:2px">حجوزاتك مع المرشدين</p>
+      </div>
+    </div>
+    ${mentee.EmployerOrSchool ? `<span class="mentor-meta-line" style="margin-bottom:20px">🏢 ${escapeHtml(mentee.EmployerOrSchool)}</span>` : ""}
     ${bookings.length ? `
       <table>
         <thead><tr><th>المرشد</th><th>الميعاد</th><th>الحالة</th><th>الميتينج</th><th>تأكيد إتمام الجلسة</th><th>تقييمك</th></tr></thead>
