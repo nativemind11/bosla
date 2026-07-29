@@ -6,6 +6,132 @@
 <title>سجل كمرشد — BOSLA</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<style>
+  /* ===== Companies Dropdown Styles ===== */
+  .companies-combobox {
+    position: relative;
+  }
+  .companies-input-wrapper {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .companies-input-wrapper input {
+    flex: 1;
+  }
+  .companies-dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid var(--line);
+    border-top: none;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 10;
+    display: none;
+    border-radius: 0 0 8px 8px;
+  }
+  .companies-dropdown-list.show {
+    display: block;
+  }
+  .company-option {
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+  }
+  .company-option:hover {
+    background: var(--purple-50);
+  }
+  .company-option.selected {
+    background: var(--purple-100);
+    color: var(--purple);
+    font-weight: 600;
+  }
+  .company-option:last-child {
+    border-bottom: none;
+  }
+  .company-option.add-new {
+    color: var(--purple);
+    font-weight: 600;
+    background: var(--purple-50);
+  }
+
+  /* ===== Time Slot Scheduler Styles ===== */
+  .schedule-selector {
+    margin-top: 12px;
+  }
+  .days-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .day-btn {
+    padding: 10px;
+    border: 2px solid var(--line);
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 14px;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .day-btn:hover {
+    border-color: var(--purple);
+    color: var(--purple);
+  }
+  .day-btn.active {
+    background: var(--purple);
+    border-color: var(--purple);
+    color: white;
+  }
+  .times-wrapper {
+    margin-top: 12px;
+  }
+  .time-slots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 8px;
+  }
+  .time-slot-btn {
+    padding: 8px 6px;
+    border: 2px solid var(--line);
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 400;
+    font-size: 13px;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .time-slot-btn:hover {
+    border-color: var(--purple);
+    color: var(--purple);
+  }
+  .time-slot-btn.selected {
+    background: var(--purple);
+    border-color: var(--purple);
+    color: white;
+  }
+  .schedule-summary {
+    margin-top: 16px;
+    padding: 12px;
+    background: var(--purple-50);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--gray);
+  }
+  .schedule-summary strong {
+    color: var(--purple);
+  }
+  .schedule-item {
+    margin: 4px 0;
+  }
+</style>
 </head>
 <body>
 <header id="bosla-header"></header>
@@ -79,7 +205,14 @@
       <div class="form-row">
         <div>
           <label>جهة العمل الحالية</label>
-          <input type="text" id="employer" placeholder="مثال: اسم الشركة أو الجهة">
+          <div class="companies-combobox" id="companies-wrapper">
+            <div class="companies-input-wrapper">
+              <input type="text" id="employer-input" placeholder="ابحث أو اكتب شركة جديدة" autocomplete="off">
+              <button type="button" id="clear-employer-btn" class="btn btn-ghost" style="padding:8px 12px; display:none;">✕</button>
+            </div>
+            <div class="companies-dropdown-list" id="companies-list"></div>
+          </div>
+          <input type="hidden" id="employer">
         </div>
         <div>
           <label>سنوات الخبرة</label>
@@ -115,7 +248,31 @@
       <div class="field-hint">نفس الرابط ده هيتبعت لكل مستفيد بيحجز معاك بعد ما تأكد الحجز</div>
 
       <label>المواعيد المتاحة أسبوعيًا</label>
-      <textarea id="availability" rows="2" placeholder="مثال: السبت والاثنين من 6 لـ9 مساءً"></textarea>
+      <div class="schedule-selector">
+        <label style="display:block; margin-bottom:12px; font-weight:600; font-size:14px">اختار الأيام والأوقات اللي أنت متاح فيها:</label>
+        
+        <div class="days-selector" id="days-selector">
+          <button type="button" class="day-btn" data-day="السبت">السبت</button>
+          <button type="button" class="day-btn" data-day="الأحد">الأحد</button>
+          <button type="button" class="day-btn" data-day="الاثنين">الاثنين</button>
+          <button type="button" class="day-btn" data-day="الثلاثاء">الثلاثاء</button>
+          <button type="button" class="day-btn" data-day="الأربعاء">الأربعاء</button>
+          <button type="button" class="day-btn" data-day="الخميس">الخميس</button>
+          <button type="button" class="day-btn" data-day="الجمعة">الجمعة</button>
+        </div>
+
+        <div class="times-wrapper" id="times-wrapper" style="display:none;">
+          <label style="display:block; margin-bottom:8px; font-weight:600; font-size:14px">أوقات يوم <span id="selected-day-name"></span>:</label>
+          <div class="time-slots-grid" id="time-slots"></div>
+        </div>
+
+        <div class="schedule-summary" id="schedule-summary" style="display:none;">
+          <div style="margin-bottom:6px">📅 المواعيد المختارة:</div>
+          <div id="schedule-list"></div>
+        </div>
+      </div>
+
+      <input type="hidden" id="availability">
 
       <div class="wizard-nav">
         <button type="button" class="btn btn-ghost btn-block" id="back-3">السابق</button>
@@ -131,9 +288,257 @@
 <script src="js/firebase-config.js"></script>
 <script src="js/app.js"></script>
 <script>
+
+// ===================== Companies Data Structure =====================
+// هيا بتكون مصدر البيانات (يمكن يتأتي من الإنترنت لاحقًا)
+const COMPANIES_DATA = {
+  "الهندسة": {
+    "مدني - إنشائي": ["أوراسكوم", "أوبتيماست", "ASEC", "أرابسكا", "موبكو", "شركة الجزيرة للتطوير", "هندسة النيل"],
+    "مدني - أشغال عامة وطرق": ["المقاولون العرب", "أوراسكوم", "شركة الصيانة العامة", "الرسمية للتعاقدات"],
+    "كهرباء - قوى وآلات كهربية": ["شركة مصر للكهرباء", "أوراسكوم", "EGSC", "الإسكندرية للكهرباء"],
+    "حاسبات ونظم - هندسة برمجيات": ["إيجيبت تك", "إنفتيك", "Oracle Egypt", "Google Egypt", "Vodafone Egypt", "Telecom Egypt", "IBM Egypt"],
+    "حاسبات ونظم - ذكاء اصطناعي وتعلم آلة": ["إيجيبت إيه آي", "Valeo Egypt", "Google Egypt", "Microsoft Egypt"],
+    "حاسبات ونظم - شبكات وأمن معلومات": ["Telecom Egypt", "Vodafone Egypt", "Etisalat Egypt", "EGSC", "Orange Egypt"],
+  },
+  "علوم الحاسب وتكنولوجيا المعلومات": {
+    "علوم حاسب": ["إيجيبت تك", "إنفتيك", "Google Egypt", "Microsoft Egypt", "Oracle Egypt", "IBM Egypt"],
+    "نظم معلومات": ["Telecom Egypt", "Vodafone Egypt", "Etisalat Egypt", "البنك الأهلي المصري", "بنك مصر"],
+    "ذكاء اصطناعي وعلم بيانات": ["إيجيبت إيه آي", "Google Egypt", "Microsoft Egypt", "Valeo Egypt"],
+    "أمن سيبراني": ["EGSC", "ITIDA", "Egypt Cyber Security", "Vodafone Egypt", "Telecom Egypt"],
+  },
+  "الطب البشري": {
+    "باطنة عامة": ["مستشفى 57357", "معهد ناصر", "مستشفى قصر العيني", "مستشفى السلام الدولي"],
+    "جراحة عامة": ["مستشفى 57357", "معهد ناصر", "مستشفى قصر العيني", "مستشفى شرم الشيخ الدولي"],
+    "أطفال وحديثي الولادة": ["مستشفى 57357", "مستشفى أبو الريش", "معهد ناصر", "مستشفى قصر العيني"],
+  },
+  "الصيدلة": {
+    "صيدلة إكلينيكية": ["الجمهورية", "الإسكندرية للأدوية", "كيميفارم", "مصر للأدوية"],
+    "صناعات دوائية": ["الجمهورية", "الإسكندرية للأدوية", "كيميفارم", "أدوية الكويت"],
+  },
+  "إدارة الأعمال": {
+    "تسويق": ["Vodafone Egypt", "Etisalat Egypt", "Nestlé Egypt", "Unilever Egypt", "Procter & Gamble Egypt"],
+    "موارد بشرية": ["Vodafone Egypt", "Google Egypt", "Microsoft Egypt", "Telecom Egypt", "البنك الأهلي المصري"],
+    "تمويل وإدارة مالية": ["البنك الأهلي المصري", "بنك مصر", "البنك التجاري الدولي", "بنك QNB"],
+  },
+  "المحاماة والحقوق": {
+    "قانون تجاري وشركات": ["مكتب الفايد للمحاماة", "نجيب ساويرس", "أنديرسون مندل"],
+    "قانون العمل وتأمينات اجتماعية": ["وزارة القوى العاملة", "مجلس نقابة المحامين"],
+  },
+};
+
+// ===================== Companies Dropdown Logic =====================
 const fieldSelect = document.getElementById("field");
 const specSelect = document.getElementById("specialization");
+const employerInput = document.getElementById("employer-input");
+const employerHidden = document.getElementById("employer");
+const companiesList = document.getElementById("companies-list");
+const clearBtn = document.getElementById("clear-employer-btn");
+
 populateFieldsSelect(fieldSelect);
+
+function updateCompaniesDropdown() {
+  const field = fieldSelect.value;
+  const spec = specSelect.value;
+  const input = employerInput.value.toLowerCase().trim();
+  
+  companiesList.innerHTML = "";
+  
+  if (!field || !spec) {
+    companiesList.classList.remove("show");
+    return;
+  }
+  
+  const fieldData = COMPANIES_DATA[field] || {};
+  const companies = fieldData[spec] || [];
+  
+  // إضافة خيار "إكتب شركة جديدة" في الأول
+  const addNewOption = document.createElement("div");
+  addNewOption.className = "company-option add-new";
+  addNewOption.innerHTML = `<strong>+ اكتب شركة جديدة</strong>: "${input || "اسم الشركة"}"`;
+  addNewOption.addEventListener("click", () => {
+    if (input.trim()) {
+      employerHidden.value = input.trim();
+      employerInput.value = input.trim();
+      employerInput.blur();
+      companiesList.classList.remove("show");
+      clearBtn.style.display = "inline-block";
+    }
+  });
+  companiesList.appendChild(addNewOption);
+  
+  // تصفية الشركات بناءً على ما كُتب
+  const filtered = companies.filter(c => c.toLowerCase().includes(input));
+  
+  if (filtered.length === 0 && !input) {
+    // لو مفيش بحث: اظهر أول 8 شركات
+    companies.slice(0, 8).forEach(company => {
+      const opt = document.createElement("div");
+      opt.className = "company-option";
+      if (company.toLowerCase() === employerHidden.value.toLowerCase()) {
+        opt.classList.add("selected");
+      }
+      opt.textContent = company;
+      opt.addEventListener("click", () => {
+        employerHidden.value = company;
+        employerInput.value = company;
+        employerInput.blur();
+        companiesList.classList.remove("show");
+        clearBtn.style.display = "inline-block";
+      });
+      companiesList.appendChild(opt);
+    });
+  } else {
+    // لو في بحث: اظهر النتائج الفلترة
+    filtered.forEach(company => {
+      const opt = document.createElement("div");
+      opt.className = "company-option";
+      if (company.toLowerCase() === employerHidden.value.toLowerCase()) {
+        opt.classList.add("selected");
+      }
+      opt.textContent = company;
+      opt.addEventListener("click", () => {
+        employerHidden.value = company;
+        employerInput.value = company;
+        employerInput.blur();
+        companiesList.classList.remove("show");
+        clearBtn.style.display = "inline-block";
+      });
+      companiesList.appendChild(opt);
+    });
+  }
+  
+  companiesList.classList.toggle("show", true);
+}
+
+employerInput.addEventListener("focus", updateCompaniesDropdown);
+employerInput.addEventListener("input", updateCompaniesDropdown);
+specSelect.addEventListener("change", updateCompaniesDropdown);
+
+clearBtn.addEventListener("click", () => {
+  employerHidden.value = "";
+  employerInput.value = "";
+  employerInput.focus();
+  clearBtn.style.display = "none";
+  updateCompaniesDropdown();
+});
+
+// إغلاق القائمة عند النقر خارجها
+document.addEventListener("click", (e) => {
+  if (!document.getElementById("companies-wrapper").contains(e.target)) {
+    companiesList.classList.remove("show");
+  }
+});
+
+// ===================== Time Slot Scheduler Logic =====================
+const daysSelector = document.getElementById("days-selector");
+const timesWrapper = document.getElementById("times-wrapper");
+const selectedDayName = document.getElementById("selected-day-name");
+const timeSlots = document.getElementById("time-slots");
+const scheduleList = document.getElementById("schedule-list");
+const scheduleSummary = document.getElementById("schedule-summary");
+const availabilityHidden = document.getElementById("availability");
+
+const WORK_HOURS = ["6:00 صباحًا", "6:15 صباحًا", "6:30 صباحًا", "6:45 صباحًا", 
+                     "7:00 صباحًا", "7:15 صباحًا", "7:30 صباحًا", "7:45 صباحًا",
+                     "8:00 صباحًا", "8:15 صباحًا", "8:30 صباحًا", "8:45 صباحًا",
+                     "9:00 صباحًا", "9:15 صباحًا", "9:30 صباحًا", "9:45 صباحًا",
+                     "10:00 صباحًا", "10:15 صباحًا", "10:30 صباحًا", "10:45 صباحًا",
+                     "11:00 صباحًا", "11:15 صباحًا", "11:30 صباحًا", "11:45 صباحًا",
+                     "12:00 ظهرًا", "12:15 ظهرًا", "12:30 ظهرًا", "12:45 ظهرًا",
+                     "1:00 مساءً", "1:15 مساءً", "1:30 مساءً", "1:45 مساءً",
+                     "2:00 مساءً", "2:15 مساءً", "2:30 مساءً", "2:45 مساءً",
+                     "3:00 مساءً", "3:15 مساءً", "3:30 مساءً", "3:45 مساءً",
+                     "4:00 مساءً", "4:15 مساءً", "4:30 مساءً", "4:45 مساءً",
+                     "5:00 مساءً", "5:15 مساءً", "5:30 مساءً", "5:45 مساءً",
+                     "6:00 مساءً", "6:15 مساءً", "6:30 مساءً", "6:45 مساءً",
+                     "7:00 مساءً", "7:15 مساءً", "7:30 مساءً", "7:45 مساءً",
+                     "8:00 مساءً", "8:15 مساءً", "8:30 مساءً", "8:45 مساءً",
+                     "9:00 مساءً", "9:15 مساءً", "9:30 مساءً", "9:45 مساءً",
+                     "10:00 مساءً", "10:15 مساءً", "10:30 مساءً", "10:45 مساءً"];
+
+let selectedSchedule = {}; // { "السبت": ["6:00 صباحًا", "6:15 صباحًا"], ... }
+
+function renderTimeSlots() {
+  timeSlots.innerHTML = "";
+  WORK_HOURS.forEach(time => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "time-slot-btn";
+    btn.textContent = time;
+    
+    const currentDay = Array.from(daysSelector.querySelectorAll(".day-btn")).find(b => b.classList.contains("active"))?.dataset.day;
+    if (currentDay && selectedSchedule[currentDay]?.includes(time)) {
+      btn.classList.add("selected");
+    }
+    
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const day = Array.from(daysSelector.querySelectorAll(".day-btn")).find(b => b.classList.contains("active"))?.dataset.day;
+      if (!day) return;
+      
+      if (!selectedSchedule[day]) selectedSchedule[day] = [];
+      
+      if (selectedSchedule[day].includes(time)) {
+        selectedSchedule[day] = selectedSchedule[day].filter(t => t !== time);
+      } else {
+        selectedSchedule[day].push(time);
+      }
+      
+      if (selectedSchedule[day].length === 0) {
+        delete selectedSchedule[day];
+      }
+      
+      renderTimeSlots();
+      updateScheduleSummary();
+    });
+    
+    timeSlots.appendChild(btn);
+  });
+}
+
+function updateScheduleSummary() {
+  const hasDays = Object.keys(selectedSchedule).length > 0;
+  if (!hasDays) {
+    scheduleSummary.style.display = "none";
+    availabilityHidden.value = "";
+    return;
+  }
+  
+  scheduleSummary.style.display = "block";
+  let summary = "";
+  const daysOrder = ["السبت", "الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];
+  
+  daysOrder.forEach(day => {
+    if (selectedSchedule[day] && selectedSchedule[day].length > 0) {
+      summary += `<div class="schedule-item"><strong>${day}:</strong> ${selectedSchedule[day].join(" ، ")}</div>`;
+    }
+  });
+  
+  scheduleList.innerHTML = summary;
+  
+  // حفظ في الـ hidden field بصيغة: "السبت: 6:00 صباحًا، 6:15 صباحًا | الأحد: ..."
+  const formatted = daysOrder
+    .filter(d => selectedSchedule[d])
+    .map(d => `${d}: ${selectedSchedule[d].join("، ")}`)
+    .join(" | ");
+  availabilityHidden.value = formatted;
+}
+
+// اختيار اليوم
+daysSelector.addEventListener("click", (e) => {
+  if (e.target.classList.contains("day-btn")) {
+    daysSelector.querySelectorAll(".day-btn").forEach(b => b.classList.remove("active"));
+    e.target.classList.add("active");
+    selectedDayName.textContent = e.target.dataset.day;
+    timesWrapper.style.display = "block";
+    renderTimeSlots();
+    
+    // تمرير الفوكس للتمرير السريع عبر الأوقات
+    document.querySelector(".time-slot-btn")?.focus();
+  }
+});
+
+// ===================== Field-Specialization بقية =====================
 fieldSelect.addEventListener("change", () => populateSpecializationsSelect(fieldSelect.value, specSelect));
 
 document.querySelectorAll('input[name="priceType"]').forEach(r => {
@@ -179,8 +584,7 @@ photoInput.addEventListener("change", () => {
   reader.readAsDataURL(file);
 });
 
-// ===================== مؤشر قوة كلمة المرور (لايف) =====================
-// بيعكس نفس القواعد المستخدمة في السيرفر (validatePasswordStrength_) بالظبط
+// ===================== مؤشر قوة كلمة المرور =====================
 function computePasswordStrength(pwd) {
   const len = pwd.length;
   const hasLower = /[a-z]/.test(pwd);
@@ -268,6 +672,9 @@ document.getElementById("reg-form").addEventListener("submit", async (e) => {
   if (priceType === "paid" && !document.getElementById("price").value) {
     showToast("حدد سعر الجلسة أو اختار مجانًا", "error"); return;
   }
+  if (!availabilityHidden.value) {
+    showToast("اختار الأقل يوم واحد وساعة واحدة للمواعيد", "error"); return;
+  }
 
   const btn = document.getElementById("reg-btn");
   btn.disabled = true; btn.textContent = "بيتم الإنشاء...";
@@ -277,18 +684,17 @@ document.getElementById("reg-form").addEventListener("submit", async (e) => {
   const password = pwInput.value;
   const field = fieldSelect.value;
   const specialization = specSelect.value;
-  const employer = document.getElementById("employer").value;
+  const employer = employerHidden.value;
   const yearsOfExperience = document.getElementById("yearsOfExperience").value;
   const price = priceType === "free" ? 0 : (document.getElementById("price").value || 0);
   const instapay = document.getElementById("instapay").value;
   const bio = document.getElementById("bio").value;
-  const availability = document.getElementById("availability").value;
+  const availability = availabilityHidden.value;
 
   try {
     const cred = await auth.createUserWithEmailAndPassword(email, password);
     await cred.user.updateProfile({ displayName: name });
 
-    // رفع صورة البروفايل (لو المستخدم اختار صورة) قبل ما نبعت بيانات التسجيل
     let profilePhotoUrl = "";
     if (selectedPhotoFile) {
       try {
