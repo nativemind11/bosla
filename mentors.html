@@ -60,19 +60,20 @@ specSelect.addEventListener("change", render);
 levelSelect.addEventListener("change", render);
 
 function mentorCard(m) {
-  const initial = (m.Name || "?").charAt(0);
   const priceHtml = Number(m.Price) > 0
     ? `<span class="price-tag">${m.Price} ج.م / الجلسة</span>`
     : `<span class="badge badge-free">مجانًا</span>`;
   const ratingHtml = Number(m.ReviewCount) > 0
     ? `<span class="rating-line"><span class="stars">${starsText(m.AvgRating)}</span> <strong>${m.AvgRating}</strong> <span class="field-hint" style="margin:0">(${m.ReviewCount} تقييم)</span></span>`
     : `<span class="field-hint" style="margin:0">لسه مفيش تقييمات</span>`;
+  const employerLine = employerExperienceLine(m.Employer, m.YearsOfExperience);
   return `
     <div class="mentor-card">
-      <div class="mentor-avatar">${initial}</div>
+      ${avatarHtml(m.Name, m.ProfilePhotoURL)}
       <strong style="font-size:17px">${escapeHtml(m.Name)}</strong>
       <span class="badge">${escapeHtml(m.Field)} · ${escapeHtml(m.Specialization)}</span>
       <span class="field-hint" style="margin:0">${escapeHtml(m.Level || "")}</span>
+      ${employerLine ? `<span class="mentor-meta-line">🏢 ${employerLine}</span>` : ""}
       ${ratingHtml}
       <p style="font-size:14px; color:var(--gray); min-height:40px">${escapeHtml(m.Bio) || "مرشد في " + escapeHtml(m.Field)}</p>
       ${priceHtml}
