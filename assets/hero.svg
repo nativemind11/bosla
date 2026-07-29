@@ -1,0 +1,64 @@
+<svg viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="جلسة إرشاد بين مرشد وباحث عن إرشاد">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F7F3FE"/>
+      <stop offset="100%" stop-color="#EDE4FB"/>
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7C3AED"/>
+      <stop offset="100%" stop-color="#2E1065"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="600" rx="28" fill="url(#bgGrad)"/>
+
+  <!-- decorative dashed path from mentee (right) to mentor (left) -->
+  <path d="M 940 300 C 760 180, 470 420, 270 300" fill="none" stroke="#7C3AED" stroke-width="3" stroke-dasharray="2 14" stroke-linecap="round" opacity="0.55"/>
+
+  <!-- compass mark at the center of the journey -->
+  <g transform="translate(600,255) scale(1.7)">
+    <circle cx="0" cy="0" r="29" fill="#FFFFFF" stroke="#6D28D9" stroke-width="3.5"/>
+    <g stroke="#6D28D9" stroke-width="2.5" stroke-linecap="round">
+      <line x1="0" y1="-26" x2="0" y2="-20.5"/>
+      <line x1="0" y1="20.5" x2="0" y2="26"/>
+      <line x1="-26" y1="0" x2="-20.5" y2="0"/>
+      <line x1="20.5" y1="0" x2="26" y2="0"/>
+    </g>
+    <g transform="rotate(45)">
+      <polygon points="0,-20 6,0 0,0" fill="#F5A623"/>
+      <polygon points="0,-20 -6,0 0,0" fill="#F7D9A0"/>
+      <polygon points="0,20 6,0 0,0" fill="#2E1065"/>
+      <polygon points="0,20 -6,0 0,0" fill="#5B21B6"/>
+    </g>
+    <circle cx="0" cy="0" r="4" fill="#FFFFFF" stroke="#2E1065" stroke-width="2"/>
+  </g>
+
+  <!-- Mentor figure (left) - experienced, calm, radiating rings -->
+  <g transform="translate(230,340)">
+    <circle cx="0" cy="0" r="70" fill="url(#ringGrad)" opacity="0.08"/>
+    <circle cx="0" cy="0" r="50" fill="url(#ringGrad)" opacity="0.12"/>
+    <path d="M -46 60 C -46 5, -10 -22, 0 -22 C 10 -22, 46 5, 46 60 Z" fill="#5B21B6"/>
+    <circle cx="0" cy="-56" r="30" fill="#F7D9A0"/>
+    <path d="M -30 -60 C -30 -84, 30 -84, 30 -60 C 30 -76, -30 -76, -30 -60 Z" fill="#2E1065"/>
+    <rect x="-30" y="18" width="60" height="10" rx="5" fill="#F5A623"/>
+  </g>
+
+  <!-- Mentee figure (right) - curious, looking forward -->
+  <g transform="translate(960,340)">
+    <circle cx="0" cy="0" r="70" fill="#F5A623" opacity="0.08"/>
+    <path d="M -42 58 C -42 6, -9 -20, 0 -20 C 9 -20, 42 6, 42 58 Z" fill="#7C3AED"/>
+    <circle cx="0" cy="-54" r="28" fill="#F7D9A0"/>
+    <path d="M -28 -58 C -20 -76, 20 -76, 28 -58 C 20 -68, -20 -68, -28 -58 Z" fill="#2E1065"/>
+    <circle cx="34" cy="-4" r="20" fill="#FFFFFF" stroke="#7C3AED" stroke-width="3"/>
+    <text x="34" y="4" font-family="Cairo, sans-serif" font-size="24" font-weight="800" fill="#5B21B6" text-anchor="middle">؟</text>
+  </g>
+
+  <!-- floating call/session bubble above the compass -->
+  <g transform="translate(600,120)">
+    <rect x="-90" y="-38" width="180" height="76" rx="20" fill="#FFFFFF" stroke="#EDE4FB" stroke-width="2"/>
+    <circle cx="-52" cy="0" r="16" fill="#E5F7EC"/>
+    <path d="M -58 0 l 5 6 l 9 -12" fill="none" stroke="#1B8A4C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="-24" y="-10" width="96" height="8" rx="4" fill="#EDE4FB"/>
+    <rect x="-24" y="8" width="66" height="8" rx="4" fill="#EDE4FB"/>
+  </g>
+</svg>
