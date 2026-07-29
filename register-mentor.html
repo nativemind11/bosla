@@ -37,10 +37,24 @@
     display: block;
   }
   .company-option {
-    padding: 12px 16px;
+    padding: 10px 16px;
     cursor: pointer;
     border-bottom: 1px solid var(--line);
     font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .company-logo {
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    border-radius: 6px;
+    object-fit: contain;
+    background: #fff;
+    border: 1px solid var(--line);
+    padding: 2px;
+    flex-shrink: 0;
   }
   .company-option:hover {
     background: var(--purple-50);
@@ -353,6 +367,196 @@ const SPEC_COMPANIES = {
   "تمويل وإدارة مالية": ["البنك التجاري الدولي (CIB)", "بنك القاهرة", "بنك QNB الأهلي", "البنك العربي الأفريقي الدولي (AAIB)", "أليانز مصر (Allianz Egypt)", "مصر للتأمين", "ميت لايف مصر (MetLife/Alico)", "AXA Egypt", "GIG Egypt (Gulf Insurance Group)", "HSBC Egypt"],
 };
 
+const COMPANY_LOGO_DOMAINS = {
+  "أوراسكوم للإنشاء والصناعة": "orascomconstruction.com",
+  "أوراسكوم كونستراكشون": "orascomconstruction.com",
+  "أوراسكوم": "orascom.com",
+  "أوراسكوم للاستثمار": "orascomdh.com",
+  "إعمار مصر للتطوير العقاري (Emaar Misr)": "emaarmisr.com",
+  "أورا للتطوير العقاري (Ora Developments)": "ora.eg",
+  "الأهلي صبور للتطوير العقاري (Al Ahly Sabbour)": "alahlysabbour.com",
+  "بالم هيلز للتطوير العقاري (Palm Hills)": "palmhillsdevelopments.com",
+  "تطوير مصر (Tatweer Misr)": "tatweermisr.com",
+  "حسن علام العقارية": "hassanallam.com",
+  "سوديك للتطوير العقاري (SODIC)": "sodic.com",
+  "سيتي إيدج للتطوير العمراني": "cityedgeegypt.com",
+  "طلعت مصطفى": "talaatmoustafa.com",
+  "لا فيستا للتطوير العقاري (La Vista)": "lavista-eg.com",
+  "ماونتن فيو للتطوير العقاري (Mountain View)": "mountainview.com.eg",
+  "مجموعة السويدي إليكتريك": "elsewedy.com",
+  "السويدي إليكتريك": "elsewedy.com",
+  "المقاولون العرب": "arabcont.com",
+  "AECOM": "aecom.com",
+  "Bechtel": "bechtel.com",
+  "Dar Al-Handasah": "dar.com",
+  "دار الهندسة (شاير وشركاه)": "dar.com",
+  "Hill International": "hillintl.com",
+  "Jacobs Engineering": "jacobs.com",
+  "KEO International Consultants": "keoic.com",
+  "Orascom Construction": "orascomconstruction.com",
+  "Siemens Egypt": "siemens.com",
+  "سيمنس مصر": "siemens.com",
+  "سيمنس مصر للطاقة": "siemens.com",
+  "سيمنس هيلثينيرز مصر": "siemens-healthineers.com",
+  "شنايدر إلكتريك مصر": "se.com",
+  "Schneider Electric Egypt": "se.com",
+  "WSP Global Egypt": "wsp.com",
+  "ABB Egypt": "abb.com",
+  "الشركة المصرية للاتصالات (WE)": "te.eg",
+  "فودافون مصر": "vodafone.com.eg",
+  "Vodafone Egypt": "vodafone.com.eg",
+  "VOIS Egypt (Vodafone Intelligent Solutions)": "vodafone.com.eg",
+  "فوري (Fawry)": "fawry.com",
+  "Fawry": "fawry.com",
+  "جيزة سيستمز (Giza Systems)": "gizasystems.com",
+  "لينك ديفلوبمنت (Link Development)": "linkdev.com",
+  "Link Development": "linkdev.com",
+  "هيئة تنمية صناعة تكنولوجيا المعلومات (ITIDA)": "itida.gov.eg",
+  "ITIDA": "itida.gov.eg",
+  "آي تي ووركس (ITWorx)": "itworx.com",
+  "ITWorx": "itworx.com",
+  "راية القابضة (Raya Holding)": "raya.com",
+  "Raya Holding": "raya.com",
+  "إكسيد (Xceed)": "xceed.me",
+  "Xceed": "xceed.me",
+  "Amazon Web Services Egypt": "aws.amazon.com",
+  "Cisco Egypt": "cisco.com",
+  "Dell Technologies Egypt": "dell.com",
+  "Etisalat Egypt": "etisalat.eg",
+  "Google Egypt": "google.com",
+  "IBM Egypt": "ibm.com",
+  "Instabug": "instabug.com",
+  "Intel Egypt": "intel.com",
+  "Microsoft Egypt": "microsoft.com",
+  "Orange Egypt": "orange.eg",
+  "Oracle Egypt": "oracle.com",
+  "SAP Egypt": "sap.com",
+  "Swvl": "swvl.com",
+  "Uber Egypt": "uber.com",
+  "Valeo Egypt": "valeo.com",
+  "فاليو مصر": "valeo.com",
+  "Vezeeta": "vezeeta.com",
+  "Huawei Egypt": "huawei.com",
+  "هواوي مصر": "huawei.com",
+  "Nokia Egypt": "nokia.com",
+  "Ericsson Egypt": "ericsson.com",
+  "Telecom Egypt": "te.eg",
+  "ZTE Egypt": "zte.com.cn",
+  "Kaspersky Egypt": "kaspersky.com",
+  "EGSC (الشركة المصرية للأمن السيبراني)": "egsc-eg.com",
+  "Si-Vision": "si-vision.com",
+  "Si-Ware Systems": "si-waresystems.com",
+  "Synopsys Egypt": "synopsys.com",
+  "Siemens EDA (Mentor Graphics Egypt)": "eda.sw.siemens.com",
+  "STMicroelectronics": "st.com",
+  "Analog Devices Egypt": "analog.com",
+  "Texas Instruments Egypt": "ti.com",
+  "Broadcom Egypt": "broadcom.com",
+  "MediaTek Egypt": "mediatek.com",
+  "بنك مصر": "banquemisr.com",
+  "البنك الأهلي المصري": "nbe.com.eg",
+  "البنك التجاري الدولي (CIB)": "cibeg.com",
+  "بنك القاهرة": "banqueducaire.com",
+  "بنك QNB الأهلي": "qnbalahli.com",
+  "البنك العربي الأفريقي الدولي (AAIB)": "aaib.com",
+  "HSBC Egypt": "hsbc.com.eg",
+  "Crédit Agricole Egypt": "ca-egypt.com",
+  "البنك المركزي المصري": "cbe.org.eg",
+  "إرنست ويونج مصر (EY Egypt)": "ey.com",
+  "برايس ووترهاوس كوبرز مصر (PwC Egypt)": "pwc.com",
+  "ديلويت مصر": "deloitte.com",
+  "كي بي إم جي مصر (KPMG Egypt)": "kpmg.com",
+  "بيكر تيلي مصر (Baker Tilly Egypt)": "bakertilly.com",
+  "جرانت ثورنتون مصر (Grant Thornton Egypt)": "grantthornton.com",
+  "أليانز مصر (Allianz Egypt)": "allianz.com.eg",
+  "AXA Egypt": "axa.com",
+  "GIG Egypt (Gulf Insurance Group)": "gig.com.eg",
+  "ميت لايف مصر (MetLife/Alico)": "metlife.com",
+  "مصر للتأمين": "misrins.com.eg",
+  "إيديتا للصناعات الغذائية (Edita)": "edita.com.eg",
+  "جهينة للصناعات الغذائية (Juhayna)": "juhayna.com",
+  "شركة جهينة للصناعات الغذائية (Juhayna)": "juhayna.com",
+  "جوميا مصر (Jumia Egypt)": "jumia.com.eg",
+  "دومتي (Domty)": "domty.com",
+  "شركة دومتي (Domty)": "domty.com",
+  "مجموعة العربي (Olympic Group)": "olympicgroup.com",
+  "Coca-Cola Egypt": "coca-cola.com",
+  "Kraft Heinz Egypt": "kraftheinzcompany.com",
+  "McKinsey & Company Egypt": "mckinsey.com",
+  "Mondelez Egypt": "mondelezinternational.com",
+  "Nestlé Egypt": "nestle.com",
+  "PepsiCo Egypt": "pepsico.com",
+  "Procter & Gamble Egypt": "pg.com",
+  "Unilever Egypt": "unilever.com",
+  "حديد عز": "ezzsteel.com",
+  "سيراميكا كليوباترا": "cleopatragroup.com",
+  "شركة عبور لاند للصناعات الغذائية (Obour Land)": "obourland.com",
+  "Amoun Pharmaceutical": "amoun.com",
+  "AstraZeneca Egypt": "astrazeneca.com",
+  "GSK Egypt": "gsk.com",
+  "Novartis Egypt": "novartis.com",
+  "Novo Nordisk Egypt": "novonordisk.com",
+  "Pfizer Egypt": "pfizer.com",
+  "Roche Egypt": "roche.com",
+  "Sanofi Egypt": "sanofi.com",
+  "صيدليات العزبي": "elezaby.com",
+  "صيدليات سيف": "seifpharmacy.com",
+  "مستشفى 57357": "57357.org",
+  "جنرال إلكتريك مصر (GE Healthcare)": "gehealthcare.com",
+  "فيليبس مصر للأجهزة الطبية": "philips.com",
+  "بي إم دبليو مصر": "bmw.com.eg",
+  "Stellantis Egypt": "stellantis.com",
+  "Hyundai Egypt (Ghabbour Auto)": "ghabbourauto.com",
+  "أكوا باور": "acwapower.com",
+  "مصدر (Masdar)": "masdar.ae",
+  "Vestas Egypt": "vestas.com",
+  "Siemens Gamesa Egypt": "siemensgamesa.com",
+  "GE Vernova Egypt": "gevernova.com",
+  "Apache Egypt": "apacorp.com",
+  "BP Egypt": "bp.com",
+  "Shell Egypt": "shell.com",
+  "ExxonMobil Egypt": "exxonmobil.com",
+  "Chevron Egypt": "chevron.com",
+  "إينى مصر (Eni Egypt)": "eni.com",
+  "Centamin Egypt": "centamin.com",
+  "Rosatom Egypt": "rosatom.ru",
+  "اليوم السابع": "youm7.com",
+  "الأهرام": "ahram.org.eg",
+  "أخبار اليوم": "akhbarelyom.com",
+  "المصري اليوم": "almasryalyoum.com",
+  "صدى البلد": "elbalad.news",
+  "قناة CBC": "cbc.eg",
+  "قناة DMC": "dmc.eg",
+  "قناة إم بي سي مصر (MBC Egypt)": "mbc.net",
+  "الجامعة الأمريكية بالقاهرة": "aucegypt.edu",
+  "دار نشر الشروق": "shorouk.com",
+  "شركة ترافكو للسياحة": "travco.com",
+  "فنادق ستيجنبرجر": "steigenberger.com",
+  "فندق فورسيزونز": "fourseasons.com",
+  "فندق ماريوت القاهرة": "marriott.com",
+  "فنادق موفنبيك": "movenpick.com",
+  "نادي الأهلي": "ahlyegypt.com",
+  "نادي الزمالك": "zamalekclub.net",
+  "الاتحاد المصري لكرة القدم": "efa.eg",
+  "مكتب معتوق بسيوني وحناوي (Matouk Bassiouny)": "matoukbassiouny.com",
+  "مكتب الشلقاني للمحاماة (Shalakany Law Office)": "shalakany.com",
+  "اليونيسف مصر": "unicef.org",
+};
+
+// دالة بتجيب لوجو الشركة (لو معروف الدومين بتاعها)، ولو مش معروف بترجع أيقونة افتراضية
+const FALLBACK_LOGO = "data:image/svg+xml;utf8," + encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+  <rect width="40" height="40" rx="8" fill="#EDE4FB"/>
+  <path d="M12 28V14a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v14M22 28v-9a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v9" stroke="#5B21B6" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
+  <path d="M15 17h1M15 20h1M15 23h1M25 21h1M25 24h1" stroke="#5B21B6" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M9 28h22" stroke="#5B21B6" stroke-width="1.6" stroke-linecap="round"/>
+</svg>`);
+
+function getCompanyLogoUrl(name) {
+  const domain = COMPANY_LOGO_DOMAINS[name];
+  return domain ? `https://logo.clearbit.com/${domain}?size=64` : FALLBACK_LOGO;
+}
+
 // تجميع شركات المجال + التخصص وترتيبهم أبجديًا
 function getCompaniesFor(field, spec) {
   const base = FIELD_COMPANIES[field] || [];
@@ -422,7 +626,8 @@ function updateCompaniesDropdown() {
       if (company.toLowerCase() === employerHidden.value.toLowerCase()) {
         opt.classList.add("selected");
       }
-      opt.textContent = company;
+      const logoUrl = getCompanyLogoUrl(company);
+      opt.innerHTML = `<img class="company-logo" src="${logoUrl}" alt="" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_LOGO}';"><span>${escapeHtml(company)}</span>`;
       opt.addEventListener("click", () => selectCompanyOption(company));
       companiesList.appendChild(opt);
     });
