@@ -33,6 +33,24 @@ function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
+// بناء دائرة صورة البروفايل (بترجع صورة حقيقية لو موجودة، وإلا أول حرف من الاسم)
+function avatarHtml(name, photoUrl, sizeClass = "") {
+  const initial = escapeHtml((name || "?").trim().charAt(0) || "?");
+  const cls = "mentor-avatar" + (sizeClass ? " " + sizeClass : "");
+  if (photoUrl) {
+    return `<div class="${cls}"><img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(name || "")}" loading="lazy"></div>`;
+  }
+  return `<div class="${cls}">${initial}</div>`;
+}
+
+// نص جهة العمل/الدراسة + سنوات الخبرة كسطر واحد (بيتخطى أي حقل فاضي)
+function employerExperienceLine(employer, years) {
+  const parts = [];
+  if (employer) parts.push(escapeHtml(employer));
+  if (years !== undefined && years !== null && years !== "") parts.push(`${escapeHtml(String(years))} سنين خبرة`);
+  return parts.join(" · ");
+}
+
 // بناء نص نجوم للتقييم (مثال: ★★★★☆)
 function starsText(rating) {
   const r = Math.round(Number(rating) || 0);
