@@ -1,16 +1,31 @@
 :root {
-  --purple-900: #2E1065;
+  /* ألوان النظام الأساسية (Design System) — استخدم هذه المتغيرات في أي CSS جديد
+     بدل كتابة قيم Hex مباشرة، عشان لو غيّرنا الهوية البصرية نغيرها من مكان واحد */
+  --primary: #6D28D9;        /* اللون الأساسي — أزرار، روابط، عناصر تفاعلية */
+  --primary-dark: #2E1065;   /* للعناوين الكبيرة والفوتر */
+  --primary-light: #7C3AED;
+  --secondary: #F5A623;      /* اللون الثانوي (لون إبرة البوصلة) — تمييز واهتمام */
+  --secondary-light: #F7D9A0;
+  --success: #1B8A4C;
+  --success-bg: #E5F7EC;
+  --error: #B3261E;
+  --error-bg: #FBE3E3;
+
+  /* الأسماء القديمة لسه شغالة (alias) عشان مايحصلش كسر في أي كود مكتوب بيها قبل كده */
+  --purple-900: var(--primary-dark);
   --purple-700: #5B21B6;
-  --purple-600: #6D28D9;
-  --purple-500: #7C3AED;
+  --purple-600: var(--primary);
+  --purple-500: var(--primary-light);
   --purple-100: #EDE4FB;
   --purple-50: #F7F3FE;
+
   --ink: #1E1B29;
   --gray: #6B6577;
   --line: #E7E1F2;
   --white: #FFFFFF;
   --radius: 14px;
   --shadow: 0 8px 24px rgba(91, 33, 182, 0.10);
+  --shadow-lg: 0 16px 40px rgba(46, 16, 101, 0.16);
 }
 
 * { box-sizing: border-box; }
@@ -47,12 +62,16 @@ img { max-width: 100%; display: block; }
   gap: 20px;
 }
 .logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 800;
   font-size: 24px;
   color: var(--purple-700);
   letter-spacing: -0.5px;
 }
 .logo span { color: var(--purple-500); }
+.logo img { width: 30px; height: 30px; display: block; }
 .nav-links { display: flex; gap: 28px; font-weight: 600; color: var(--gray); }
 .nav-links a:hover { color: var(--purple-700); }
 .nav-auth { display: flex; gap: 12px; }
@@ -87,9 +106,16 @@ img { max-width: 100%; display: block; }
 /* ===== Hero ===== */
 .hero {
   background: linear-gradient(180deg, var(--purple-50) 0%, var(--white) 100%);
-  padding: 90px 0 70px;
-  text-align: center;
+  padding: 80px 0 70px;
 }
+.hero .container {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  align-items: center;
+  gap: 40px;
+  text-align: right;
+}
+.hero-image { width: 100%; height: auto; }
 .eyebrow {
   display: inline-block;
   background: var(--purple-100);
@@ -103,13 +129,19 @@ img { max-width: 100%; display: block; }
 .hero h1 {
   font-size: 46px;
   font-weight: 800;
-  max-width: 760px;
-  margin: 0 auto 18px;
+  margin: 0 0 18px;
   color: var(--purple-900);
   line-height: 1.35;
 }
-.hero p { font-size: 18px; color: var(--gray); max-width: 560px; margin: 0 auto 32px; }
-.hero-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.hero p { font-size: 18px; color: var(--gray); max-width: 520px; margin: 0 0 32px; }
+.hero-actions { display: flex; gap: 14px; justify-content: flex-start; flex-wrap: wrap; }
+
+@media (max-width: 900px) {
+  .hero .container { grid-template-columns: 1fr; text-align: center; }
+  .hero p { margin: 0 auto 32px; }
+  .hero-actions { justify-content: center; }
+  .hero-image { max-width: 420px; margin: 0 auto; }
+}
 
 /* ===== Cards / Grid ===== */
 .grid { display: grid; gap: 24px; }
@@ -120,8 +152,13 @@ img { max-width: 100%; display: block; }
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 28px;
+  transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
 }
-.card:hover { box-shadow: var(--shadow); }
+.card:hover {
+  box-shadow: var(--shadow);
+  border-color: var(--purple-100);
+  transform: translateY(-2px);
+}
 .step-num {
   width: 36px; height: 36px;
   border-radius: 50%;
@@ -143,6 +180,12 @@ h2.section-title { font-size: 32px; font-weight: 800; color: var(--purple-900); 
   display: flex;
   flex-direction: column;
   gap: 10px;
+  transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+}
+.mentor-card:hover {
+  box-shadow: var(--shadow);
+  border-color: var(--purple-100);
+  transform: translateY(-2px);
 }
 .mentor-avatar {
   width: 56px; height: 56px; border-radius: 50%;
@@ -160,7 +203,7 @@ h2.section-title { font-size: 32px; font-weight: 800; color: var(--purple-900); 
   color: var(--purple-700);
   width: fit-content;
 }
-.badge-free { background: #E5F7EC; color: #1B8A4C; }
+.badge-free { background: var(--success-bg); color: var(--success); }
 .price-tag { font-weight: 800; color: var(--purple-700); font-size: 18px; }
 
 /* ===== Forms ===== */
@@ -205,9 +248,9 @@ th { color: var(--gray); font-weight: 700; background: var(--purple-50); }
 .status-pill { padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
 .status-pending_payment { background: #FFF3CD; color: #92700A; }
 .status-pending_confirmation { background: #FDE8CC; color: #9A4B00; }
-.status-confirmed { background: #E5F7EC; color: #1B8A4C; }
+.status-confirmed { background: var(--success-bg); color: var(--success); }
 .status-completed { background: var(--purple-100); color: var(--purple-700); }
-.status-cancelled { background: #FBE3E3; color: #B3261E; }
+.status-cancelled { background: var(--error-bg); color: var(--error); }
 
 /* ===== Tabs ===== */
 .tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--line); margin-bottom: 28px; }
@@ -234,12 +277,12 @@ th { color: var(--gray); font-weight: 700; background: var(--purple-50); }
   z-index: 999; max-width: 90%; text-align: center;
 }
 #bosla-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-.toast-error { background: #B3261E; }
+.toast-error { background: var(--error); }
 .toast-success { background: var(--purple-700); }
 
 /* ===== Ratings / Reviews ===== */
 .rating-line { display: flex; align-items: center; gap: 6px; font-size: 13px; }
-.stars { color: #F5A623; letter-spacing: 2px; font-size: 15px; }
+.stars { color: var(--secondary); letter-spacing: 2px; font-size: 15px; }
 
 #review-overlay {
   position: fixed; inset: 0; background: rgba(30, 27, 41, 0.55);
@@ -251,7 +294,7 @@ th { color: var(--gray); font-weight: 700; background: var(--purple-50); }
   padding: 30px; max-width: 420px; width: 100%;
   box-shadow: var(--shadow);
 }
-.star-picker { display: flex; gap: 8px; justify-content: center; font-size: 34px; color: #F5A623; margin: 18px 0 6px; cursor: pointer; user-select: none; }
+.star-picker { display: flex; gap: 8px; justify-content: center; font-size: 34px; color: var(--secondary); margin: 18px 0 6px; cursor: pointer; user-select: none; }
 .star-picker .star { transition: transform .1s ease; }
 .star-picker .star:hover { transform: scale(1.15); }
 
