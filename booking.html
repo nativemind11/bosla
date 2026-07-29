@@ -77,9 +77,16 @@ function reviewsSectionHtml() {
 
 function renderForm(isLoggedIn) {
   const priceLabel = Number(mentor.Price) > 0 ? `${mentor.Price} ج.م` : "مجانًا";
+  const employerLine = employerExperienceLine(mentor.Employer, mentor.YearsOfExperience);
   box.innerHTML = `
-    <div class="form-title">احجز مع ${escapeHtml(mentor.Name)}</div>
-    <div class="form-sub">${escapeHtml(mentor.Field)} · ${escapeHtml(mentor.Specialization)} — ${priceLabel}</div>
+    <div class="mentor-header-flex" style="margin-bottom:18px">
+      ${avatarHtml(mentor.Name, mentor.ProfilePhotoURL, "mentor-avatar-lg")}
+      <div>
+        <div class="form-title" style="margin-bottom:2px">احجز مع ${escapeHtml(mentor.Name)}</div>
+        <div class="form-sub" style="margin-bottom:2px">${escapeHtml(mentor.Field)} · ${escapeHtml(mentor.Specialization)} — ${priceLabel}</div>
+        ${employerLine ? `<span class="mentor-meta-line">🏢 ${employerLine}</span>` : ""}
+      </div>
+    </div>
 
     ${reviewsSectionHtml()}
 
