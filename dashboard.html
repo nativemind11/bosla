@@ -77,6 +77,70 @@ async function confirmSessionDone(bookingId, role) {
   location.reload();
 }
 
+function reviewCell(b) {
+  if (b.Status !== "completed") return "—";
+  if (b.ReviewedAt) return `<span class="field-hint">شكرًا لتقييمك ✅</span>`;
+  return `<button class="btn btn-ghost" style="padding:6px 14px" onclick="openReviewModal('${b.BookingID}','${b.MentorUID}','${(b.MentorName || "").replace(/'/g, "")}')">قيّم المرشد</button>`;
+}
+
+function openReviewModal(bookingId, mentorUid, mentorName) {
+  const old = document.getElementById("review-overlay");
+  if (old) old.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "review-overlay";
+  overlay.innerHTML = `
+    <div class="review-modal">
+      <div class="form-title" style="font-size:20px">قيّم ${escapeHtml(mentorName)}</div>
+      <div class="form-sub">رأيك بيساعد طلاب تانيين يختاروا صح</div>
+      <div class="star-picker" id="star-picker">
+        ${[1, 2, 3, 4, 5].map(n => `<span data-val="${n}" class="star">☆</span>`).join("")}
+      </div>
+      <textarea id="review-comment" rows="3" placeholder="اكتب رأيك في الجلسة (اختياري)"></textarea>
+      <div style="display:flex; gap:10px; margin-top:18px">
+        <button class="btn btn-primary btn-block" id="submit-review-btn">إرسال التقييم</button>
+        <button class="btn btn-ghost btn-block" id="cancel-review-btn">إلغاء</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  let selected = 0;
+  const stars = overlay.querySelectorAll(".star");
+  stars.forEach(s => {
+    s.addEventListener("click", () => {
+      selected = Number(s.dataset.val);
+      stars.forEach(st => st.textContent = Number(st.dataset.val) <= selected ? "★" : "☆");
+    });
+  });
+
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
+  overlay.querySelector("#cancel-review-btn").addEventListener("click", () => overlay.remove());
+  overlay.querySelector("#submit-review-btn").addEventListener("click", async () => {
+    if (!selected) { showToast("اختار تقييم بالنجوم الأول", "error"); return; }
+    const comment = overlay.querySelector("#review-comment").value.trim();
+    const btn = overlay.querySelector("#submit-review-btn");
+    btn.disabled = true; btn.textContent = "بيتبعت...";
+    try {
+      const user = firebase.auth().currentUser;
+      const res = await apiPost("submitReview", {
+        bookingId, mentorUid,
+        menteeUid: user.uid,
+        menteeName: user.displayName || user.email,
+        rating: selected,
+        comment
+      });
+      if (res && res.error) { showToast(res.error, "error"); btn.disabled = false; btn.textContent = "إرسال التقييم"; return; }
+      showToast("شكرًا لتقييمك!");
+      overlay.remove();
+      location.reload();
+    } catch (err) {
+      showToast("حصل خطأ، جرب تاني", "error");
+      btn.disabled = false; btn.textContent = "إرسال التقييم";
+    }
+  });
+}
+
 function completionActionCell(b, isMentorView) {
   if (b.Status === "completed") return `<span class="field-hint">اتأكدت من الطرفين ✅</span>`;
   if (b.Status !== "confirmed") return "";
@@ -89,12 +153,17 @@ function completionActionCell(b, isMentorView) {
 async function renderMentorDashboard(user, mentor) {
   window.__mentorMeetingLink = mentor.MeetingLink;
   const bookings = await apiGet("getBookingsForMentor", { uid: user.uid });
+  const reviewsData = await apiGet("getReviewsForMentor", { uid: user.uid });
+  const ratingHtml = reviewsData && reviewsData.count > 0
+    ? `<span class="stars">${starsText(reviewsData.avg)}</span> <strong>${reviewsData.avg}</strong> <span class="field-hint" style="margin:0">(${reviewsData.count} تقييم)</span>`
+    : `<span class="field-hint" style="margin:0">لسه مفيش تقييمات عليك</span>`;
   container.innerHTML = `
     <h2 class="section-title">أهلاً ${mentor.Name}</h2>
     <p class="section-sub">${mentor.Field} · ${mentor.Specialization} — ${Number(mentor.Price) > 0 ? mentor.Price + ' ج.م' : 'مجانًا'}</p>
     <div class="card" style="margin-bottom:30px">
       <strong>رابط الميتينج الحالي:</strong> ${mentor.MeetingLink}<br>
-      <strong>المواعيد المتاحة:</strong> ${mentor.Availability || "—"}
+      <strong>المواعيد المتاحة:</strong> ${mentor.Availability || "—"}<br>
+      <strong>تقييمك:</strong> ${ratingHtml}
     </div>
     <h3>حجوزاتك</h3>
     ${bookings.length ? `
@@ -132,7 +201,7 @@ async function renderMenteeDashboard(user, mentee) {
     <p class="section-sub">حجوزاتك مع المرشدين</p>
     ${bookings.length ? `
       <table>
-        <thead><tr><th>المرشد</th><th>الميعاد</th><th>الحالة</th><th>الميتينج</th><th>تأكيد إتمام الجلسة</th></tr></thead>
+        <thead><tr><th>المرشد</th><th>الميعاد</th><th>الحالة</th><th>الميتينج</th><th>تأكيد إتمام الجلسة</th><th>تقييمك</th></tr></thead>
         <tbody>${bookings.map(b => `
           <tr>
             <td>${b.MentorName}</td>
@@ -144,6 +213,7 @@ async function renderMenteeDashboard(user, mentee) {
                 : "—"}
             </td>
             <td>${completionActionCell(b, false)}</td>
+            <td>${reviewCell(b)}</td>
           </tr>
         `).join("")}</tbody>
       </table>
