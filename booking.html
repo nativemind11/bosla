@@ -24,6 +24,7 @@ const mentorUid = params.get("mentor");
 const box = document.getElementById("booking-box");
 let mentor = null;
 let currentUser = null;
+let reviewsData = null;
 let BOSLA_INSTAPAY = "01025406188"; // fallback لحد ما يوصل رد الباك إند
 
 async function init() {
@@ -36,15 +37,51 @@ async function init() {
     mentor = await apiGet("getMentor", { uid: mentorUid });
     if (!mentor) { box.innerHTML = `<div class="empty-state">المرشد ده مش موجود.</div>`; return; }
     currentUser = user;
+    reviewsData = await apiGet("getReviewsForMentor", { uid: mentorUid });
     renderForm(!!user);
   });
+}
+
+function reviewsSectionHtml() {
+  if (!reviewsData) return "";
+  const { avg, count, reviews } = reviewsData;
+  if (!count) {
+    return `
+      <div class="card" style="margin-bottom:24px">
+        <strong>تقييمات المرشد</strong>
+        <div class="field-hint" style="margin-top:6px">لسه مفيش تقييمات على المرشد ده، أنت ممكن تبقى أول واحد يقيّم بعد الجلسة.</div>
+      </div>
+    `;
+  }
+  const list = reviews.slice(0, 6).map(r => `
+    <div style="padding:12px 0; border-bottom:1px solid var(--line)">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px">
+        <strong style="font-size:14px">${escapeHtml(r.MenteeName) || "مستفيد BOSLA"}</strong>
+        <span class="stars">${starsText(r.Rating)}</span>
+      </div>
+      ${r.Comment ? `<p style="font-size:14px; color:var(--gray); margin:6px 0 0">${escapeHtml(r.Comment)}</p>` : ""}
+    </div>
+  `).join("");
+  return `
+    <div class="card" style="margin-bottom:24px">
+      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px">
+        <strong>تقييمات المرشد</strong>
+        <span style="color:var(--purple-700); font-weight:800">
+          <span class="stars">${starsText(avg)}</span> ${avg} <span class="field-hint" style="margin:0">(${count} تقييم)</span>
+        </span>
+      </div>
+      <div style="margin-top:8px">${list}</div>
+    </div>
+  `;
 }
 
 function renderForm(isLoggedIn) {
   const priceLabel = Number(mentor.Price) > 0 ? `${mentor.Price} ج.م` : "مجانًا";
   box.innerHTML = `
-    <div class="form-title">احجز مع ${mentor.Name}</div>
-    <div class="form-sub">${mentor.Field} · ${mentor.Specialization} — ${priceLabel}</div>
+    <div class="form-title">احجز مع ${escapeHtml(mentor.Name)}</div>
+    <div class="form-sub">${escapeHtml(mentor.Field)} · ${escapeHtml(mentor.Specialization)} — ${priceLabel}</div>
+
+    ${reviewsSectionHtml()}
 
     ${!isLoggedIn ? `
       <div class="empty-state" style="padding:20px 0">
