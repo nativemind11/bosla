@@ -14,16 +14,34 @@
   <div class="form-title">سجل كمستفيد</div>
   <div class="form-sub">اعمل حساب مجاني عشان تقدر تحجز مع أي مرشد</div>
 
-  <form id="reg-form">
+  <form id="reg-form" novalidate>
+
+    <div class="photo-upload">
+      <label class="photo-circle" id="photo-circle">
+        <span id="photo-placeholder">حط صورتك<br>(اختياري)</span>
+        <img id="photo-preview" style="display:none">
+        <input type="file" id="photo-input" accept="image/png,image/jpeg">
+      </label>
+      <div class="photo-upload-hint">JPG أو PNG، أقل من 2 ميجا</div>
+    </div>
+
     <label>الاسم بالكامل</label>
     <input type="text" id="name" required>
+
     <label>رقم الموبايل</label>
     <input type="tel" id="phone" required placeholder="01xxxxxxxxx">
+
     <label>الإيميل</label>
     <input type="email" id="email" required>
+
+    <label>جهة العمل أو الدراسة</label>
+    <input type="text" id="employer" placeholder="مثال: اسم الشركة أو الكلية (اختياري)">
+
     <label>كلمة المرور</label>
-    <input type="password" id="password" required minlength="6">
-    <div class="field-hint">6 أحرف على الأقل</div>
+    <input type="password" id="password" required minlength="8" placeholder="8 أحرف على الأقل">
+    <div class="pw-meter-track"><div class="pw-meter-fill" id="pw-fill"></div></div>
+    <div class="pw-meter-label" id="pw-label"></div>
+
     <button class="btn btn-primary btn-block" style="margin-top:24px" type="submit" id="reg-btn">إنشاء الحساب</button>
   </form>
   <p class="field-hint" style="margin-top:20px; text-align:center">
@@ -36,20 +54,113 @@
 <script src="js/firebase-config.js"></script>
 <script src="js/app.js"></script>
 <script>
+// ===================== معاينة صورة البروفايل =====================
+let selectedPhotoFile = null;
+const photoInput = document.getElementById("photo-input");
+const photoPreview = document.getElementById("photo-preview");
+const photoPlaceholder = document.getElementById("photo-placeholder");
+
+photoInput.addEventListener("change", () => {
+  const file = photoInput.files[0];
+  if (!file) return;
+
+  const allowed = ["image/jpeg", "image/jpg", "image/png"];
+  if (allowed.indexOf(file.type) === -1) {
+    showToast("الصورة لازم تكون JPG أو PNG بس", "error");
+    photoInput.value = "";
+    return;
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    showToast("حجم الصورة أكبر من 2 ميجا، اختار صورة أصغر", "error");
+    photoInput.value = "";
+    return;
+  }
+
+  selectedPhotoFile = file;
+  const reader = new FileReader();
+  reader.onload = () => {
+    photoPreview.src = reader.result;
+    photoPreview.style.display = "block";
+    photoPlaceholder.style.display = "none";
+  };
+  reader.readAsDataURL(file);
+});
+
+// ===================== مؤشر قوة كلمة المرور (لايف) =====================
+// بيعكس نفس القواعد المستخدمة في السيرفر (validatePasswordStrength_) بالظبط
+function computePasswordStrength(pwd) {
+  const len = pwd.length;
+  const hasLower = /[a-z]/.test(pwd);
+  const hasUpper = /[A-Z]/.test(pwd);
+  const hasDigit = /[0-9]/.test(pwd);
+  const hasSymbol = /[^a-zA-Z0-9]/.test(pwd);
+  const typesCount = [hasLower, hasUpper, hasDigit, hasSymbol].filter(Boolean).length;
+
+  if (len === 0) return { level: "", acceptable: false, pct: 0, color: "var(--line)" };
+  if (len < 8) return { level: "ضعيف — لازم 8 أحرف على الأقل", acceptable: false, pct: 25, color: "var(--error)" };
+  if (len >= 10 && typesCount >= 3) return { level: "قوي 💪", acceptable: true, pct: 100, color: "var(--success)" };
+  if (len >= 8 && typesCount >= 2) return { level: "متوسط — تقدر تقويها أكتر", acceptable: true, pct: 65, color: "var(--secondary)" };
+  return { level: "ضعيف — نوّع بين حروف وأرقام ورموز", acceptable: false, pct: 25, color: "var(--error)" };
+}
+
+const pwInput = document.getElementById("password");
+const pwFill = document.getElementById("pw-fill");
+const pwLabel = document.getElementById("pw-label");
+pwInput.addEventListener("input", () => {
+  const s = computePasswordStrength(pwInput.value);
+  pwFill.style.width = s.pct + "%";
+  pwFill.style.background = s.color;
+  pwLabel.textContent = s.level;
+  pwLabel.style.color = s.color;
+});
+
+// ===================== إرسال الفورم =====================
 document.getElementById("reg-form").addEventListener("submit", async (e) => {
   e.preventDefault();
+
+  const name = document.getElementById("name").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const employer = document.getElementById("employer").value;
+  const password = pwInput.value;
+
+  if (!name) { showToast("اكتب اسمك الكامل", "error"); return; }
+  if (!phone) { showToast("اكتب رقم موبايلك", "error"); return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast("اكتب إيميل صحيح", "error"); return; }
+  const strength = computePasswordStrength(password);
+  if (!strength.acceptable) { showToast("كلمة المرور ضعيفة، اختار كلمة مرور أقوى", "error"); return; }
+
   const btn = document.getElementById("reg-btn");
   btn.disabled = true; btn.textContent = "بيتم الإنشاء...";
-
-  const name = document.getElementById("name").value;
-  const phone = document.getElementById("phone").value;
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
 
   try {
     const cred = await auth.createUserWithEmailAndPassword(email, password);
     await cred.user.updateProfile({ displayName: name });
-    await apiPost("registerMentee", { uid: cred.user.uid, name, email, phone });
+
+    // رفع صورة البروفايل (لو المستخدم اختار صورة) قبل ما نبعت بيانات التسجيل
+    let profilePhotoUrl = "";
+    if (selectedPhotoFile) {
+      try {
+        const base64 = await fileToBase64(selectedPhotoFile);
+        const uploadRes = await apiPost("uploadProfilePhoto", {
+          uid: cred.user.uid, isMentor: false,
+          imageBase64: base64, mimeType: selectedPhotoFile.type
+        });
+        if (uploadRes && uploadRes.success) profilePhotoUrl = uploadRes.url;
+        else showToast("اتسجلت، بس مشكلة في رفع الصورة: " + (uploadRes.error || "خطأ غير معروف"), "error");
+      } catch (photoErr) {
+        showToast("اتسجلت، بس الصورة متترفعتش، تقدر تضيفها بعدين من حسابك", "error");
+      }
+    }
+
+    const res = await apiPost("registerMentee", { uid: cred.user.uid, name, email, phone, employer, profilePhotoUrl });
+
+    if (res && res.error) {
+      showToast(res.error, "error");
+      btn.disabled = false; btn.textContent = "إنشاء الحساب";
+      return;
+    }
+
     showToast("الحساب اتعمل بنجاح!");
     window.location.href = "mentors.html";
   } catch (err) {
