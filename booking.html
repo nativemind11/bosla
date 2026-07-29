@@ -6,6 +6,73 @@
 <title>احجز جلسة — BOSLA</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<style>
+  /* ===== Availability Slots Display ===== */
+  .availability-wrapper {
+    margin: 12px 0;
+  }
+  .availability-days {
+    display: grid;
+    gap: 16px;
+    margin-top: 12px;
+  }
+  .day-group {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px;
+    background: var(--purple-50);
+  }
+  .day-group-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--purple);
+    font-size: 14px;
+  }
+  .time-slots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+    gap: 6px;
+  }
+  .time-slot-option {
+    padding: 8px 6px;
+    border: 2px solid var(--line);
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 12px;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  .time-slot-option:hover {
+    border-color: var(--purple);
+    color: var(--purple);
+    background: white;
+  }
+  .time-slot-option.selected {
+    background: var(--purple);
+    border-color: var(--purple);
+    color: white;
+  }
+  .no-availability {
+    padding: 12px;
+    text-align: center;
+    color: var(--gray);
+    font-size: 13px;
+  }
+  .selected-slot-display {
+    margin-top: 12px;
+    padding: 12px;
+    background: var(--success-light, #e8f5e9);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--success, #2e7d32);
+    display: none;
+  }
+  .selected-slot-display.show {
+    display: block;
+  }
+</style>
 </head>
 <body>
 <header id="bosla-header"></header>
@@ -25,7 +92,8 @@ const box = document.getElementById("booking-box");
 let mentor = null;
 let currentUser = null;
 let reviewsData = null;
-let BOSLA_INSTAPAY = "01025406188"; // fallback لحد ما يوصل رد الباك إند
+let BOSLA_INSTAPAY = "01025406188";
+let selectedSlot = null;
 
 async function init() {
   if (!mentorUid) { box.innerHTML = `<div class="empty-state">مفيش مرشد محدد.</div>`; return; }
@@ -75,6 +143,79 @@ function reviewsSectionHtml() {
   `;
 }
 
+function parseAvailability(availabilityStr) {
+  // Parse format: "السبت: 6:00 صباحًا، 6:15 صباحًا | الأحد: 7:00 مساءً، 7:15 مساءً"
+  // Returns: { "السبت": ["6:00 صباحًا", "6:15 صباحًا"], "الأحد": [...] }
+  
+  if (!availabilityStr) return {};
+  
+  const schedule = {};
+  const days = availabilityStr.split("|");
+  
+  days.forEach(dayStr => {
+    const [dayName, timesStr] = dayStr.trim().split(":").map(s => s.trim());
+    if (!dayName || !timesStr) return;
+    
+    const times = timesStr.split("،").map(t => t.trim()).filter(t => t);
+    if (times.length > 0) {
+      schedule[dayName] = times;
+    }
+  });
+  
+  return schedule;
+}
+
+function renderAvailabilitySlots() {
+  // parse الـ availability من بيانات المرشد
+  const availability = parseAvailability(mentor.Availability || "");
+  const slots = document.getElementById("slot-selector");
+  
+  if (!slots) return "";
+  
+  if (Object.keys(availability).length === 0) {
+    slots.innerHTML = `<div class="no-availability">لم يحدد المرشد مواعيد متاحة. برجاء التواصل معه مباشرة.</div>`;
+    return "";
+  }
+  
+  const daysOrder = ["السبت", "الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];
+  let html = "";
+  
+  daysOrder.forEach(day => {
+    if (availability[day]) {
+      html += `
+        <div class="day-group">
+          <div class="day-group-title">📅 ${day}</div>
+          <div class="time-slots-grid">
+            ${availability[day].map(time => `
+              <button type="button" class="time-slot-option" data-slot="${day} — ${time}">
+                🕐 ${time}
+              </button>
+            `).join("")}
+          </div>
+        </div>
+      `;
+    }
+  });
+  
+  slots.innerHTML = html;
+  
+  // إضافة Event Listeners للـ slots
+  slots.querySelectorAll(".time-slot-option").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      slots.querySelectorAll(".time-slot-option").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      selectedSlot = btn.dataset.slot;
+      
+      const display = document.getElementById("selected-slot-display");
+      if (display) {
+        display.textContent = `✓ تم اختيار الميعاد: ${selectedSlot}`;
+        display.classList.add("show");
+      }
+    });
+  });
+}
+
 function renderForm(isLoggedIn) {
   const priceLabel = Number(mentor.Price) > 0 ? `${mentor.Price} ج.م` : "مجانًا";
   const employerLine = employerExperienceLine(mentor.Employer, mentor.YearsOfExperience);
@@ -100,8 +241,13 @@ function renderForm(isLoggedIn) {
       </div>
     ` : `
       <label>اختار الميعاد المناسب</label>
-      <input type="text" id="slot" placeholder="مثال: السبت 2 أغسطس - 7 مساءً" required>
-      <div class="field-hint">مواعيد المرشد المتاحة: ${mentor.Availability || "تواصل معه لتحديد ميعاد"}</div>
+      <div class="availability-wrapper">
+        <div class="availability-days" id="slot-selector">
+          <div class="spinner" style="text-align:center; padding:12px;">بيحمل المواعيد...</div>
+        </div>
+      </div>
+      <div class="selected-slot-display" id="selected-slot-display"></div>
+      <div class="field-hint" style="margin-top:12px;">اختر أحد الأوقات المتاحة من القائمة أعلى</div>
 
       ${Number(mentor.Price) > 0 ? `
       <label style="margin-top:20px">حوّل ${mentor.Price} ج.م على إنستاباي BOSLA</label>
@@ -119,18 +265,26 @@ function renderForm(isLoggedIn) {
     `}
   `;
 
+  // render the availability slots
   if (isLoggedIn) {
+    setTimeout(() => renderAvailabilitySlots(), 100);
     document.getElementById("book-btn").addEventListener("click", submitBooking);
   }
 }
 
 async function submitBooking() {
   const btn = document.getElementById("book-btn");
-  const slot = document.getElementById("slot").value;
-  if (!slot) { showToast("اختار ميعاد الأول", "error"); return; }
+  
+  if (!selectedSlot) { 
+    showToast("اختار ميعاد الأول", "error"); 
+    return; 
+  }
 
   const proofInput = document.getElementById("proof");
-  if (proofInput && !proofInput.files[0]) { showToast("ارفع صورة الإيصال", "error"); return; }
+  if (proofInput && !proofInput.files[0]) { 
+    showToast("ارفع صورة الإيصال", "error"); 
+    return; 
+  }
 
   btn.disabled = true; btn.textContent = "بيتم الحجز...";
 
@@ -141,7 +295,7 @@ async function submitBooking() {
       menteeUid: currentUser.uid,
       menteeName: currentUser.displayName || currentUser.email,
       field: mentor.Field,
-      slot,
+      slot: selectedSlot,
       price: mentor.Price
     });
 
