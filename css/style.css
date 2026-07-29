@@ -237,6 +237,24 @@ th { color: var(--gray); font-weight: 700; background: var(--purple-50); }
 .toast-error { background: #B3261E; }
 .toast-success { background: var(--purple-700); }
 
+/* ===== Ratings / Reviews ===== */
+.rating-line { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.stars { color: #F5A623; letter-spacing: 2px; font-size: 15px; }
+
+#review-overlay {
+  position: fixed; inset: 0; background: rgba(30, 27, 41, 0.55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 20px;
+}
+.review-modal {
+  background: var(--white); border-radius: var(--radius);
+  padding: 30px; max-width: 420px; width: 100%;
+  box-shadow: var(--shadow);
+}
+.star-picker { display: flex; gap: 8px; justify-content: center; font-size: 34px; color: #F5A623; margin: 18px 0 6px; cursor: pointer; user-select: none; }
+.star-picker .star { transition: transform .1s ease; }
+.star-picker .star:hover { transform: scale(1.15); }
+
 /* ===== Utility ===== */
 .mt-0 { margin-top: 0; }
 .text-center { text-align: center; }
