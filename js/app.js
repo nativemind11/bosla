@@ -27,6 +27,18 @@ function fileToBase64(file) {
   });
 }
 
+// تنظيف نص قبل حقنه في HTML (حماية بسيطة)
+function escapeHtml(str) {
+  if (str === null || str === undefined) return "";
+  return String(str).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+// بناء نص نجوم للتقييم (مثال: ★★★★☆)
+function starsText(rating) {
+  const r = Math.round(Number(rating) || 0);
+  return "★".repeat(Math.max(0, Math.min(5, r))) + "☆".repeat(5 - Math.max(0, Math.min(5, r)));
+}
+
 // رسالة تنبيه بسيطة (Toast)
 function showToast(msg, type = "success") {
   let toast = document.getElementById("bosla-toast");
