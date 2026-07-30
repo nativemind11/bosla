@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحتي — BOSLA</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/logo-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="/assets/logo-64.png">
+<link rel="apple-touch-icon" href="/assets/logo-256.png">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header id="bosla-header"></header>
+
+<section class="section-tight">
+  <div class="container" id="dash-container">
+    <div class="spinner">بيحمل لوحتك...</div>
+  </div>
+</section>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="/js/firebase-config.js"></script>
+<script src="/js/app.js"></script>
+<script>
+const container = document.getElementById("dash-container");
+const STATUS_LABELS = {
+  pending_payment: "بانتظار الدفع",
+  pending_confirmation: "بانتظار تأكيد المرشد",
+  confirmed: "مؤكد",
+  completed: "تمت",
+  cancelled: "ملغي"
+};
+
+requireAuth(async (user) => {
+  const [mentor, mentee] = await Promise.all([
+    apiGet("getMentor", { uid: user.uid }),
+    apiGet("getMentee", { uid: user.uid })
+  ]);
+
+  if (mentor) {
+    renderMentorDashboard(user, mentor);
+  } else if (mentee) {
+    renderMenteeDashboard(user, mentee);
+  } else {
+    container.innerHTML = `<div class="empty-state">مش لاقيين حسابك، جرب تسجل دخول تاني.</div>`;
+  }
+});
+
+function bookingRow(b, isMentorView) {
+  const otherName = isMentorView ? b.MenteeName : b.MentorName;
+  const showLink = b.Status === "confirmed" || b.Status === "completed";
+  const awaitingBoslaConfirm = isMentorView && b.Status === "pending_confirmation";
+  return `
+    <tr>
+      <td>${otherName}</td>
+      <td>${b.SlotDateTime}</td>
+      <td><span class="status-pill status-${b.Status}">${STATUS_LABELS[b.Status] || b.Status}</span></td>
+      <td>
+        ${showLink ? `<a href="${window.__mentorMeetingLink || ''}" target="_blank" class="btn btn-ghost" style="padding:6px 14px">رابط الميتينج</a>` : "—"}
+        ${awaitingBoslaConfirm ? `<span class="field-hint">BOSLA بتراجع الإيصال دلوقتي</span>` : ""}
+        ${b.PaymentScreenshotURL ? `<a href="${b.PaymentScreenshotURL}" target="_blank" class="field-hint" style="text-decoration:underline">إيصال الدفع</a>` : ""}
+      </td>
+    </tr>
+  `;
+}
+
+async function confirmBooking(bookingId) {
+  await apiPost("confirmBooking", { bookingId });
+  showToast("اتأكد الحجز");
+  location.reload();
+}
+
+async function confirmSessionDone(bookingId, role) {
+  if (!confirm("متأكد إن الجلسة اتعملت فعلاً؟ ده هيسمح لينا نحول نصيب المرشد بعد ما الطرف التاني يأكد كمان.")) return;
+  const action = role === "mentor" ? "confirmSessionDoneByMentor" : "confirmSessionDoneByMentee";
+  await apiPost(action, { bookingId });
+  showToast("شكرًا لتأكيدك! مستنيين تأكيد الطرف التاني (لو لسه معملهوش).");
+  location.reload();
+}
+
+function reviewCell(b) {
+  if (b.Status !== "completed") return "—";
+  if (b.ReviewedAt) return `<span class="field-hint">شكرًا لتقييمك ✅</span>`;
+  return `<button class="btn btn-ghost" style="padding:6px 14px" onclick="openReviewModal('${b.BookingID}','${b.MentorUID}','${(b.MentorName || "").replace(/'/g, "")}')">قيّم المرشد</button>`;
+}
+
+function openReviewModal(bookingId, mentorUid, mentorName) {
+  const old = document.getElementById("review-overlay");
+  if (old) old.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "review-overlay";
+  overlay.innerHTML = `
+    <div class="review-modal">
+      <div class="form-title" style="font-size:20px">قيّم ${escapeHtml(mentorName)}</div>
+      <div class="form-sub">رأيك بيساعد طلاب تانيين يختاروا صح</div>
+      <div class="star-picker" id="star-picker">
+        ${[1, 2, 3, 4, 5].map(n => `<span data-val="${n}" class="star">☆</span>`).join("")}
+      </div>
+      <textarea id="review-comment" rows="3" placeholder="اكتب رأيك في الجلسة (اختياري)"></textarea>
+      <div style="display:flex; gap:10px; margin-top:18px">
+        <button class="btn btn-primary btn-block" id="submit-review-btn">إرسال التقييم</button>
+        <button class="btn btn-ghost btn-block" id="cancel-review-btn">إلغاء</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  let selected = 0;
+  const stars = overlay.querySelectorAll(".star");
+  stars.forEach(s => {
+    s.addEventListener("click", () => {
+      selected = Number(s.dataset.val);
+      stars.forEach(st => st.textContent = Number(st.dataset.val) <= selected ? "★" : "☆");
+    });
+  });
+
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
+  overlay.querySelector("#cancel-review-btn").addEventListener("click", () => overlay.remove());
+  overlay.querySelector("#submit-review-btn").addEventListener("click", async () => {
+    if (!selected) { showToast("اختار تقييم بالنجوم الأول", "error"); return; }
+    const comment = overlay.querySelector("#review-comment").value.trim();
+    const btn = overlay.querySelector("#submit-review-btn");
+    btn.disabled = true; btn.textContent = "بيتبعت...";
+    try {
+      const user = firebase.auth().currentUser;
+      const res = await apiPost("submitReview", {
+        bookingId, mentorUid,
+        menteeUid: user.uid,
+        menteeName: user.displayName || user.email,
+        rating: selected,
+        comment
+      });
+      if (res && res.error) { showToast(res.error, "error"); btn.disabled = false; btn.textContent = "إرسال التقييم"; return; }
+      showToast("شكرًا لتقييمك!");
+      overlay.remove();
+      location.reload();
+    } catch (err) {
+      showToast("حصل خطأ، جرب تاني", "error");
+      btn.disabled = false; btn.textContent = "إرسال التقييم";
+    }
+  });
+}
+
+// خلية "الشات" في جدول الحجوزات — بتظهر بس لو الحجز مؤكد أو خلص (نفس شرط رابط الميتينج)
+function chatCell(b, isMentorView, user, myProfile) {
+  if (b.Status !== "confirmed" && b.Status !== "completed") return "—";
+
+  const mentorUid = isMentorView ? user.uid : b.MentorUID;
+  const mentorName = isMentorView ? myProfile.Name : b.MentorName;
+  const menteeUid = isMentorView ? (b.MenteeUID || "") : user.uid;
+  const menteeName = isMentorView ? b.MenteeName : myProfile.Name;
+  const otherName = isMentorView ? b.MenteeName : b.MentorName;
+
+  if (!mentorUid || !menteeUid) {
+    return `<span class="field-hint">مش متاح دلوقتي</span>`;
+  }
+
+  const url = `/chat/?bookingId=${encodeURIComponent(b.BookingID)}` +
+    `&mentorUid=${encodeURIComponent(mentorUid)}&mentorName=${encodeURIComponent(mentorName || "")}` +
+    `&menteeUid=${encodeURIComponent(menteeUid)}&menteeName=${encodeURIComponent(menteeName || "")}` +
+    `&otherName=${encodeURIComponent(otherName || "")}`;
+
+  return `<a href="${url}" class="btn btn-ghost" style="padding:6px 14px">💬 الشات</a>`;
+}
+
+function completionActionCell(b, isMentorView) {
+  if (b.Status === "completed") return `<span class="field-hint">اتأكدت من الطرفين ✅</span>`;
+  if (b.Status !== "confirmed") return "";
+  const myDone = isMentorView ? !!b.CompletedByMentorAt : !!b.CompletedByMenteeAt;
+  const otherDone = isMentorView ? !!b.CompletedByMenteeAt : !!b.CompletedByMentorAt;
+  if (myDone) return `<span class="field-hint">أكدت، مستنيين ${isMentorView ? "المستفيد" : "المرشد"}</span>`;
+  return `<button class="btn btn-ghost" style="padding:6px 14px" onclick="confirmSessionDone('${b.BookingID}', '${isMentorView ? "mentor" : "mentee"}')">أكدت إن الجلسة اتعملت</button>${otherDone ? `<div class="field-hint">${isMentorView ? "المستفيد" : "المرشد"} أكد بالفعل</div>` : ""}`;
+}
+
+async function renderMentorDashboard(user, mentor) {
+  window.__mentorMeetingLink = mentor.MeetingLink;
+  const bookings = await apiGet("getBookingsForMentor", { uid: user.uid });
+  const reviewsData = await apiGet("getReviewsForMentor", { uid: user.uid });
+  const ratingHtml = reviewsData && reviewsData.count > 0
+    ? `<span class="stars">${starsText(reviewsData.avg)}</span> <strong>${reviewsData.avg}</strong> <span class="field-hint" style="margin:0">(${reviewsData.count} تقييم)</span>`
+    : `<span class="field-hint" style="margin:0">لسه مفيش تقييمات عليك</span>`;
+  const employerLine = employerExperienceLine(mentor.Employer, mentor.YearsOfExperience);
+  container.innerHTML = `
+    <div class="mentor-header-flex" style="margin-bottom:8px">
+      ${avatarHtml(mentor.Name, mentor.ProfilePhotoURL, "mentor-avatar-lg")}
+      <div>
+        <h2 class="section-title" style="margin-bottom:2px">أهلاً ${mentor.Name}</h2>
+        <p class="section-sub" style="margin-bottom:2px">${mentor.Field} · ${mentor.Specialization} — ${Number(mentor.Price) > 0 ? mentor.Price + ' ج.م' : 'مجانًا'}</p>
+        ${employerLine ? `<span class="mentor-meta-line">🏢 ${employerLine}</span>` : ""}
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:30px">
+      <strong>رابط الميتينج الحالي:</strong> ${mentor.MeetingLink}<br>
+      <strong>المواعيد المتاحة:</strong> ${mentor.Availability || "—"}<br>
+      <strong>تقييمك:</strong> ${ratingHtml}
+    </div>
+    <h3>حجوزاتك</h3>
+    ${bookings.length ? `
+      <table>
+        <thead><tr><th>المستفيد</th><th>الميعاد</th><th>الحالة</th><th>الميتينج</th><th>الشات</th><th>تأكيد إتمام الجلسة</th></tr></thead>
+        <tbody>${bookings.map(b => `
+          <tr>
+            <td>${b.MenteeName}</td>
+            <td>${b.SlotDateTime}</td>
+            <td><span class="status-pill status-${b.Status}">${STATUS_LABELS[b.Status] || b.Status}</span></td>
+            <td>
+              ${(b.Status === "confirmed" || b.Status === "completed") ? `<a href="${mentor.MeetingLink}" target="_blank" class="btn btn-ghost" style="padding:6px 14px">رابط الميتينج</a>` : "—"}
+              ${b.Status === "pending_confirmation" ? `<span class="field-hint">BOSLA بتراجع الإيصال دلوقتي</span>` : ""}
+              ${b.PaymentScreenshotURL ? `<a href="${b.PaymentScreenshotURL}" target="_blank" class="field-hint" style="text-decoration:underline">إيصال الدفع</a>` : ""}
+            </td>
+            <td>${chatCell(b, true, user, mentor)}</td>
+            <td>${completionActionCell(b, true)}</td>
+          </tr>
+        `).join("")}</tbody>
+      </table>
+    ` : `<div class="empty-state">لسه مفيش حجوزات.</div>`}
+  `;
+}
+
+async function renderMenteeDashboard(user, mentee) {
+  const bookings = await apiGet("getBookingsForMentee", { uid: user.uid });
+  // نجيب رابط الميتينج بتاع كل مرشد للحجوزات المؤكدة
+  const mentorLinks = {};
+  await Promise.all([...new Set(bookings.map(b => b.MentorUID))].map(async (uid) => {
+    const m = await apiGet("getMentor", { uid });
+    if (m) mentorLinks[uid] = m.MeetingLink;
+  }));
+
+  container.innerHTML = `
+    <div class="mentor-header-flex" style="margin-bottom:8px">
+      ${avatarHtml(mentee.Name, mentee.ProfilePhotoURL, "mentor-avatar-lg")}
+      <div>
+        <h2 class="section-title" style="margin-bottom:2px">أهلاً ${mentee.Name}</h2>
+        <p class="section-sub" style="margin-bottom:2px">حجوزاتك مع المرشدين</p>
+      </div>
+    </div>
+    ${mentee.EmployerOrSchool ? `<span class="mentor-meta-line" style="margin-bottom:20px">🏢 ${escapeHtml(mentee.EmployerOrSchool)}</span>` : ""}
+    ${bookings.length ? `
+      <table>
+        <thead><tr><th>المرشد</th><th>الميعاد</th><th>الحالة</th><th>الميتينج</th><th>الشات</th><th>تأكيد إتمام الجلسة</th><th>تقييمك</th></tr></thead>
+        <tbody>${bookings.map(b => `
+          <tr>
+            <td>${b.MentorName}</td>
+            <td>${b.SlotDateTime}</td>
+            <td><span class="status-pill status-${b.Status}">${STATUS_LABELS[b.Status] || b.Status}</span></td>
+            <td>
+              ${(b.Status === "confirmed" || b.Status === "completed") && mentorLinks[b.MentorUID]
+                ? `<a href="${mentorLinks[b.MentorUID]}" target="_blank" class="btn btn-primary" style="padding:6px 14px">ادخل الميتينج</a>`
+                : "—"}
+            </td>
+            <td>${chatCell(b, false, user, mentee)}</td>
+            <td>${completionActionCell(b, false)}</td>
+            <td>${reviewCell(b)}</td>
+          </tr>
+        `).join("")}</tbody>
+      </table>
+    ` : `<div class="empty-state">لسه معملتش أي حجز. <a href="/mentors/" style="color:var(--purple-700)">تصفح المرشدين</a></div>`}
+  `;
+}
+</script>
+</body>
+</html>
