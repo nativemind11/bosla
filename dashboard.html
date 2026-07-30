@@ -144,6 +144,28 @@ function openReviewModal(bookingId, mentorUid, mentorName) {
   });
 }
 
+// خلية "الشات" في جدول الحجوزات — بتظهر بس لو الحجز مؤكد أو خلص (نفس شرط رابط الميتينج)
+function chatCell(b, isMentorView, user, myProfile) {
+  if (b.Status !== "confirmed" && b.Status !== "completed") return "—";
+
+  const mentorUid = isMentorView ? user.uid : b.MentorUID;
+  const mentorName = isMentorView ? myProfile.Name : b.MentorName;
+  const menteeUid = isMentorView ? (b.MenteeUID || "") : user.uid;
+  const menteeName = isMentorView ? b.MenteeName : myProfile.Name;
+  const otherName = isMentorView ? b.MenteeName : b.MentorName;
+
+  if (!mentorUid || !menteeUid) {
+    return `<span class="field-hint">مش متاح دلوقتي</span>`;
+  }
+
+  const url = `chat.html?bookingId=${encodeURIComponent(b.BookingID)}` +
+    `&mentorUid=${encodeURIComponent(mentorUid)}&mentorName=${encodeURIComponent(mentorName || "")}` +
+    `&menteeUid=${encodeURIComponent(menteeUid)}&menteeName=${encodeURIComponent(menteeName || "")}` +
+    `&otherName=${encodeURIComponent(otherName || "")}`;
+
+  return `<a href="${url}" class="btn btn-ghost" style="padding:6px 14px">💬 الشات</a>`;
+}
+
 function completionActionCell(b, isMentorView) {
   if (b.Status === "completed") return `<span class="field-hint">اتأكدت من الطرفين ✅</span>`;
   if (b.Status !== "confirmed") return "";
@@ -178,7 +200,7 @@ async function renderMentorDashboard(user, mentor) {
     <h3>حجوزاتك</h3>
     ${bookings.length ? `
       <table>
-        <thead><tr><th>المستفيد</th><th>الميعاد</th><th>الحالة</th><th>الميتينج</th><th>تأكيد إتمام الجلسة</th></tr></thead>
+        <thead><tr><th>المستفيد</th><th>الميعاد</th><th>الحالة</th><th>الميتينج</th><th>الشات</th><th>تأكيد إتمام الجلسة</th></tr></thead>
         <tbody>${bookings.map(b => `
           <tr>
             <td>${b.MenteeName}</td>
@@ -189,6 +211,7 @@ async function renderMentorDashboard(user, mentor) {
               ${b.Status === "pending_confirmation" ? `<span class="field-hint">BOSLA بتراجع الإيصال دلوقتي</span>` : ""}
               ${b.PaymentScreenshotURL ? `<a href="${b.PaymentScreenshotURL}" target="_blank" class="field-hint" style="text-decoration:underline">إيصال الدفع</a>` : ""}
             </td>
+            <td>${chatCell(b, true, user, mentor)}</td>
             <td>${completionActionCell(b, true)}</td>
           </tr>
         `).join("")}</tbody>
@@ -217,7 +240,7 @@ async function renderMenteeDashboard(user, mentee) {
     ${mentee.EmployerOrSchool ? `<span class="mentor-meta-line" style="margin-bottom:20px">🏢 ${escapeHtml(mentee.EmployerOrSchool)}</span>` : ""}
     ${bookings.length ? `
       <table>
-        <thead><tr><th>المرشد</th><th>الميعاد</th><th>الحالة</th><th>الميتينج</th><th>تأكيد إتمام الجلسة</th><th>تقييمك</th></tr></thead>
+        <thead><tr><th>المرشد</th><th>الميعاد</th><th>الحالة</th><th>الميتينج</th><th>الشات</th><th>تأكيد إتمام الجلسة</th><th>تقييمك</th></tr></thead>
         <tbody>${bookings.map(b => `
           <tr>
             <td>${b.MentorName}</td>
@@ -228,6 +251,7 @@ async function renderMenteeDashboard(user, mentee) {
                 ? `<a href="${mentorLinks[b.MentorUID]}" target="_blank" class="btn btn-primary" style="padding:6px 14px">ادخل الميتينج</a>`
                 : "—"}
             </td>
+            <td>${chatCell(b, false, user, mentee)}</td>
             <td>${completionActionCell(b, false)}</td>
             <td>${reviewCell(b)}</td>
           </tr>
