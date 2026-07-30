@@ -74,7 +74,7 @@ function showToast(msg, type = "success") {
 function requireAuth(callback) {
   auth.onAuthStateChanged(user => {
     if (!user) {
-      window.location.href = "/login/";
+      window.location.href = "login/";
     } else {
       callback(user);
     }
@@ -109,14 +109,14 @@ function renderHeader() {
   if (!header) return;
   header.innerHTML = `
     <div class="nav-wrap">
-      <a href="/" class="logo"><img src="/assets/logo-mark.svg" alt="" width="34" height="34">BOSLA</a>
+      <a href="./" class="logo"><img src="assets/logo-mark.svg" alt="" width="34" height="34">BOSLA</a>
       <nav class="nav-links" id="nav-links">
-        <a href="/mentors/">لاقي مرشد</a>
-        <a href="/#how">إزاي بتشتغل</a>
+        <a href="mentors/">لاقي مرشد</a>
+        <a href="./#how">إزاي بتشتغل</a>
       </nav>
       <div class="nav-auth" id="nav-auth">
-        <a href="/login/" class="btn btn-ghost">تسجيل الدخول</a>
-        <a href="/register-mentee/" class="btn btn-primary">ابدأ دلوقتي</a>
+        <a href="login/" class="btn btn-ghost">تسجيل الدخول</a>
+        <a href="register-mentee/" class="btn btn-primary">ابدأ دلوقتي</a>
       </div>
     </div>
   `;
@@ -124,11 +124,11 @@ function renderHeader() {
     const navAuth = document.getElementById("nav-auth");
     if (user && navAuth) {
       navAuth.innerHTML = `
-        <a href="/dashboard/" class="btn btn-ghost">لوحتي</a>
+        <a href="dashboard/" class="btn btn-ghost">لوحتي</a>
         <button class="btn btn-primary" id="logout-btn">تسجيل خروج</button>
       `;
       document.getElementById("logout-btn").addEventListener("click", () => {
-        auth.signOut().then(() => window.location.href = "/");
+        auth.signOut().then(() => window.location.href = "./");
       });
     }
   });

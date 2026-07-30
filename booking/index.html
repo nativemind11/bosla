@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+<base href="../">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>احجز جلسة — BOSLA</title>
-<link rel="icon" type="image/png" sizes="32x32" href="/assets/logo-32.png">
-<link rel="icon" type="image/png" sizes="64x64" href="/assets/logo-64.png">
-<link rel="apple-touch-icon" href="/assets/logo-256.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/logo-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/logo-64.png">
+<link rel="apple-touch-icon" href="assets/logo-256.png">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="css/style.css">
 <style>
   /* ===== Availability Slots Display ===== */
   .availability-wrapper {
@@ -86,8 +87,8 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="/js/firebase-config.js"></script>
-<script src="/js/app.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/app.js"></script>
 <script>
 const params = new URLSearchParams(window.location.search);
 const mentorUid = params.get("mentor");
@@ -238,8 +239,8 @@ function renderForm(isLoggedIn) {
       <div class="empty-state" style="padding:20px 0">
         لازم تسجل دخول الأول عشان تحجز.
         <div class="hero-actions" style="justify-content:center; margin-top:16px">
-          <a href="/login/" class="btn btn-primary">تسجيل الدخول</a>
-          <a href="/register-mentee/" class="btn btn-ghost">حساب جديد</a>
+          <a href="login/" class="btn btn-primary">تسجيل الدخول</a>
+          <a href="register-mentee/" class="btn btn-ghost">حساب جديد</a>
         </div>
       </div>
     ` : `
@@ -318,7 +319,7 @@ async function submitBooking() {
           ? "فريق BOSLA هيراجع إيصال الدفع ويأكد استلام الفلوس. هتلاقي رابط الميتينج في لوحة حسابك بعد التأكيد. بعد ما تخلصوا الجلسة، أنت والمرشد هتأكدوا كل واحد من حسابه إن الجلسة اتعملت، وبعدها بوصلة تحول نصيب المرشد (بعد خصم عمولة 10%)."
           : "الحجز اتأكد أوتوماتيك لأنها جلسة مجانية. هتلاقي رابط الميتينج في لوحة حسابك."}
       </p>
-      <a href="/dashboard/" class="btn btn-primary btn-block">روح للوحة حسابي</a>
+      <a href="dashboard/" class="btn btn-primary btn-block">روح للوحة حسابي</a>
     `;
   } catch (err) {
     showToast("حصل خطأ في الحجز، جرب تاني", "error");
