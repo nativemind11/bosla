@@ -12,6 +12,9 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
+// db بتتفعل بس في الصفحات اللي حاطة سكريبت firebase-firestore-compat.js (زي chat.html)
+// لو الصفحة مش حاطاه، db بتفضل null من غير ما تكسر باقي الكود
+const db = (typeof firebase.firestore === "function") ? firebase.firestore() : null;
 
 // رابط Google Apps Script (Web App) - غيّره لو عملت Deploy جديد
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby7J29aCbpnNnZRmTzoDbE9-Q0yywG6SfSPCLATuFEpAnpLCzzAC1fUxj5Fsj_y/exec";
