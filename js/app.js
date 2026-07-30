@@ -109,7 +109,7 @@ function renderHeader() {
   if (!header) return;
   header.innerHTML = `
     <div class="nav-wrap">
-      <a href="index.html" class="logo"><img src="assets/logo-mark.svg" alt="" width="30" height="30">BOSLA</a>
+      <a href="index.html" class="logo"><img src="assets/logo-mark.svg" alt="" width="34" height="34">BOSLA</a>
       <nav class="nav-links" id="nav-links">
         <a href="mentors.html">لاقي مرشد</a>
         <a href="index.html#how">إزاي بتشتغل</a>
