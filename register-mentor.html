@@ -224,7 +224,7 @@
           <label>جهة العمل الحالية</label>
           <div class="companies-combobox" id="companies-wrapper">
             <div class="companies-input-wrapper">
-              <input type="text" id="employer-input" placeholder="ابحث أو اكتب شركة جديدة" autocomplete="off">
+              <input type="text" id="employer-input" placeholder="ابحث عن جهة عملك أو اكتب اسم شركتك" autocomplete="off">
               <button type="button" id="clear-employer-btn" class="btn btn-ghost" style="padding:8px 12px; display:none;">✕</button>
             </div>
             <div class="companies-dropdown-list" id="companies-list"></div>
@@ -311,29 +311,29 @@
 // وقايمة إضافية اختيارية لبعض "التخصصات" الدقيقة اللي شركاتها مختلفة عن باقي المجال
 // (ممكن تتحول لاحقًا لمصدر بيانات جاي من الإنترنت / باك إند)
 const FIELD_COMPANIES = {
-  "الهندسة": ["أوراسكوم للإنشاء والصناعة", "أوراسكوم كونستراكشون", "إعمار مصر للتطوير العقاري (Emaar Misr)", "أورا للتطوير العقاري (Ora Developments)", "الأهلي صبور للتطوير العقاري (Al Ahly Sabbour)", "الشركة العربية للتصنيع", "الشركة القابضة لكهرباء مصر", "الشركة المصرية لمياه الشرب والصرف الصحي", "المقاولون العرب", "الهيئة الهندسية للقوات المسلحة", "الهيئة القومية لمياه الشرب والصرف الصحي", "بالم هيلز للتطوير العقاري (Palm Hills)", "بلد الجمال للتطوير العمراني", "تطوير مصر (Tatweer Misr)", "حسن علام العقارية", "دار الهندسة (شاير وشركاه)", "زهراء المعادي للاستثمار العقاري", "سوديك للتطوير العقاري (SODIC)", "سيتي إيدج للتطوير العمراني", "شركة النصر للمقاولات", "طلعت مصطفى", "لا فيستا للتطوير العقاري (La Vista)", "ماونتن فيو للتطوير العقاري (Mountain View)", "مجموعة السويدي إليكتريك", "مركز بحوث الإسكان والبناء", "مصر إيطاليا للتنمية العقارية (IDG)", "مكتب سبور للاستشارات الهندسية (ACE Consultants)", "وزارة الإسكان والمرافق والمجتمعات العمرانية", "AECOM", "Bechtel", "Dar Al-Handasah", "ECG (Egyptian Consultants Group)", "Hill International", "Jacobs Engineering", "KEO International Consultants", "Orascom Construction", "Siemens Egypt", "WSP Global Egypt"],
-  "علوم الحاسب وتكنولوجيا المعلومات": ["أوراسكوم للاستثمار", "الشركة المصرية للاتصالات (WE)", "بنك مصر", "جيزة سيستمز (Giza Systems)", "فوري (Fawry)", "فودافون مصر", "لينك ديفلوبمنت (Link Development)", "مصلحة الضرائب المصرية (التحول الرقمي)", "هيئة تنمية صناعة تكنولوجيا المعلومات (ITIDA)", "آي تي ووركس (ITWorx)", "راية القابضة (Raya Holding)", "إكسيد (Xceed)", "Amazon Web Services Egypt", "Cisco Egypt", "Dell Technologies Egypt", "Etisalat Egypt", "Google Egypt", "IBM Egypt", "Instabug", "Intel Egypt", "Microsoft Egypt", "Orange Egypt", "Oracle Egypt", "RDI (Research and Development International)", "SAP Egypt", "Swvl", "Uber Egypt", "Valeo Egypt", "Vezeeta", "VOIS Egypt (Vodafone Intelligent Solutions)", "Vodafone Egypt"],
-  "الطب البشري": ["الهيئة العامة للتأمين الصحي الشامل", "معهد ناصر للبحوث الطبية والقلب", "مستشفى أبو الريش للأطفال", "مستشفى الأورمان", "مستشفى السلام الدولي", "مستشفى المعادي العسكري", "مستشفى بهمن", "مستشفى دار الفؤاد", "مستشفى شرم الشيخ الدولي", "مستشفى عين شمس التخصصي", "مستشفى مجدي يعقوب لأمراض القلب (أسوان)", "مستشفيات جامعة القاهرة (قصر العيني)", "مستشفيات وزارة الصحة والسكان", "معهد الأورام القومي", "معهد الكبد القومي (المنوفية)", "مستشفى 57357"],
-  "طب الأسنان": ["عيادات سمايل ون", "عيادات فيرست دنتال", "عيادات فيوتشر دنتال", "مستشفى الأورمان لطب الأسنان", "مستشفيات جامعة القاهرة لطب الأسنان", "مستشفى قصر العيني لطب الأسنان", "معهد طب الأسنان القومي"],
-  "الصيدلة": ["شركة إيبيكو", "شركة الإسكندرية للأدوية", "شركة الجمهورية للأدوية", "شركة سيد فارما", "شركة كيميفارم", "شركة مصر للأدوية (ممفس)", "شركة أدوية النيل", "شركة أموديب", "صيدليات العزبي", "صيدليات سيف", "هيئة الدواء المصرية", "Amoun Pharmaceutical", "AstraZeneca Egypt", "GSK Egypt", "Novartis Egypt", "Novo Nordisk Egypt", "Pfizer Egypt", "Roche Egypt", "Sanofi Egypt"],
-  "العلاج الطبيعي": ["الهيئة العامة للتأمين الصحي الشامل", "مراكز العلاج الطبيعي والتأهيل الخاصة", "مركز مصر للعلاج الطبيعي والتأهيل", "مستشفى 57357", "مستشفيات جامعة القاهرة"],
-  "التمريض": ["الهيئة العامة للتأمين الصحي الشامل", "مستشفى 57357", "مستشفى السلام الدولي", "مستشفى دار الفؤاد", "مستشفيات جامعة القاهرة", "مستشفيات وزارة الصحة والسكان"],
-  "الطب البيطري": ["حديقة الحيوان بالجيزة", "شركة مصر لإنتاج الدواجن", "شركة كوكاريكو للدواجن", "عيادات بيطرية خاصة", "الهيئة العامة للخدمات البيطرية", "معهد بحوث صحة الحيوان", "وزارة الزراعة (الإدارة العامة للطب البيطري)"],
-  "المحاسبة": ["إرنست ويونج مصر (EY Egypt)", "برايس ووترهاوس كوبرز مصر (PwC Egypt)", "بنك مصر", "البنك الأهلي المصري", "البنك التجاري الدولي (CIB)", "بنك القاهرة", "بنك QNB الأهلي", "البنك العربي الأفريقي الدولي (AAIB)", "ديلويت مصر", "كي بي إم جي مصر (KPMG Egypt)", "بيكر تيلي مصر (Baker Tilly Egypt)", "جرانت ثورنتون مصر (Grant Thornton Egypt)", "HSBC Egypt", "Crédit Agricole Egypt", "مصلحة الضرائب المصرية", "الجهاز المركزي للمحاسبات"],
-  "إدارة الأعمال": ["أليانز مصر (Allianz Egypt)", "أوراسكوم", "إيديتا للصناعات الغذائية (Edita)", "البنك الأهلي المصري", "الشركة العربية للتصنيع", "بنك مصر", "جهينة للصناعات الغذائية (Juhayna)", "جوميا مصر (Jumia Egypt)", "دومتي (Domty)", "طلعت مصطفى", "فوري (Fawry)", "مجموعة العربي (Olympic Group)", "مصر للتأمين", "مكنون للاستشارات الإدارية", "ميت لايف مصر (MetLife/Alico)", "AXA Egypt", "Coca-Cola Egypt", "Etisalat Egypt", "GIG Egypt (Gulf Insurance Group)", "Kraft Heinz Egypt", "McKinsey & Company Egypt", "Mondelez Egypt", "Nestlé Egypt", "PepsiCo Egypt", "Procter & Gamble Egypt", "Unilever Egypt", "Vodafone Egypt"],
-  "الاقتصاد والعلوم السياسية": ["البنك المركزي المصري", "المعهد المصرفي المصري", "الهيئة العامة للاستثمار والمناطق الحرة", "مركز الأهرام للدراسات السياسية والاستراتيجية", "المركز المصري للدراسات الاقتصادية", "وزارة الخارجية المصرية", "وزارة التخطيط والتنمية الاقتصادية", "البنك الدولي (مكتب القاهرة)", "صندوق النقد الدولي (مكتب القاهرة)"],
-  "المحاماة والحقوق": ["مكتب معتوق بسيوني وحناوي (Matouk Bassiouny)", "مكتب الشرقاوي وسرحان (Sharkawy & Sarhan)", "مكتب زكي هاشم وشركاه (Zaki Hashem & Partners)", "مكتب قوشة راشد وشركاهما (Kosheri, Rashed & Riad)", "مكتب إبراشي وديرمركار (Ibrachy & Dermarkar)", "مكتب الشلقاني للمحاماة (Shalakany Law Office)", "مكتب يسري صالح وشركاه", "مكتب ديوان للمحاماة", "مكتب الفايد للمحاماة", "مجلس الدولة", "نقابة المحامين المصرية", "وزارة العدل", "وزارة القوى العاملة"],
-  "الآداب واللغات": ["الجامعة الأمريكية بالقاهرة", "المدارس الدولية", "دار المعارف", "مركز الأزهر للترجمة", "المجلس الأعلى للثقافة", "وزارة التربية والتعليم"],
-  "الألسن والترجمة": ["الأمم المتحدة (مكتب القاهرة)", "جامعة الدول العربية", "قناة السويس للاستشارات والترجمة", "مكاتب الترجمة المعتمدة", "المركز القومي للترجمة", "وزارة الخارجية المصرية"],
-  "الإعلام": ["اليوم السابع", "التليفزيون المصري (ماسبيرو)", "الأهرام", "أخبار اليوم", "صدى البلد", "قناة CBC", "قناة DMC", "قناة ON", "قناة إم بي سي مصر (MBC Egypt)", "المصري اليوم"],
-  "التربية": ["الجامعة الأمريكية بالقاهرة", "المدارس الدولية", "مدارس STEM", "مدارس النيل المصرية", "مدارس المستقبل", "وزارة التربية والتعليم", "الأكاديمية المهنية للمعلمين"],
-  "الفنون الجميلة والتطبيقية": ["استوديوهات إنتاج سينمائي", "استوديوهات تصميم داخلي خاصة", "دار نشر الشروق", "شركات إعلانية خاصة (تريندز، إمباكت بي بي دي أو)", "أوجيلفي مصر (Ogilvy Egypt)"],
-  "الزراعة": ["دقيق مصر", "شركة جهينة للصناعات الغذائية (Juhayna)", "شركة سيكاب لتصدير الفاكهة والخضر", "شركة عبور لاند للصناعات الغذائية (Obour Land)", "شركة دومتي (Domty)", "شركة الدلتا للسكر", "الشركة القابضة للصناعات الغذائية", "مركز البحوث الزراعية", "وزارة الزراعة واستصلاح الأراضي"],
-  "العلوم": ["الجامعة الأمريكية بالقاهرة", "المركز القومي للبحوث", "الهيئة القومية للاستشعار عن بعد وعلوم الفضاء", "هيئة الطاقة الذرية المصرية", "معهد بحوث البترول", "GSK Egypt", "Sanofi Egypt"],
-  "السياحة والفنادق": ["شركة ترافكو للسياحة", "فنادق ستيجنبرجر", "فندق شيراتون القاهرة", "فندق فورسيزونز", "فندق ماريوت القاهرة", "فنادق موفنبيك", "وزارة السياحة والآثار", "الهيئة العامة لتنشيط السياحة"],
-  "التربية الرياضية": ["أكاديميات كرة القدم الخاصة", "الاتحاد المصري لكرة القدم", "نادي الأهلي", "نادي الزمالك", "وزارة الشباب والرياضة"],
-  "دار العلوم والدراسات الإسلامية": ["الأزهر الشريف", "دار الإفتاء المصرية", "مجمع البحوث الإسلامية", "وزارة الأوقاف"],
-  "الخدمة الاجتماعية": ["اليونيسف مصر", "بنك الطعام المصري", "جمعية رسالة", "مؤسسة مصر الخير", "وزارة التضامن الاجتماعي"],
+  "الهندسة": ["أوراسكوم للإنشاء والصناعة", "أوراسكوم كونستراكشون", "إعمار مصر للتطوير العقاري (Emaar Misr)", "أورا للتطوير العقاري (Ora Developments)", "الأهلي صبور للتطوير العقاري (Al Ahly Sabbour)", "الشركة العربية للتصنيع", "الشركة القابضة لكهرباء مصر", "الشركة المصرية لمياه الشرب والصرف الصحي", "المقاولون العرب", "الهيئة الهندسية للقوات المسلحة", "الهيئة القومية لمياه الشرب والصرف الصحي", "بالم هيلز للتطوير العقاري (Palm Hills)", "بلد الجمال للتطوير العمراني", "تطوير مصر (Tatweer Misr)", "حسن علام العقارية", "دار الهندسة (شاير وشركاه)", "زهراء المعادي للاستثمار العقاري", "سوديك للتطوير العقاري (SODIC)", "سيتي إيدج للتطوير العمراني", "شركة النصر للمقاولات", "طلعت مصطفى", "لا فيستا للتطوير العقاري (La Vista)", "ماونتن فيو للتطوير العقاري (Mountain View)", "مجموعة السويدي إليكتريك", "مركز بحوث الإسكان والبناء", "مصر إيطاليا للتنمية العقارية (IDG)", "مكتب سبور للاستشارات الهندسية (ACE Consultants)", "وزارة الإسكان والمرافق والمجتمعات العمرانية", "AECOM", "Bechtel", "Dar Al-Handasah", "ECG (Egyptian Consultants Group)", "Hill International", "Jacobs Engineering", "KEO International Consultants", "Orascom Construction", "Siemens Egypt", "WSP Global Egypt", "ريدكون للمقاولات (Redcon Construction)", "كونكورد للإنشاءات (Concord for Construction)", "حسن علام للإنشاءات (Hassan Allam Construction)", "بتروجيت (Petrojet)", "إنبي (Enppi)", "النصر للمقاولات والتوريدات العمومية", "شركة المقاولون العرب للاستثمار العقاري", "الشركة العربية للتشييد والتعمير (ACC)", "أرابتك القابضة (Arabtec Holding - الإمارات)", "مجموعة سعودي بن لادن (Saudi Binladin Group)", "المصرية الكويتية القابضة", "شركة غاز مصر (Egypt Gas)", "حديد عز (Ezz Steel)", "الحديد والصلب المصرية", "أسمنت العريش", "أسمنت سيناء", "أسمنت طرة", "سيراميكا كليوباترا", "الشركة القابضة لمياه الشرب والصرف الصحي", "الهيئة العامة لتنمية مشروعات الثروة السمكية", "الهيئة القومية للأنفاق", "الهيئة العامة للطرق والكباري والنقل البري", "شركة النقل والهندسة (طرق مصر)", "أوراسكوم للتنمية مصر (Orascom Development Egypt)", "بيوتي للتطوير العقاري (Beyti Development)", "مراكز مصر للتسوق (سيتي ستارز)", "المطورون العرب (Arab Developers Holding)", "روافع الجيزة للمقاولات (Giza Cranes)", "أرابيا القابضة للاستثمار العقاري (ARAVIA)", "جي بي القابضة للاستثمار العقاري (GB Corp)", "المراسم للاستشارات الهندسية", "شركة النيل العامة للمقاولات", "Arabtec Construction (UAE)", "Saudi Oger", "Al Habtoor Group (UAE)", "China State Construction Engineering Corporation (CSCEC)", "Vinci Construction", "Bouygues Construction", "Skanska", "Turner Construction", "Larsen & Toubro (India)", "SNC-Lavalin", "Mott MacDonald", "Arup", "Atkins (SNC-Lavalin)", "Ramboll", "China Railway Construction Corporation", "Samsung C&T", "Hyundai Engineering & Construction", "الهيئة الهندسية للقوات المسلحة - الشركة الوطنية للطرق", "وزارة النقل - الهيئة القومية لسكك حديد مصر"],
+  "علوم الحاسب وتكنولوجيا المعلومات": ["أوراسكوم للاستثمار", "الشركة المصرية للاتصالات (WE)", "بنك مصر", "جيزة سيستمز (Giza Systems)", "فوري (Fawry)", "فودافون مصر", "لينك ديفلوبمنت (Link Development)", "مصلحة الضرائب المصرية (التحول الرقمي)", "هيئة تنمية صناعة تكنولوجيا المعلومات (ITIDA)", "آي تي ووركس (ITWorx)", "راية القابضة (Raya Holding)", "إكسيد (Xceed)", "Amazon Web Services Egypt", "Cisco Egypt", "Dell Technologies Egypt", "Etisalat Egypt", "Google Egypt", "IBM Egypt", "Instabug", "Intel Egypt", "Microsoft Egypt", "Orange Egypt", "Oracle Egypt", "RDI (Research and Development International)", "SAP Egypt", "Swvl", "Uber Egypt", "Valeo Egypt", "Vezeeta", "VOIS Egypt (Vodafone Intelligent Solutions)", "Vodafone Egypt", "فاليوسوفت مصر", "المصرية للاتصالات الدولية", "بنك القاهرة (تحول رقمي)", "المصرية لتحصيل الفواتير", "أوبن سيسولوشنز (بريد إلكتروني/برمجيات)", "تريفنتيس (Trventis)", "ديب سايتس (DeepSights)", "كورا (Chefaa)", "أورنج للأعمال مصر (Orange Business Egypt)", "المتحدة للخدمات الإلكترونية", "وزارة الاتصالات وتكنولوجيا المعلومات", "الهيئة الوطنية للاستشعار عن بعد", "المدينة الرقمية للاتصالات (Smart Village)", "أبتاون كايرو - المنطقة التكنولوجية", "Amazon (Egypt Development Center)", "Meta (Facebook) Egypt", "Careem Egypt", "Talabat Egypt", "Trella", "MaxAB", "Halan", "Paymob", "Yalla Group", "Silicon Waha (Nokia R&D)", "Huawei Egypt", "ZTE Egypt", "Ericsson Egypt", "Nokia Egypt", "Samsung R&D Institute Egypt (SRC)", "Accenture Egypt", "Capgemini Egypt", "Wipro", "Infosys", "TCS (Tata Consultancy Services)", "Deloitte Digital Egypt", "PwC Digital", "EY Digital", "Booking.com (Cairo office)", "Careem (UAE)", "Talabat (Kuwait)", "STC (Saudi Telecom Company)", "Etisalat by e&", "du (Emirates Integrated Telecommunications)", "SAP SE (Germany)", "Siemens Digital Industries", "Schneider Electric Digital", "Ubisoft Egypt (استوديو ألعاب)", "Synopsys Egypt", "Mentor Graphics (Siemens EDA) Egypt", "Si-Ware Systems", "Vodafone Group (UK HQ liaison)"],
+  "الطب البشري": ["الهيئة العامة للتأمين الصحي الشامل", "معهد ناصر للبحوث الطبية والقلب", "مستشفى أبو الريش للأطفال", "مستشفى الأورمان", "مستشفى السلام الدولي", "مستشفى المعادي العسكري", "مستشفى بهمن", "مستشفى دار الفؤاد", "مستشفى شرم الشيخ الدولي", "مستشفى عين شمس التخصصي", "مستشفى مجدي يعقوب لأمراض القلب (أسوان)", "مستشفيات جامعة القاهرة (قصر العيني)", "مستشفيات وزارة الصحة والسكان", "معهد الأورام القومي", "معهد الكبد القومي (المنوفية)", "مستشفى 57357", "مستشفى الشرطة (الأجهزة الأمنية)", "مستشفيات القوات المسلحة", "مستشفى الحسين الجامعي (الأزهر)", "مستشفى سيدي جابر التخصصي (الإسكندرية)", "مستشفيات جامعة الإسكندرية", "مستشفيات جامعة عين شمس", "مستشفيات جامعة المنصورة", "مستشفيات جامعة الزقازيق", "مستشفيات جامعة أسيوط", "مستشفى الأميرى", "مستشفى الجلاء التعليمي", "مستشفى بولاق الدكرور المركزي", "مستشفى أحمد ماهر التعليمي", "مستشفى الهلال الأحمر المصري", "مستشفى دار السلام", "مستشفى النزهة الدولي", "مستشفى وادي النيل الدولي", "مستشفى كليوباترا", "مستشفيات آل مصطفى", "مستشفى الأمل لعلاج الأورام", "مستشفى بدرالدين للأطفال", "المركز القومي لبحوث وتكنولوجيا الإشعاع", "الهيئة العامة للمستشفيات والمعاهد التعليمية", "معهد قلب أسوان (مجدي يعقوب)", "مستشفى سموحة التخصصي (الإسكندرية)", "الهيئة العامة للتأمين الصحي الاجتماعي", "مستشفى السعودي الألماني (SGH) - القاهرة", "دار الفؤاد الجديدة", "شركة كليوباترا للرعاية الصحية (Cleopatra Hospitals Group)", "IDH - القابضة للاستثمارات الدوائية (International Drug Holding)", "المملكة العربية السعودية - مستشفى الملك فيصل التخصصي", "مستشفى الملك فهد التخصصي (السعودية)", "مستشفى حمد العام (قطر - Hamad Medical Corporation)", "مستشفى كليفلاند كلينك أبوظبي", "مستشفى برجيل الطبي (أبوظبي)", "مستشفى دبي (Dubai Hospital)", "مستشفى أمريكان هوسبيتال دبي", "مستشفى مبرة الحبيب (لبنان)", "المستشفى الأمريكي الجامعي في بيروت (AUBMC)", "Cleveland Clinic (USA)", "Mayo Clinic (USA)", "Johns Hopkins Hospital (USA)", "Mount Sinai Hospital (USA)", "Charité – Universitätsmedizin Berlin (ألمانيا)", "King's College Hospital (لندن)", "Guy's and St Thomas' NHS (لندن)", "منظمة الصحة العالمية (WHO - المكتب الإقليمي)", "أطباء بلا حدود (Médecins Sans Frontières)", "الهلال الأحمر المصري", "اليونيسف مصر (برنامج الصحة)"],
+  "طب الأسنان": ["عيادات سمايل ون", "عيادات فيرست دنتال", "عيادات فيوتشر دنتال", "مستشفى الأورمان لطب الأسنان", "مستشفيات جامعة القاهرة لطب الأسنان", "مستشفى قصر العيني لطب الأسنان", "معهد طب الأسنان القومي", "مركز دار الأسنان (Dental House)", "عيادات إيجيبت دنتال سنتر", "مركز سمايل كليوباترا", "عيادات دنتال آرت (Dental Art)", "عيادات فيوجن دنتال", "عيادات وايت سمايل", "مستشفى أسنان جامعة الإسكندرية", "مستشفى أسنان جامعة عين شمس", "مستشفى أسنان جامعة المنصورة", "معهد الأورام القومي - وحدة جراحة الفم والفكين", "نقابة أطباء الأسنان المصرية", "مركز دبي الطبي لطب الأسنان", "مستشفى أسنان الملك سعود (السعودية)", "American Dental Association (مرجعية علمية)", "Align Technology (Invisalign)", "Straumann Group (سويسرا)", "Dentsply Sirona", "Envista Holdings"],
+  "الصيدلة": ["شركة إيبيكو", "شركة الإسكندرية للأدوية", "شركة الجمهورية للأدوية", "شركة سيد فارما", "شركة كيميفارم", "شركة مصر للأدوية (ممفس)", "شركة أدوية النيل", "شركة أموديب", "صيدليات العزبي", "صيدليات سيف", "هيئة الدواء المصرية", "Amoun Pharmaceutical", "AstraZeneca Egypt", "GSK Egypt", "Novartis Egypt", "Novo Nordisk Egypt", "Pfizer Egypt", "Roche Egypt", "Sanofi Egypt", "شركة أوتوبان فارما", "شركة فاركو للأدوية (Pharco)", "شركة سيجما للأدوية (SEDICO)", "شركة ايجيفارما (EIPICO)", "شركة أدويا (Adwia)", "شركة المصرية لصناعة الأدوية والمستلزمات الطبية", "شركة كايرو فارما (Cairo Pharmaceuticals)", "شركة ايفا فارما (EVA Pharma)", "شركة مينا فارم (Minapharm)", "شركة جلوبال نابي فارما (GNP)", "شركة الحكمة للأدوية (Hikma)", "شركة رياض فارما (Riyad Pharma)", "صيدليات فارماسي 1", "صيدليات المزار", "هيئة الرقابة الدوائية العربية", "الهيئة القومية لسلامة الغذاء والدواء", "Bayer Egypt", "Merck Egypt", "Johnson & Johnson Egypt", "Boehringer Ingelheim Egypt", "Bristol Myers Squibb Egypt", "Eli Lilly Egypt", "Abbott Egypt", "Servier Egypt", "Julphar (الإمارات)", "SPIMACO (السعودية)", "Tabuk Pharmaceuticals (السعودية)", "Hikma Pharmaceuticals (الأردن)", "Dar Al Dawa (الأردن)", "Aspen Pharmacare"],
+  "العلاج الطبيعي": ["الهيئة العامة للتأمين الصحي الشامل", "مراكز العلاج الطبيعي والتأهيل الخاصة", "مركز مصر للعلاج الطبيعي والتأهيل", "مستشفى 57357", "مستشفيات جامعة القاهرة", "مركز دكتور محمد فتحي للعلاج الطبيعي", "مركز فيزيو كلينيك (PhysioClinic)", "مركز ريهاب بوينت للتأهيل", "مركز أكتيف فيزيو للعلاج الطبيعي", "مستشفى أورمان للأطفال - وحدة العلاج الطبيعي", "معهد ناصر - قسم العلاج الطبيعي", "مركز الدكتور محمد سامي للعلاج الطبيعي", "مركز إنرجي فيت للتأهيل الرياضي", "الاتحاد المصري للعلاج الطبيعي", "نقابة العلاج الطبيعي المصرية", "مستشفى الأمل للتأهيل الطبي (الكويت)", "مركز التأهيل الطبي بدبي", "Hospital for Special Surgery (USA)", "Mayo Clinic Rehabilitation (USA)"],
+  "التمريض": ["الهيئة العامة للتأمين الصحي الشامل", "مستشفى 57357", "مستشفى السلام الدولي", "مستشفى دار الفؤاد", "مستشفيات جامعة القاهرة", "مستشفيات وزارة الصحة والسكان", "مستشفى الشيخ زايد التخصصي", "مستشفيات جامعة عين شمس التمريضية", "المعهد الفني للتمريض بالقصر العيني", "نقابة التمريض المصرية", "مستشفى الأورمان - إدارة التمريض", "مستشفى سموحة", "مستشفى الحسين الجامعي", "مستشفى الملك فيصل التخصصي (السعودية)", "Hamad Medical Corporation (قطر)", "Cleveland Clinic Abu Dhabi", "NHS Trusts (UK)", "الهلال الأحمر المصري"],
+  "الطب البيطري": ["حديقة الحيوان بالجيزة", "شركة مصر لإنتاج الدواجن", "شركة كوكاريكو للدواجن", "عيادات بيطرية خاصة", "الهيئة العامة للخدمات البيطرية", "معهد بحوث صحة الحيوان", "وزارة الزراعة (الإدارة العامة للطب البيطري)", "شركة دينا فارم لإنتاج الدواجن", "الشركة الوطنية لتنمية الثروة الحيوانية", "شركة إيديتا لتصنيع الأعلاف", "شركة جودة للدواجن", "مصنع مصر لإنتاج الأمصال واللقاحات البيطرية", "معهد بحوث الأمصال واللقاحات البيطرية", "الجمعية الطبية البيطرية المصرية", "الهيئة العامة لتنمية الثروة السمكية", "حديقة حيوان الجيزة", "أكواريوم القناطر", "Zoetis Egypt", "Merck Animal Health", "Boehringer Ingelheim Animal Health"],
+  "المحاسبة": ["إرنست ويونج مصر (EY Egypt)", "برايس ووترهاوس كوبرز مصر (PwC Egypt)", "بنك مصر", "البنك الأهلي المصري", "البنك التجاري الدولي (CIB)", "بنك القاهرة", "بنك QNB الأهلي", "البنك العربي الأفريقي الدولي (AAIB)", "ديلويت مصر", "كي بي إم جي مصر (KPMG Egypt)", "بيكر تيلي مصر (Baker Tilly Egypt)", "جرانت ثورنتون مصر (Grant Thornton Egypt)", "HSBC Egypt", "Crédit Agricole Egypt", "مصلحة الضرائب المصرية", "الجهاز المركزي للمحاسبات", "بنك أبو ظبي التجاري - مصر (ADCB Egypt)", "بنك التعمير والإسكان", "بنك فيصل الإسلامي المصري", "بنك ناصر الاجتماعي", "بنك المشرق مصر (Mashreq Egypt)", "البنك المركزي المصري", "الهيئة العامة للرقابة المالية", "البورصة المصرية (EGX)", "مصلحة الشهر العقاري والتوثيق", "مكتب مظهر وشريف محاسبون قانونيون", "مكتب حازم حسن (KPMG Hazem Hassan)", "مكتب صالح بركات وشركاه", "BDO Egypt", "RSM Egypt", "Crowe Egypt", "Mazars Egypt", "بنك الرياض (السعودية)", "البنك الأهلي السعودي (SNB)", "بنك الإمارات دبي الوطني (Emirates NBD)", "بنك أبوظبي الأول (FAB)", "Citibank Egypt", "Standard Chartered Bank"],
+  "إدارة الأعمال": ["أليانز مصر (Allianz Egypt)", "أوراسكوم", "إيديتا للصناعات الغذائية (Edita)", "البنك الأهلي المصري", "الشركة العربية للتصنيع", "بنك مصر", "جهينة للصناعات الغذائية (Juhayna)", "جوميا مصر (Jumia Egypt)", "دومتي (Domty)", "طلعت مصطفى", "فوري (Fawry)", "مجموعة العربي (Olympic Group)", "مصر للتأمين", "مكنون للاستشارات الإدارية", "ميت لايف مصر (MetLife/Alico)", "AXA Egypt", "Coca-Cola Egypt", "Etisalat Egypt", "GIG Egypt (Gulf Insurance Group)", "Kraft Heinz Egypt", "McKinsey & Company Egypt", "Mondelez Egypt", "Nestlé Egypt", "PepsiCo Egypt", "Procter & Gamble Egypt", "Unilever Egypt", "Vodafone Egypt", "بيبسيكو مصر (PepsiCo Egypt)", "هاينكن مصر (Heineken - الأهرام للمشروبات)", "كافيه فريج (Cafe Frisco)", "سبينس (Spinneys Egypt)", "كارفور مصر (Carrefour Egypt)", "هايبر ون (Hyperone)", "بي تك (B.TECH)", "راية للتسويق والتوزيع", "المجموعة المتحدة للخدمات والتنمية (UG)", "بايونيرز القابضة (Pioneers Holding)", "سي آي كابيتال (CI Capital)", "إتش سي القابضة للاستشارات المالية (HC Securities)", "المصرية للاتصالات - قطاع الأعمال", "أوراسكوم تليكوم القابضة", "بنك مصر - قطاع الشركات", "STC Group (السعودية)", "Emirates Group (الإمارات)", "Aramex (الإمارات)", "Majid Al Futtaim (الإمارات)", "Almarai (السعودية)", "Savola Group (السعودية)", "Landmark Group (الإمارات)", "IKEA Egypt", "Amazon Egypt", "Noon.com", "L'Oréal Egypt", "Danone Egypt", "Henkel Egypt", "Colgate-Palmolive Egypt", "Philip Morris International Egypt", "British American Tobacco Egypt", "Deloitte Egypt", "EY Egypt", "KPMG Egypt", "PwC Egypt", "Boston Consulting Group (BCG)", "Bain & Company"],
+  "الاقتصاد والعلوم السياسية": ["البنك المركزي المصري", "المعهد المصرفي المصري", "الهيئة العامة للاستثمار والمناطق الحرة", "مركز الأهرام للدراسات السياسية والاستراتيجية", "المركز المصري للدراسات الاقتصادية", "وزارة الخارجية المصرية", "وزارة التخطيط والتنمية الاقتصادية", "البنك الدولي (مكتب القاهرة)", "صندوق النقد الدولي (مكتب القاهرة)", "وزارة المالية المصرية", "الجهاز المركزي للتعبئة العامة والإحصاء (CAPMAS)", "معهد التخطيط القومي", "مركز المعلومات ودعم اتخاذ القرار (مجلس الوزراء)", "الأكاديمية المصرية للهندسة والتكنولوجيا المتقدمة", "جامعة الدول العربية", "منظمة العمل العربية", "الأمم المتحدة (برنامج الأمم المتحدة الإنمائي UNDP)", "البنك الأفريقي للتنمية", "صندوق النقد العربي", "بنك الاستثمار الأوروبي (EIB)", "USAID مصر", "الاتحاد الأوروبي - وفد المفوضية بمصر", "منظمة التعاون الاقتصادي والتنمية (OECD)", "مؤسسة راند (RAND Corporation)", "معهد بروكينجز (Brookings Institution)"],
+  "المحاماة والحقوق": ["مكتب معتوق بسيوني وحناوي (Matouk Bassiouny)", "مكتب الشرقاوي وسرحان (Sharkawy & Sarhan)", "مكتب زكي هاشم وشركاه (Zaki Hashem & Partners)", "مكتب قوشة راشد وشركاهما (Kosheri, Rashed & Riad)", "مكتب إبراشي وديرمركار (Ibrachy & Dermarkar)", "مكتب الشلقاني للمحاماة (Shalakany Law Office)", "مكتب يسري صالح وشركاه", "مكتب ديوان للمحاماة", "مكتب الفايد للمحاماة", "مجلس الدولة", "نقابة المحامين المصرية", "وزارة العدل", "وزارة القوى العاملة", "مكتب حسين وشريكاه (Hosny & Partners)", "مكتب المطوع وشركاه", "مكتب أحمد عبد الحفيظ للمحاماة", "مكتب طلعت أباظة للمحاماة", "مكتب عادل رياض للاستشارات القانونية", "مكتب جيلي ويلسون", "مكتب دنتونز مصر (Dentons Egypt)", "مكتب بيكر ماكنزي مصر (Baker McKenzie)", "مكتب فريش فيلدز مصر (Freshfields)", "مكتب هوجان لوفيلز (Hogan Lovells)", "مكتب كليفورد تشانس (Clifford Chance)", "الهيئة العامة للاستثمار", "المركز الإقليمي للتحكيم التجاري الدولي بالقاهرة (CRCICA)", "محكمة النقض المصرية", "المحكمة الدستورية العليا", "غرفة التجارة الدولية (ICC)", "منظمة التجارة العالمية (WTO)", "محكمة العدل الدولية"],
+  "الآداب واللغات": ["الجامعة الأمريكية بالقاهرة", "المدارس الدولية", "دار المعارف", "مركز الأزهر للترجمة", "المجلس الأعلى للثقافة", "وزارة التربية والتعليم", "الجامعة الفرنسية بمصر", "الجامعة الألمانية بالقاهرة (GUC)", "جامعة النيل الأهلية", "المعهد الثقافي الفرنسي بالقاهرة", "المعهد الألماني (جوته إنستيتوت)", "المجلس الثقافي البريطاني", "دار الكتب والوثائق القومية", "مكتبة الإسكندرية", "المجلس الأعلى للآثار", "مركز الدراسات السياسية والاستراتيجية", "دار الشروق للنشر", "دار الهلال", "معهد التخطيط القومي - وحدة السياسات"],
+  "الألسن والترجمة": ["الأمم المتحدة (مكتب القاهرة)", "جامعة الدول العربية", "قناة السويس للاستشارات والترجمة", "مكاتب الترجمة المعتمدة", "المركز القومي للترجمة", "وزارة الخارجية المصرية", "المنظمة العربية للترجمة", "مركز اللغات والترجمة (جامعة عين شمس)", "الاتحاد الدولي للمترجمين (FIT)", "الأمم المتحدة (مكتب فيينا/جنيف)", "الاتحاد الأوروبي - مديرية الترجمة العامة", "مكتب ترجمة المستندات الرسمية بوزارة الخارجية", "شركة ترانسليت ميديا (TransMedia)", "شركة لايونبريدج (Lionbridge)", "شركة SDL (RWS Group)", "منظمة اليونسكو (مكتب القاهرة)"],
+  "الإعلام": ["اليوم السابع", "التليفزيون المصري (ماسبيرو)", "الأهرام", "أخبار اليوم", "صدى البلد", "قناة CBC", "قناة DMC", "قناة ON", "قناة إم بي سي مصر (MBC Egypt)", "المصري اليوم", "قناة النهار", "قناة القاهرة والناس", "قناة صدى البلد", "قناة الحياة", "قناة إكسترا نيوز", "المؤسسة القومية للإعلام", "الهيئة الوطنية للإعلام", "وكالة أنباء الشرق الأوسط (MENA)", "جريدة الوطن", "جريدة الشروق", "شبكة الجزيرة (قطر)", "قناة العربية (السعودية)", "روتانا ميديا جروب (السعودية)", "MBC Group (السعودية)", "BBC News عربي", "CNN (المكتب الإقليمي)", "Reuters (المكتب الإقليمي)", "Bloomberg", "France 24 عربي", "Sky News Arabia"],
+  "التربية": ["الجامعة الأمريكية بالقاهرة", "المدارس الدولية", "مدارس STEM", "مدارس النيل المصرية", "مدارس المستقبل", "وزارة التربية والتعليم", "الأكاديمية المهنية للمعلمين", "مدارس مصر الجديدة الرسمية للغات", "مدارس أكتوبر بارك", "مدارس الحرية للغات", "مدارس سانت فاتيما", "مدارس بريتش كولومبيا كندية (BCE)", "مدارس ناديا", "مدرسة الجزيرة", "مدرسة ليسيه الحرية الفرنسية", "المدرسة الألمانية بالقاهرة (DEO)", "المدرسة الأمريكية بالقاهرة (CAC)", "الأكاديمية البريطانية الدولية (BISC)", "الهيئة العامة لمحو الأمية وتعليم الكبار", "المركز القومي للامتحانات والتقويم التربوي", "منظمة اليونيسف - قطاع التعليم", "منظمة اليونسكو - قطاع التعليم"],
+  "الفنون الجميلة والتطبيقية": ["استوديوهات إنتاج سينمائي", "استوديوهات تصميم داخلي خاصة", "دار نشر الشروق", "شركات إعلانية خاصة (تريندز، إمباكت بي بي دي أو)", "أوجيلفي مصر (Ogilvy Egypt)", "استوديو مصر (Studio Misr)", "شركة الوحدة للإنتاج الفني", "استوديوهات فيلم كلينيك", "دار نشر الكرمة", "دار العين للنشر", "شركة تريندز للإعلان", "شركة إمباكت بي بي دي أو (Impact BBDO)", "شركة إعلانات أخرى - JWT Egypt", "شركة ماكان للتصميم الداخلي", "أتيليه القاهرة للفنون", "متحف الفن الحديث بالقاهرة", "دار الأوبرا المصرية", "Netflix (إنتاج إقليمي)", "MBC Studios", "Ogilvy Middle East", "Publicis Groupe", "WPP"],
+  "الزراعة": ["دقيق مصر", "شركة جهينة للصناعات الغذائية (Juhayna)", "شركة سيكاب لتصدير الفاكهة والخضر", "شركة عبور لاند للصناعات الغذائية (Obour Land)", "شركة دومتي (Domty)", "شركة الدلتا للسكر", "الشركة القابضة للصناعات الغذائية", "مركز البحوث الزراعية", "وزارة الزراعة واستصلاح الأراضي", "شركة الوادي للصناعات الغذائية", "شركة بيسكو مصر", "شركة كاسكو (المطاحن)", "معهد بحوث البساتين", "معهد بحوث وقاية النباتات", "معهد بحوث الأراضي والمياه والبيئة", "الهيئة العامة للإصلاح الزراعي", "بنك التنمية والائتمان الزراعي", "شركة سويلام للاستثمار الزراعي", "المجموعة العربية للتنمية الزراعية (AOAD)", "Almarai (السعودية)", "Bayer CropScience", "Syngenta", "Cargill", "Olam Agri", "ADM (Archer Daniels Midland)"],
+  "العلوم": ["الجامعة الأمريكية بالقاهرة", "المركز القومي للبحوث", "الهيئة القومية للاستشعار عن بعد وعلوم الفضاء", "هيئة الطاقة الذرية المصرية", "معهد بحوث البترول", "GSK Egypt", "Sanofi Egypt", "المركز القومي لبحوث الإسكان والبناء", "معهد بحوث الإلكترونيات", "معهد بحوث المعادن", "هيئة الاستشعار عن بعد وعلوم الفضاء", "وكالة الفضاء المصرية", "أكاديمية البحث العلمي والتكنولوجيا", "الهيئة العربية للتصنيع - قطاع البحث والتطوير", "معهد بحوث الصحراء", "المعهد القومي لعلوم البحار والمصايد", "CERN (المنظمة الأوروبية للأبحاث النووية)", "NASA (وكالة الفضاء الأمريكية)", "ESA (وكالة الفضاء الأوروبية)", "Max Planck Institute (ألمانيا)"],
+  "السياحة والفنادق": ["شركة ترافكو للسياحة", "فنادق ستيجنبرجر", "فندق شيراتون القاهرة", "فندق فورسيزونز", "فندق ماريوت القاهرة", "فنادق موفنبيك", "وزارة السياحة والآثار", "الهيئة العامة لتنشيط السياحة", "فنادق فورسيزونز مصر", "فنادق كمبينسكي النيل", "فنادق الماسة (Rixos)", "منتجعات جاز (Jaz Hotels)", "فنادق تراي هيلز (Tri Hotels)", "شركة إيجيبت إير للسياحة", "شركة سبيتس تورز (Spitts Tours)", "شركة أوروبا تورز", "شركة ميستو تورز (Misty Tours)", "غرفة شركات السياحة المصرية", "فنادق هيلتون (Hilton Worldwide)", "فنادق أكور (Accor - Sofitel/Novotel)", "فنادق إنتركونتيننتال (IHG)", "فنادق حياة (Hyatt)", "فنادق ريتز كارلتون", "مجموعة جميرا (Jumeirah Group - الإمارات)", "طيران الإمارات (Emirates Airlines)", "الخطوط السعودية (Saudia)", "طيران الاتحاد (Etihad Airways)", "طيران قطر (Qatar Airways)"],
+  "التربية الرياضية": ["أكاديميات كرة القدم الخاصة", "الاتحاد المصري لكرة القدم", "نادي الأهلي", "نادي الزمالك", "وزارة الشباب والرياضة", "النادي الأهلي الرياضي", "نادي الزمالك الرياضي", "النادي المصري (بورسعيد)", "نادي سموحة الرياضي", "الاتحاد المصري لكرة اليد", "الاتحاد المصري للسباحة", "الاتحاد المصري للألعاب الأولمبية", "أكاديمية الأهلي لكرة القدم", "أكاديمية زد للتنمية الرياضية (ZED FC)", "الاتحاد الدولي لكرة القدم (FIFA)", "الاتحاد الأفريقي لكرة القدم (CAF)", "اللجنة الأولمبية المصرية"],
+  "دار العلوم والدراسات الإسلامية": ["الأزهر الشريف", "دار الإفتاء المصرية", "مجمع البحوث الإسلامية", "وزارة الأوقاف", "جامعة الأزهر - كلية الشريعة والقانون", "المجلس الأعلى للشئون الإسلامية", "بيت الزكاة والصدقات المصري", "رابطة العالم الإسلامي", "منظمة التعاون الإسلامي", "مجمع الملك فهد لطباعة المصحف الشريف (السعودية)", "الأزهر الشريف - قطاع المعاهد الأزهرية"],
+  "الخدمة الاجتماعية": ["اليونيسف مصر", "بنك الطعام المصري", "جمعية رسالة", "مؤسسة مصر الخير", "وزارة التضامن الاجتماعي", "جمعية الأورمان الخيرية", "مؤسسة ناصر الاجتماعية", "الصندوق الاجتماعي للتنمية", "جمعية الهلال الأحمر المصري", "مؤسسة أهل مصر", "منظمة الأمم المتحدة للطفولة (اليونيسف)", "مفوضية الأمم المتحدة لشؤون اللاجئين (UNHCR)", "منظمة أوكسفام (Oxfam)", "منظمة الرؤية العالمية (World Vision)", "الهلال الأحمر الإماراتي", "مؤسسة قطر الخيرية"],
   "الثانوية العامة (توجيه عام)": [],
 };
 
@@ -544,6 +544,181 @@ const COMPANY_LOGO_DOMAINS = {
   "مكتب معتوق بسيوني وحناوي (Matouk Bassiouny)": "matoukbassiouny.com",
   "مكتب الشلقاني للمحاماة (Shalakany Law Office)": "shalakany.com",
   "اليونيسف مصر": "unicef.org",
+  "أرابتك القابضة (Arabtec Holding - الإمارات)": "arabtecholding.com",
+  "Arabtec Construction (UAE)": "arabtecholding.com",
+  "Al Habtoor Group (UAE)": "habtoor.com",
+  "China State Construction Engineering Corporation (CSCEC)": "cscec.com",
+  "Vinci Construction": "vinci.com",
+  "Bouygues Construction": "bouygues-construction.com",
+  "Skanska": "skanska.com",
+  "Turner Construction": "turnerconstruction.com",
+  "Larsen & Toubro (India)": "larsentoubro.com",
+  "SNC-Lavalin": "snclavalin.com",
+  "Mott MacDonald": "mottmac.com",
+  "Arup": "arup.com",
+  "Atkins (SNC-Lavalin)": "atkinsrealis.com",
+  "Ramboll": "ramboll.com",
+  "China Railway Construction Corporation": "crcc.cn",
+  "Samsung C&T": "samsungcnt.com",
+  "Hyundai Engineering & Construction": "hdec.kr",
+  "حديد عز (Ezz Steel)": "ezzsteel.com",
+  "سيراميكا كليوباترا": "cleopatragroup.com",
+  "أوراسكوم للتنمية مصر (Orascom Development Egypt)": "orascomdh.com",
+  "Amazon (Egypt Development Center)": "amazon.com",
+  "Meta (Facebook) Egypt": "meta.com",
+  "Careem Egypt": "careem.com",
+  "Talabat Egypt": "talabat.com",
+  "Halan": "halan.com",
+  "Paymob": "paymob.com",
+  "Huawei Egypt": "huawei.com",
+  "ZTE Egypt": "zte.com.cn",
+  "Ericsson Egypt": "ericsson.com",
+  "Nokia Egypt": "nokia.com",
+  "Samsung R&D Institute Egypt (SRC)": "samsung.com",
+  "Accenture Egypt": "accenture.com",
+  "Capgemini Egypt": "capgemini.com",
+  "Wipro": "wipro.com",
+  "Infosys": "infosys.com",
+  "TCS (Tata Consultancy Services)": "tcs.com",
+  "Careem (UAE)": "careem.com",
+  "Talabat (Kuwait)": "talabat.com",
+  "STC (Saudi Telecom Company)": "stc.com.sa",
+  "Etisalat by e&": "eand.com",
+  "du (Emirates Integrated Telecommunications)": "du.ae",
+  "SAP SE (Germany)": "sap.com",
+  "Ubisoft Egypt (استوديو ألعاب)": "ubisoft.com",
+  "Synopsys Egypt": "synopsys.com",
+  "Si-Ware Systems": "si-ware.com",
+  "شركة كليوباترا للرعاية الصحية (Cleopatra Hospitals Group)": "chg.com.eg",
+  "Cleveland Clinic (USA)": "clevelandclinic.org",
+  "Mayo Clinic (USA)": "mayoclinic.org",
+  "Johns Hopkins Hospital (USA)": "hopkinsmedicine.org",
+  "Mount Sinai Hospital (USA)": "mountsinai.org",
+  "Charité – Universitätsmedizin Berlin (ألمانيا)": "charite.de",
+  "King's College Hospital (لندن)": "kch.nhs.uk",
+  "Guy's and St Thomas' NHS (لندن)": "guysandstthomas.nhs.uk",
+  "منظمة الصحة العالمية (WHO - المكتب الإقليمي)": "who.int",
+  "أطباء بلا حدود (Médecins Sans Frontières)": "msf.org",
+  "مستشفى حمد العام (قطر - Hamad Medical Corporation)": "hamad.qa",
+  "مستشفى كليفلاند كلينك أبوظبي": "clevelandclinicabudhabi.ae",
+  "المستشفى الأمريكي الجامعي في بيروت (AUBMC)": "aub.edu.lb",
+  "Align Technology (Invisalign)": "aligntech.com",
+  "Straumann Group (سويسرا)": "straumann.com",
+  "Dentsply Sirona": "dentsplysirona.com",
+  "Envista Holdings": "envistaco.com",
+  "Bayer Egypt": "bayer.com",
+  "Merck Egypt": "merckgroup.com",
+  "Johnson & Johnson Egypt": "jnj.com",
+  "Boehringer Ingelheim Egypt": "boehringer-ingelheim.com",
+  "Bristol Myers Squibb Egypt": "bms.com",
+  "Eli Lilly Egypt": "lilly.com",
+  "Abbott Egypt": "abbott.com",
+  "Servier Egypt": "servier.com",
+  "Julphar (الإمارات)": "julphar.net",
+  "Hikma Pharmaceuticals (الأردن)": "hikma.com",
+  "Aspen Pharmacare": "aspenpharma.com",
+  "شركة الحكمة للأدوية (Hikma)": "hikma.com",
+  "Zoetis Egypt": "zoetis.com",
+  "Merck Animal Health": "merck-animal-health.com",
+  "Boehringer Ingelheim Animal Health": "boehringer-ingelheim.com",
+  "بنك المشرق مصر (Mashreq Egypt)": "mashreqbank.com",
+  "BDO Egypt": "bdo.com",
+  "RSM Egypt": "rsm.global",
+  "Crowe Egypt": "crowe.com",
+  "Mazars Egypt": "mazars.com",
+  "البنك الأهلي السعودي (SNB)": "alahli.com",
+  "بنك الإمارات دبي الوطني (Emirates NBD)": "emiratesnbd.com",
+  "بنك أبوظبي الأول (FAB)": "bankfab.com",
+  "Citibank Egypt": "citigroup.com",
+  "Standard Chartered Bank": "sc.com",
+  "كارفور مصر (Carrefour Egypt)": "carrefouregypt.com",
+  "بي تك (B.TECH)": "btech.com",
+  "STC Group (السعودية)": "stc.com.sa",
+  "Emirates Group (الإمارات)": "emiratesgroup.com",
+  "Aramex (الإمارات)": "aramex.com",
+  "Majid Al Futtaim (الإمارات)": "majidalfuttaim.com",
+  "Almarai (السعودية)": "almarai.com",
+  "Savola Group (السعودية)": "savola.com",
+  "Landmark Group (الإمارات)": "landmarkgroup.com",
+  "IKEA Egypt": "ikea.com",
+  "Amazon Egypt": "amazon.eg",
+  "Noon.com": "noon.com",
+  "L'Oréal Egypt": "loreal.com",
+  "Danone Egypt": "danone.com",
+  "Henkel Egypt": "henkel.com",
+  "Colgate-Palmolive Egypt": "colgatepalmolive.com",
+  "Philip Morris International Egypt": "pmi.com",
+  "British American Tobacco Egypt": "bat.com",
+  "Deloitte Egypt": "deloitte.com",
+  "Boston Consulting Group (BCG)": "bcg.com",
+  "Bain & Company": "bain.com",
+  "البنك الأفريقي للتنمية": "afdb.org",
+  "بنك الاستثمار الأوروبي (EIB)": "eib.org",
+  "USAID مصر": "usaid.gov",
+  "منظمة التعاون الاقتصادي والتنمية (OECD)": "oecd.org",
+  "مؤسسة راند (RAND Corporation)": "rand.org",
+  "معهد بروكينجز (Brookings Institution)": "brookings.edu",
+  "مكتب دنتونز مصر (Dentons Egypt)": "dentons.com",
+  "مكتب بيكر ماكنزي مصر (Baker McKenzie)": "bakermckenzie.com",
+  "مكتب فريش فيلدز مصر (Freshfields)": "freshfields.com",
+  "مكتب هوجان لوفيلز (Hogan Lovells)": "hoganlovells.com",
+  "مكتب كليفورد تشانس (Clifford Chance)": "cliffordchance.com",
+  "غرفة التجارة الدولية (ICC)": "iccwbo.org",
+  "منظمة التجارة العالمية (WTO)": "wto.org",
+  "محكمة العدل الدولية": "icj-cij.org",
+  "الجامعة الفرنسية بمصر": "ufe.edu.eg",
+  "الجامعة الألمانية بالقاهرة (GUC)": "guc.edu.eg",
+  "جامعة النيل الأهلية": "nu.edu.eg",
+  "مكتبة الإسكندرية": "bibalex.org",
+  "منظمة اليونسكو (مكتب القاهرة)": "unesco.org",
+  "شبكة الجزيرة (قطر)": "aljazeera.net",
+  "قناة العربية (السعودية)": "alarabiya.net",
+  "روتانا ميديا جروب (السعودية)": "rotana.net",
+  "MBC Group (السعودية)": "mbc.net",
+  "BBC News عربي": "bbc.com",
+  "CNN (المكتب الإقليمي)": "cnn.com",
+  "Reuters (المكتب الإقليمي)": "reuters.com",
+  "Bloomberg": "bloomberg.com",
+  "France 24 عربي": "france24.com",
+  "Sky News Arabia": "skynewsarabia.com",
+  "المدرسة الألمانية بالقاهرة (DEO)": "deo-cairo.de",
+  "المدرسة الأمريكية بالقاهرة (CAC)": "cacegypt.org",
+  "منظمة اليونيسف - قطاع التعليم": "unicef.org",
+  "منظمة اليونسكو - قطاع التعليم": "unesco.org",
+  "Netflix (إنتاج إقليمي)": "netflix.com",
+  "MBC Studios": "mbc.net",
+  "Ogilvy Middle East": "ogilvy.com",
+  "Publicis Groupe": "publicisgroupe.com",
+  "WPP": "wpp.com",
+  "المجموعة العربية للتنمية الزراعية (AOAD)": "aoad.org",
+  "Bayer CropScience": "bayer.com",
+  "Syngenta": "syngenta.com",
+  "Cargill": "cargill.com",
+  "Olam Agri": "olamagri.com",
+  "ADM (Archer Daniels Midland)": "adm.com",
+  "CERN (المنظمة الأوروبية للأبحاث النووية)": "home.cern",
+  "NASA (وكالة الفضاء الأمريكية)": "nasa.gov",
+  "ESA (وكالة الفضاء الأوروبية)": "esa.int",
+  "Max Planck Institute (ألمانيا)": "mpg.de",
+  "فنادق هيلتون (Hilton Worldwide)": "hilton.com",
+  "فنادق أكور (Accor - Sofitel/Novotel)": "accor.com",
+  "فنادق إنتركونتيننتال (IHG)": "ihg.com",
+  "فنادق حياة (Hyatt)": "hyatt.com",
+  "فنادق ريتز كارلتون": "ritzcarlton.com",
+  "مجموعة جميرا (Jumeirah Group - الإمارات)": "jumeirah.com",
+  "طيران الإمارات (Emirates Airlines)": "emirates.com",
+  "الخطوط السعودية (Saudia)": "saudia.com",
+  "طيران الاتحاد (Etihad Airways)": "etihad.com",
+  "طيران قطر (Qatar Airways)": "qatarairways.com",
+  "الاتحاد الدولي لكرة القدم (FIFA)": "fifa.com",
+  "الاتحاد الأفريقي لكرة القدم (CAF)": "cafonline.com",
+  "رابطة العالم الإسلامي": "themwl.org",
+  "منظمة التعاون الإسلامي": "oic-oci.org",
+  "منظمة الأمم المتحدة للطفولة (اليونيسف)": "unicef.org",
+  "مفوضية الأمم المتحدة لشؤون اللاجئين (UNHCR)": "unhcr.org",
+  "منظمة أوكسفام (Oxfam)": "oxfam.org",
+  "منظمة الرؤية العالمية (World Vision)": "wvi.org",
+  "مؤسسة قطر الخيرية": "qcharity.org",
 };
 
 // دالة بتجيب لوجو الشركة (لو معروف الدومين بتاعها)، ولو مش معروف بترجع أيقونة افتراضية
@@ -601,17 +776,23 @@ function updateCompaniesDropdown() {
   // كل شركات المجال + شركات التخصص الدقيق (لو متوفرة)، مرتبة أبجديًا
   const companies = getCompaniesFor(field, spec);
 
-  // إضافة خيار "اكتب شركة جديدة" في الأول (لو الشركة مش موجودة في القايمة)
-  const addNewOption = document.createElement("div");
-  addNewOption.className = "company-option add-new";
-  addNewOption.innerHTML = `<strong>+ اكتب شركة جديدة</strong>: "${escapeHtml(input || "اسم الشركة")}"`;
-  addNewOption.addEventListener("click", () => {
-    if (employerInput.value.trim()) selectCompanyOption(employerInput.value.trim());
-  });
-  companiesList.appendChild(addNewOption);
-
   // تصفية الشركات حسب البحث (لو مفيش بحث، بتظهر كل شركات المجال/التخصص)
   const filtered = input ? companies.filter(c => c.toLowerCase().includes(input)) : companies;
+
+  // لو اللي مكتوب مش مطابق لأي شركة موجودة بالظبط في القايمة، يبقى نضيف خيار
+  // "اكتب اسم شركتك" عشان يقدر يضيف جهة عمله لو مش لاقيها
+  const exactMatch = input && companies.some(c => c.toLowerCase() === input);
+  if (!exactMatch) {
+    const addNewOption = document.createElement("div");
+    addNewOption.className = "company-option add-new";
+    addNewOption.innerHTML = input
+      ? `<strong>+ اكتب اسم شركتك</strong>: "${escapeHtml(employerInput.value.trim())}"`
+      : `<strong>+ اكتب اسم شركتك</strong>`;
+    addNewOption.addEventListener("click", () => {
+      if (employerInput.value.trim()) selectCompanyOption(employerInput.value.trim());
+    });
+    companiesList.appendChild(addNewOption);
+  }
 
   if (filtered.length === 0) {
     const empty = document.createElement("div");
@@ -619,8 +800,8 @@ function updateCompaniesDropdown() {
     empty.style.opacity = "0.6";
     empty.style.cursor = "default";
     empty.textContent = companies.length === 0
-      ? "مفيش شركات مسجلة للمجال ده لسه، اكتب اسم جهة عملك فوق"
-      : "مفيش نتائج مطابقة، اكتب اسم الشركة فوق عشان تضيفها";
+      ? "مفيش جهات مسجلة للمجال ده لسه، اكتب اسم شركتك فوق"
+      : "مفيش نتائج مطابقة، اكتب اسم شركتك فوق عشان تضيفها";
     companiesList.appendChild(empty);
   } else {
     filtered.forEach(company => {
