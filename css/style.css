@@ -38,6 +38,7 @@ body {
   direction: rtl;
   text-align: right;
   line-height: 1.7;
+  overflow-x: hidden;
 }
 
 a { color: inherit; text-decoration: none; }
@@ -59,7 +60,8 @@ img { max-width: 100%; display: block; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 12px;
+  flex-wrap: nowrap;
 }
 .logo {
   display: inline-flex;
@@ -69,12 +71,13 @@ img { max-width: 100%; display: block; }
   font-size: 24px;
   color: var(--purple-700);
   letter-spacing: -0.5px;
+  flex-shrink: 0;
 }
 .logo span { color: var(--purple-500); }
-.logo img { width: 34px; height: 34px; display: block; }
+.logo img { width: 34px; height: 34px; display: block; flex-shrink: 0; }
 .nav-links { display: flex; gap: 28px; font-weight: 600; color: var(--gray); }
 .nav-links a:hover { color: var(--purple-700); }
-.nav-auth { display: flex; gap: 12px; }
+.nav-auth { display: flex; gap: 10px; flex-shrink: 0; }
 
 /* ===== Buttons ===== */
 .btn {
@@ -382,4 +385,18 @@ th { color: var(--gray); font-weight: 700; background: var(--purple-50); }
   .grid-3, .grid-2 { grid-template-columns: 1fr; }
   .form-row { flex-direction: column; }
   .wizard-step-label { display: none; }
+}
+
+/* أي شاشة صغيرة (موبايل) — نضمن إن زراير الهيدر تفضل كاملة وواضحة وميتقصوش */
+@media (max-width: 480px) {
+  .nav-wrap { padding: 12px 14px; gap: 8px; }
+  .logo { font-size: 17px; gap: 4px; }
+  .logo img { width: 26px; height: 26px; }
+  .nav-auth { gap: 6px; }
+  .nav-auth .btn { padding: 8px 12px; font-size: 12.5px; white-space: nowrap; }
+}
+
+@media (max-width: 360px) {
+  .logo { font-size: 15px; }
+  .nav-auth .btn { padding: 7px 10px; font-size: 11.5px; }
 }
