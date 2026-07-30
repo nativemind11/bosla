@@ -730,15 +730,35 @@ const FALLBACK_LOGO = "data:image/svg+xml;utf8," + encodeURIComponent(`
   <path d="M9 28h22" stroke="#5B21B6" stroke-width="1.6" stroke-linecap="round"/>
 </svg>`);
 
-function getCompanyLogoUrls(name) {
+// بيرتب مصادر اللوجو ويجرب كل واحد، وبيكتشف لو المصدر رجّع "أيقونة عامة/بديلة"
+// (مش لوجو حقيقي) عن طريق مقاس الصورة، لأن الخدمتين بيردّوا 200 OK حتى لو معندهمش
+// لوجو حقيقي للدومين، فمينفعش نعتمد بس على onerror
+function applyCompanyLogo(imgEl, name) {
   const domain = COMPANY_LOGO_DOMAINS[name];
-  if (!domain) return null;
-  // بنستخدم أكتر من مصدر لجلب اللوجو (احتياطي لبعض) عشان لو مصدر واحد
-  // اتحجب من إضافات المتصفح (ad-block) أو الشبكة، يجرب المصدر التاني قبل ما يظهر الأيقونة الافتراضية
-  return {
-    primary: `https://icons.duckduckgo.com/ip3/${encodeURIComponent(domain)}.ico`,
-    secondary: `https://www.google.com/s2/favicons?sz=128&domain=${encodeURIComponent(domain)}`,
-  };
+  if (!domain) { imgEl.src = FALLBACK_LOGO; return; }
+
+  const sources = [
+    `https://www.google.com/s2/favicons?sz=128&domain=${encodeURIComponent(domain)}`,
+    `https://icons.duckduckgo.com/ip3/${encodeURIComponent(domain)}.ico`,
+  ];
+  let i = 0;
+
+  function tryNext() {
+    if (i >= sources.length) { imgEl.src = FALLBACK_LOGO; return; }
+    const url = sources[i++];
+    imgEl.onerror = tryNext;
+    imgEl.onload = () => {
+      // الأيقونات العامة (لما مفيش لوجو حقيقي) بترجع بمقاس صغير جدًا (16 بكسل غالبًا)
+      if (imgEl.naturalWidth && imgEl.naturalWidth < 24) {
+        tryNext();
+        return;
+      }
+      imgEl.onload = null;
+      imgEl.onerror = null;
+    };
+    imgEl.src = url;
+  }
+  tryNext();
 }
 
 // تجميع شركات المجال + التخصص وترتيبهم أبجديًا
@@ -816,11 +836,14 @@ function updateCompaniesDropdown() {
       if (company.toLowerCase() === employerHidden.value.toLowerCase()) {
         opt.classList.add("selected");
       }
-      const logoUrls = getCompanyLogoUrls(company);
-      const imgTag = logoUrls
-        ? `<img class="company-logo" src="${logoUrls.primary}" data-fallback="${logoUrls.secondary}" alt="" loading="lazy" onerror="if(this.dataset.fallback){this.src=this.dataset.fallback;this.dataset.fallback='';}else{this.onerror=null;this.src='${FALLBACK_LOGO}';}">`
-        : `<img class="company-logo" src="${FALLBACK_LOGO}" alt="" loading="lazy">`;
-      opt.innerHTML = `${imgTag}<span>${escapeHtml(company)}</span>`;
+      opt.innerHTML = `<span>${escapeHtml(company)}</span>`;
+      const logoImg = document.createElement("img");
+      logoImg.className = "company-logo";
+      logoImg.alt = "";
+      logoImg.loading = "lazy";
+      logoImg.src = FALLBACK_LOGO;
+      opt.insertBefore(logoImg, opt.firstChild);
+      applyCompanyLogo(logoImg, company);
       opt.addEventListener("click", () => selectCompanyOption(company));
       companiesList.appendChild(opt);
     });
