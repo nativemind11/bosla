@@ -219,7 +219,7 @@
         </div>
       </div>
 
-      <div class="form-row">
+      <div class="form-row" id="professional-fields">
         <div>
           <label>جهة العمل الحالية</label>
           <div class="companies-combobox" id="companies-wrapper">
@@ -236,7 +236,20 @@
           <input type="number" id="yearsOfExperience" min="0" max="50" placeholder="مثال: 4">
         </div>
       </div>
-      <div class="field-hint">هنحسب مستواك (جونيور / سينيور) تلقائيًا من سنوات خبرتك</div>
+      <div class="field-hint" id="professional-fields-hint">هنحسب مستواك (جونيور / سينيور) تلقائيًا من سنوات خبرتك</div>
+
+      <div class="form-row" id="highschool-fields" style="display:none;">
+        <div>
+          <label>الكلية الحالية أو المتخرج منها</label>
+          <select id="current-college">
+            <option value="">اختر الكلية</option>
+          </select>
+        </div>
+        <div>
+          <label>التقدير التراكمي حتى الآن (أو آخر تقدير)</label>
+          <input type="text" id="gpa" placeholder="مثال: جيد جدًا / 3.4 / 85%">
+        </div>
+      </div>
 
       <label>نبذة عنك (هتظهر للمستفيدين)</label>
       <textarea id="bio" rows="3" placeholder="مثال: مهندس مدني بخبرة 4 سنين في التصميم الإنشائي، اشتغلت في..."></textarea>
@@ -336,6 +349,131 @@ const FIELD_COMPANIES = {
   "الخدمة الاجتماعية": ["اليونيسف مصر", "بنك الطعام المصري", "جمعية رسالة", "مؤسسة مصر الخير", "وزارة التضامن الاجتماعي", "جمعية الأورمان الخيرية", "مؤسسة ناصر الاجتماعية", "الصندوق الاجتماعي للتنمية", "جمعية الهلال الأحمر المصري", "مؤسسة أهل مصر", "منظمة الأمم المتحدة للطفولة (اليونيسف)", "مفوضية الأمم المتحدة لشؤون اللاجئين (UNHCR)", "منظمة أوكسفام (Oxfam)", "منظمة الرؤية العالمية (World Vision)", "الهلال الأحمر الإماراتي", "مؤسسة قطر الخيرية", "كلية الخدمة الاجتماعية - جامعة حلوان", "منظمة إنقاذ الطفولة (Save the Children)", "الهلال الأحمر السعودي", "منظمة كير الدولية (CARE International)", "مؤسسة بيل وميليندا غيتس"],
   "الثانوية العامة (توجيه عام)": [],
 };
+
+// ===================== كليات ومعاهد مصر حسب توجيه الثانوية العامة =====================
+// قوايم الكليات (حكومية + خاصة + أجنبية) لكل توجيه من توجيهات "الثانوية العامة" في FIELDS
+// المفاتيح هنا لازم تطابق نص التخصصات الموجودة في FIELDS["الثانوية العامة (توجيه عام)"] بملف firebase-config.js
+const COLLEGES_BY_ORIENTATION = {
+  "توجيه لكليات الهندسة": [
+    // حكومي
+    "كلية الهندسة - جامعة القاهرة", "كلية الهندسة - جامعة عين شمس", "كلية الهندسة - جامعة الإسكندرية",
+    "كلية الهندسة - جامعة حلوان", "كلية الهندسة - جامعة المنصورة", "كلية الهندسة - جامعة الزقازيق",
+    "كلية الهندسة - جامعة طنطا", "كلية الهندسة - جامعة أسيوط", "كلية الهندسة - جامعة المنيا",
+    "كلية الهندسة - جامعة الفيوم", "كلية الهندسة - جامعة بنها", "كلية الهندسة - جامعة قناة السويس",
+    "كلية الهندسة - جامعة سوهاج", "كلية الهندسة - جامعة كفر الشيخ", "كلية الهندسة - جامعة دمياط",
+    "كلية الهندسة - جامعة أسوان", "كلية الهندسة - جامعة الوادي الجديد", "كلية الهندسة - جامعة بورسعيد",
+    "كلية الهندسة - جامعة السويس", "كلية الهندسة - جامعة الأزهر", "كلية الهندسة - جامعة جنوب الوادي",
+    // خاص
+    "الجامعة الألمانية بالقاهرة (GUC) - كلية الهندسة", "الجامعة الأمريكية بالقاهرة (AUC) - كلية الهندسة",
+    "جامعة النيل الأهلية - كلية الهندسة", "جامعة مصر للعلوم والتكنولوجيا (MSA) - كلية الهندسة",
+    "جامعة المستقبل - كلية الهندسة", "جامعة سيناء - كلية الهندسة", "جامعة 6 أكتوبر - كلية الهندسة",
+    "جامعة مصر الدولية (MIU) - كلية الهندسة", "جامعة هليوبوليس - كلية الهندسة",
+    "جامعة دلتا للعلوم والتكنولوجيا - كلية الهندسة", "جامعة العاصمة الإدارية الجديدة الأهلية - كلية الهندسة",
+    "جامعة الملك سلمان الدولية - كلية الهندسة", "الأكاديمية العربية للعلوم والتكنولوجيا والنقل البحري (AASTMT)",
+    "الجامعة البريطانية في مصر (BUE) - كلية الهندسة",
+    // أجنبي
+    "جامعة مصر اليابان للعلوم والتكنولوجيا (E-JUST)", "جامعة كوفنتري مصر (Coventry University Egypt)",
+    "جامعة نيوجيزة (NGU) - كلية الهندسة",
+  ],
+  "توجيه لكليات الطب والأسنان والصيدلة والعلاج الطبيعي": [
+    // حكومي
+    "كلية الطب - جامعة القاهرة (قصر العيني)", "كلية الطب - جامعة عين شمس", "كلية الطب - جامعة الإسكندرية",
+    "كلية الطب - جامعة المنصورة", "كلية الطب - جامعة الزقازيق", "كلية الطب - جامعة طنطا",
+    "كلية الطب - جامعة أسيوط", "كلية الطب - جامعة المنيا", "كلية الطب - جامعة بنها",
+    "كلية الطب - جامعة قناة السويس", "كلية الطب - جامعة سوهاج", "كلية الطب - جامعة الفيوم",
+    "كلية الطب - جامعة كفر الشيخ", "كلية الطب - جامعة الأزهر",
+    "كلية طب الأسنان - جامعة القاهرة", "كلية طب الأسنان - جامعة عين شمس", "كلية طب الأسنان - جامعة الإسكندرية",
+    "كلية طب الأسنان - جامعة المنصورة", "كلية طب الأسنان - جامعة الأزهر",
+    "كلية الصيدلة - جامعة القاهرة", "كلية الصيدلة - جامعة عين شمس", "كلية الصيدلة - جامعة الإسكندرية",
+    "كلية الصيدلة - جامعة المنصورة", "كلية الصيدلة - جامعة الأزهر",
+    "كلية العلاج الطبيعي - جامعة القاهرة", "كلية العلاج الطبيعي - جامعة كفر الشيخ",
+    "كلية التمريض - جامعة القاهرة", "كلية التمريض - جامعة الإسكندرية",
+    // خاص
+    "كلية الطب - الجامعة المصرية الروسية", "كلية الطب - جامعة بدر", "كلية الطب - جامعة النهضة (بني سويف)",
+    "كلية الطب - جامعة الملك سلمان الدولية", "كلية الطب - جامعة سيناء",
+    "كلية طب الأسنان - جامعة مصر للعلوم والتكنولوجيا (MSA)", "كلية طب الأسنان - جامعة المستقبل",
+    "كلية الصيدلة - جامعة المستقبل", "كلية الصيدلة - جامعة مصر للعلوم والتكنولوجيا (MSA)",
+    // أجنبي
+    "كلية الطب - الجامعة الألمانية بالقاهرة (GUC)",
+  ],
+  "توجيه لكليات العلوم والحاسبات والذكاء الاصطناعي": [
+    // حكومي
+    "كلية العلوم - جامعة القاهرة", "كلية العلوم - جامعة عين شمس", "كلية العلوم - جامعة الإسكندرية",
+    "كلية العلوم - جامعة المنصورة", "كلية العلوم - جامعة أسيوط",
+    "كلية الحاسبات والمعلومات - جامعة القاهرة", "كلية الحاسبات والذكاء الاصطناعي - جامعة عين شمس",
+    "كلية الحاسبات والمعلومات - جامعة حلوان", "كلية الحاسبات والمعلومات - جامعة المنصورة",
+    "كلية الحاسبات والذكاء الاصطناعي - جامعة أسيوط", "كلية الحاسبات والذكاء الاصطناعي - جامعة بني سويف",
+    "كلية الحاسبات والمعلومات - جامعة الزقازيق", "معهد المعلوماتية (ITI)",
+    // خاص
+    "الجامعة الألمانية بالقاهرة (GUC) - كلية علوم الحاسب", "الجامعة الأمريكية بالقاهرة (AUC) - علوم الحاسب",
+    "جامعة مصر للعلوم والتكنولوجيا (MSA) - كلية الحاسبات", "جامعة المستقبل - كلية الحاسبات والمعلومات",
+    "جامعة النيل الأهلية - كلية علوم وهندسة الحاسب", "الأكاديمية الحديثة للهندسة والتكنولوجيا (MET) - المعادي",
+    // أجنبي
+    "جامعة مصر اليابان للعلوم والتكنولوجيا (E-JUST) - الحاسبات",
+  ],
+  "توجيه لكليات تجارة واقتصاد وعلوم سياسية": [
+    // حكومي
+    "كلية التجارة - جامعة القاهرة", "كلية التجارة - جامعة عين شمس", "كلية التجارة - جامعة الإسكندرية",
+    "كلية التجارة - جامعة المنصورة", "كلية التجارة - جامعة الزقازيق", "كلية التجارة - جامعة حلوان",
+    "كلية التجارة - جامعة طنطا", "كلية التجارة - جامعة أسيوط",
+    "كلية الاقتصاد والعلوم السياسية - جامعة القاهرة",
+    // خاص
+    "الجامعة الأمريكية بالقاهرة (AUC) - كلية إدارة الأعمال", "الجامعة الألمانية بالقاهرة (GUC) - كلية الإدارة والاقتصاد",
+    "الأكاديمية العربية للعلوم والتكنولوجيا - كلية إدارة الأعمال", "جامعة مصر للعلوم والتكنولوجيا (MSA) - كلية التجارة",
+    "جامعة المستقبل - كلية التجارة وإدارة الأعمال", "الجامعة البريطانية في مصر (BUE) - كلية الأعمال",
+    "جامعة النيل الأهلية - كلية الأعمال",
+  ],
+  "توجيه لكليات الحقوق": [
+    // حكومي
+    "كلية الحقوق - جامعة القاهرة", "كلية الحقوق - جامعة عين شمس", "كلية الحقوق - جامعة الإسكندرية",
+    "كلية الحقوق - جامعة المنصورة", "كلية الحقوق - جامعة طنطا", "كلية الحقوق - جامعة الزقازيق",
+    "كلية الحقوق - جامعة أسيوط", "كلية الحقوق - جامعة الأزهر", "كلية الحقوق - جامعة حلوان",
+    // خاص
+    "كلية الحقوق - الجامعة المصرية الروسية", "كلية الحقوق - جامعة 6 أكتوبر", "كلية الحقوق - جامعة بدر",
+  ],
+  "توجيه لكليات الآداب والإعلام والألسن": [
+    // حكومي
+    "كلية الآداب - جامعة القاهرة", "كلية الآداب - جامعة عين شمس", "كلية الآداب - جامعة الإسكندرية",
+    "كلية الآداب - جامعة المنصورة", "كلية الآداب - جامعة أسيوط",
+    "كلية الإعلام - جامعة القاهرة", "كلية الألسن - جامعة عين شمس", "كلية الألسن - جامعة كفر الشيخ",
+    "كلية الألسن - جامعة الأقصر", "كلية الألسن - جامعة أسوان",
+    // خاص
+    "الجامعة الأمريكية بالقاهرة (AUC) - قسم الإعلام", "أكاديمية أخبار اليوم للإعلام",
+    "جامعة مصر للعلوم والتكنولوجيا (MSA) - كلية الألسن والترجمة",
+  ],
+  "توجيه لكليات التربية": [
+    // حكومي
+    "كلية التربية - جامعة عين شمس", "كلية التربية - جامعة القاهرة", "كلية التربية - جامعة الإسكندرية",
+    "كلية التربية - جامعة المنصورة", "كلية التربية - جامعة أسيوط", "كلية التربية - جامعة طنطا",
+    "كلية رياض الأطفال - جامعة القاهرة", "كلية رياض الأطفال - جامعة الإسكندرية",
+    "كلية التربية النوعية - جامعة عين شمس", "كلية التربية النوعية - جامعة القاهرة",
+    // خاص
+    "كلية التربية - جامعة بدر",
+  ],
+  "توجيه لكليات الفنون التطبيقية والجميلة": [
+    // حكومي
+    "كلية الفنون الجميلة - جامعة حلوان", "كلية الفنون التطبيقية - جامعة حلوان",
+    "كلية التربية الفنية - جامعة حلوان", "كلية الفنون الجميلة - جامعة الإسكندرية",
+    // خاص
+    "الجامعة الألمانية بالقاهرة (GUC) - كلية الفنون التطبيقية",
+    "جامعة مصر للعلوم والتكنولوجيا (MSA) - كلية الفنون التطبيقية",
+  ],
+  "توجيه لكليات الزراعة والطب البيطري": [
+    // حكومي
+    "كلية الزراعة - جامعة القاهرة", "كلية الزراعة - جامعة عين شمس", "كلية الزراعة - جامعة الإسكندرية",
+    "كلية الزراعة - جامعة المنصورة", "كلية الزراعة - جامعة الزقازيق", "كلية الزراعة - جامعة أسيوط",
+    "كلية الطب البيطري - جامعة القاهرة", "كلية الطب البيطري - جامعة الزقازيق",
+    "كلية الطب البيطري - جامعة أسيوط", "كلية الطب البيطري - جامعة الإسكندرية",
+    // خاص
+    "كلية الطب البيطري - جامعة بدر",
+  ],
+};
+
+// عناصر التخصص العامة اللي مالهاش توجيه كليات محدد (لسه مقرر) - بنعرض ليها كل الكليات مجمعة
+function allOrientationColleges() {
+  const merged = Object.values(COLLEGES_BY_ORIENTATION).flat();
+  return Array.from(new Set(merged)).sort((a, b) => a.localeCompare(b, "ar"));
+}
 
 
 // شركات خاصة بتخصصات دقيقة معينة، بتتضاف فوق شركات المجال العام لما التخصص ده يتاختار
@@ -1527,7 +1665,55 @@ daysSelector.addEventListener("click", (e) => {
 });
 
 // ===================== Field-Specialization بقية =====================
-fieldSelect.addEventListener("change", () => populateSpecializationsSelect(fieldSelect.value, specSelect));
+// ===================== منطق "الثانوية العامة (توجيه عام)" =====================
+const HIGH_SCHOOL_FIELD_VALUE = "الثانوية العامة (توجيه عام)";
+const professionalFieldsRow = document.getElementById("professional-fields");
+const professionalFieldsHint = document.getElementById("professional-fields-hint");
+const highschoolFieldsRow = document.getElementById("highschool-fields");
+const collegeSelect = document.getElementById("current-college");
+const gpaInput = document.getElementById("gpa");
+
+function populateCollegeSelect(spec) {
+  collegeSelect.innerHTML = '<option value="">اختر الكلية</option>';
+  const colleges = COLLEGES_BY_ORIENTATION[spec] || (spec ? allOrientationColleges() : []);
+  colleges.forEach(college => {
+    const opt = document.createElement("option");
+    opt.value = college;
+    opt.textContent = college;
+    collegeSelect.appendChild(opt);
+  });
+}
+
+function toggleMentorFieldsForField() {
+  const isHighSchool = fieldSelect.value === HIGH_SCHOOL_FIELD_VALUE;
+
+  professionalFieldsRow.style.display = isHighSchool ? "none" : "";
+  professionalFieldsHint.style.display = isHighSchool ? "none" : "";
+  highschoolFieldsRow.style.display = isHighSchool ? "" : "none";
+
+  if (isHighSchool) {
+    // مفيش داعي لجهة عمل/سنوات خبرة لطالب ثانوية عامة
+    employerHidden.value = "";
+    employerInput.value = "";
+    document.getElementById("yearsOfExperience").value = "";
+    populateCollegeSelect(specSelect.value);
+  } else {
+    // مسح بيانات الكلية والتقدير لو رجع يختار مجال تاني
+    collegeSelect.innerHTML = '<option value="">اختر الكلية</option>';
+    gpaInput.value = "";
+  }
+}
+
+fieldSelect.addEventListener("change", () => {
+  populateSpecializationsSelect(fieldSelect.value, specSelect);
+  toggleMentorFieldsForField();
+});
+
+specSelect.addEventListener("change", () => {
+  if (fieldSelect.value === HIGH_SCHOOL_FIELD_VALUE) populateCollegeSelect(specSelect.value);
+});
+
+toggleMentorFieldsForField();
 
 document.querySelectorAll('input[name="priceType"]').forEach(r => {
   r.addEventListener("change", () => {
@@ -1637,10 +1823,12 @@ function validateStep1() {
 function validateStep2() {
   if (!fieldSelect.value) { showToast("اختار المجال", "error"); return false; }
   if (!specSelect.value) { showToast("اختار التخصص", "error"); return false; }
-  const years = document.getElementById("yearsOfExperience").value;
-  if (years !== "" && (isNaN(Number(years)) || Number(years) < 0 || Number(years) > 50)) {
-    showToast("سنوات الخبرة لازم تكون رقم بين 0 و50", "error");
-    return false;
+  if (fieldSelect.value !== HIGH_SCHOOL_FIELD_VALUE) {
+    const years = document.getElementById("yearsOfExperience").value;
+    if (years !== "" && (isNaN(Number(years)) || Number(years) < 0 || Number(years) > 50)) {
+      showToast("سنوات الخبرة لازم تكون رقم بين 0 و50", "error");
+      return false;
+    }
   }
   return true;
 }
@@ -1672,8 +1860,11 @@ document.getElementById("reg-form").addEventListener("submit", async (e) => {
   const password = pwInput.value;
   const field = fieldSelect.value;
   const specialization = specSelect.value;
-  const employer = employerHidden.value;
-  const yearsOfExperience = document.getElementById("yearsOfExperience").value;
+  const isHighSchool = field === HIGH_SCHOOL_FIELD_VALUE;
+  const employer = isHighSchool ? "" : employerHidden.value;
+  const yearsOfExperience = isHighSchool ? "" : document.getElementById("yearsOfExperience").value;
+  const currentCollege = isHighSchool ? collegeSelect.value : "";
+  const gpa = isHighSchool ? gpaInput.value : "";
   const price = priceType === "free" ? 0 : (document.getElementById("price").value || 0);
   const instapay = document.getElementById("instapay").value;
   const bio = document.getElementById("bio").value;
@@ -1700,7 +1891,8 @@ document.getElementById("reg-form").addEventListener("submit", async (e) => {
 
     const res = await apiPost("registerMentor", {
       uid: cred.user.uid, name, email, field, specialization,
-      employer, yearsOfExperience, price, instapay, meetingLink, bio, availability,
+      employer, yearsOfExperience, currentCollege, gpa,
+      price, instapay, meetingLink, bio, availability,
       profilePhotoUrl
     });
 
