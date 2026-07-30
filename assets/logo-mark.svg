@@ -1,0 +1,312 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="BOSLA compass">
+<defs>
+
+  <radialGradient id="bgGlow" cx="50%" cy="38%" r="70%">
+    <stop offset="0%" stop-color="#f1ecff"/>
+    <stop offset="55%" stop-color="#e3daf9"/>
+    <stop offset="100%" stop-color="#cfc2ef"/>
+  </radialGradient>
+
+  <linearGradient id="caseOuter" x1="15%" y1="8%" x2="85%" y2="95%">
+    <stop offset="0%" stop-color="#cbb2ff"/>
+    <stop offset="16%" stop-color="#9a67f0"/>
+    <stop offset="34%" stop-color="#6d28d9"/>
+    <stop offset="52%" stop-color="#3c0f7d"/>
+    <stop offset="70%" stop-color="#7c3aed"/>
+    <stop offset="86%" stop-color="#4c1d95"/>
+    <stop offset="100%" stop-color="#2a0a5c"/>
+  </linearGradient>
+
+  <radialGradient id="caseSheen" cx="30%" cy="20%" r="65%">
+    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.75"/>
+    <stop offset="20%" stop-color="#ffffff" stop-opacity="0.22"/>
+    <stop offset="45%" stop-color="#ffffff" stop-opacity="0"/>
+    <stop offset="100%" stop-color="#000000" stop-opacity="0.22"/>
+  </radialGradient>
+
+  <linearGradient id="ringSilver" x1="12%" y1="8%" x2="88%" y2="92%">
+    <stop offset="0%" stop-color="#ffffff"/>
+    <stop offset="28%" stop-color="#eee7ff"/>
+    <stop offset="50%" stop-color="#c3b0f2"/>
+    <stop offset="72%" stop-color="#f6f1ff"/>
+    <stop offset="100%" stop-color="#ffffff"/>
+  </linearGradient>
+
+  <linearGradient id="ringPurpleThin" x1="10%" y1="10%" x2="90%" y2="90%">
+    <stop offset="0%" stop-color="#a875ff"/>
+    <stop offset="50%" stop-color="#6d28d9"/>
+    <stop offset="100%" stop-color="#3b0f78"/>
+  </linearGradient>
+
+  <radialGradient id="dialFace" cx="42%" cy="34%" r="75%">
+    <stop offset="0%" stop-color="#332068"/>
+    <stop offset="42%" stop-color="#20134a"/>
+    <stop offset="78%" stop-color="#140b34"/>
+    <stop offset="100%" stop-color="#0a0620"/>
+  </radialGradient>
+
+  <radialGradient id="dialSheen" cx="34%" cy="22%" r="55%">
+    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.30"/>
+    <stop offset="42%" stop-color="#ffffff" stop-opacity="0.05"/>
+    <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+  </radialGradient>
+
+  <linearGradient id="nLight" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#c6a0ff"/>
+    <stop offset="55%" stop-color="#9256f0"/>
+    <stop offset="100%" stop-color="#5b21b6"/>
+  </linearGradient>
+  <linearGradient id="nDark" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#6d28d9"/>
+    <stop offset="55%" stop-color="#4c1d95"/>
+    <stop offset="100%" stop-color="#2c0a5e"/>
+  </linearGradient>
+
+  <linearGradient id="sLight" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#8fd8ff"/>
+    <stop offset="55%" stop-color="#3fa3ef"/>
+    <stop offset="100%" stop-color="#1a5fa8"/>
+  </linearGradient>
+  <linearGradient id="sDark" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#2f7fd0"/>
+    <stop offset="55%" stop-color="#1a4f8c"/>
+    <stop offset="100%" stop-color="#0a2c54"/>
+  </linearGradient>
+
+  <linearGradient id="ewLight" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#ffffff"/>
+    <stop offset="55%" stop-color="#e6e1f7"/>
+    <stop offset="100%" stop-color="#a89ed0"/>
+  </linearGradient>
+  <linearGradient id="ewDark" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#b6adda"/>
+    <stop offset="55%" stop-color="#8a80b3"/>
+    <stop offset="100%" stop-color="#5a5286"/>
+  </linearGradient>
+
+  <linearGradient id="diagLight" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#b48af5"/>
+    <stop offset="100%" stop-color="#6d28d9"/>
+  </linearGradient>
+  <linearGradient id="diagDark" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#6d28d9"/>
+    <stop offset="100%" stop-color="#3b0f78"/>
+  </linearGradient>
+
+  <radialGradient id="pivot" cx="35%" cy="30%" r="70%">
+    <stop offset="0%" stop-color="#ffffff"/>
+    <stop offset="30%" stop-color="#e2dcf5"/>
+    <stop offset="62%" stop-color="#9c92c4"/>
+    <stop offset="100%" stop-color="#4a4468"/>
+  </radialGradient>
+
+  <linearGradient id="loopMetal" x1="8%" y1="0%" x2="92%" y2="100%">
+    <stop offset="0%" stop-color="#f4eeff"/>
+    <stop offset="22%" stop-color="#c3b0f2"/>
+    <stop offset="48%" stop-color="#7c3aed"/>
+    <stop offset="65%" stop-color="#a875ff"/>
+    <stop offset="100%" stop-color="#3b0f78"/>
+  </linearGradient>
+
+  <linearGradient id="neckMetal" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#2a0a5c"/>
+    <stop offset="30%" stop-color="#8b5cf6"/>
+    <stop offset="50%" stop-color="#d7c4ff"/>
+    <stop offset="70%" stop-color="#6d28d9"/>
+    <stop offset="100%" stop-color="#2a0a5c"/>
+  </linearGradient>
+
+  <linearGradient id="triGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#a875ff"/>
+    <stop offset="60%" stop-color="#6d28d9"/>
+    <stop offset="100%" stop-color="#3b0f78"/>
+  </linearGradient>
+
+  <filter id="softShadow" x="-40%" y="-40%" width="180%" height="180%">
+    <feDropShadow dx="0" dy="10" stdDeviation="13" flood-color="#1a0b3d" flood-opacity="0.35"/>
+  </filter>
+
+  <filter id="needleShadow" x="-60%" y="-60%" width="220%" height="220%">
+    <feDropShadow dx="0" dy="3" stdDeviation="3.5" flood-color="#0a0620" flood-opacity="0.55"/>
+  </filter>
+
+  <clipPath id="dialClip">
+    <circle cx="256" cy="298" r="158"/>
+  </clipPath>
+</defs>
+
+<rect x="0" y="0" width="512" height="512" fill="url(#bgGlow)"/>
+
+<g filter="url(#softShadow)">
+
+  <!-- suspension loop -->
+  <path d="M223 92 a33 30 0 1 0 66 0 a33 30 0 1 0 -66 0" fill="none" stroke="#2c0a5e" stroke-width="22"/>
+  <path d="M223 92 a33 30 0 1 0 66 0 a33 30 0 1 0 -66 0" fill="none" stroke="url(#loopMetal)" stroke-width="15"/>
+  <path d="M231 84 a26 21 0 0 1 50 0" fill="none" stroke="#ffffff" stroke-opacity="0.6" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- neck -->
+  <rect x="238" y="108" width="36" height="34" rx="7" fill="url(#neckMetal)"/>
+  <rect x="238" y="122" width="36" height="5" fill="#ffffff" opacity="0.25"/>
+
+  <!-- outer case -->
+  <circle cx="256" cy="298" r="198" fill="url(#caseOuter)"/>
+  <circle cx="256" cy="298" r="198" fill="url(#caseSheen)"/>
+  <circle cx="256" cy="298" r="198" fill="none" stroke="#1c0a3d" stroke-width="2.5" stroke-opacity="0.5"/>
+
+  <!-- silver ring -->
+  <circle cx="256" cy="298" r="175" fill="none" stroke="url(#ringSilver)" stroke-width="13"/>
+  <circle cx="256" cy="298" r="175" fill="none" stroke="#ffffff" stroke-opacity="0.5" stroke-width="1.6"/>
+
+  <!-- thin purple ring -->
+  <circle cx="256" cy="298" r="164" fill="none" stroke="url(#ringPurpleThin)" stroke-width="5.5"/>
+
+  <!-- top / bottom triangle pointers (apex toward center) -->
+  <polygon points="256,110 240,138 272,138" fill="url(#triGrad)"/>
+  <polygon points="256,486 240,458 272,458" fill="url(#triGrad)"/>
+
+  <!-- left / right triangle pointers (apex away from center) -->
+  <polygon points="42,298 70,282 70,314" fill="url(#triGrad)"/>
+  <polygon points="470,298 442,282 442,314" fill="url(#triGrad)"/>
+  <g opacity="0.35" fill="url(#ringSilver)">
+    <polygon points="42,298 70,286 70,310"/>
+    <polygon points="470,298 442,286 442,310"/>
+  </g>
+
+  <!-- bezel -->
+  <circle cx="256" cy="298" r="162" fill="#0a0620"/>
+  <circle cx="256" cy="298" r="158" fill="url(#dialFace)"/>
+
+  <g clip-path="url(#dialClip)">
+    <circle cx="256" cy="298" r="158" fill="url(#dialSheen)"/>
+
+    <g transform="translate(256,298)">
+      <!-- minor ticks every 10 deg (skip every 30) -->
+      <g stroke="#b0a4dd" stroke-width="1.4" opacity="0.8">
+        <line x1="0" y1="-153" x2="0" y2="-144" transform="rotate(10)"/>
+        <line x1="0" y1="-153" x2="0" y2="-144" transform="rotate(20)"/>
+        <line x1="0" y1="-153" x2="0" y2="-144" transform="rotate(40)"/>
+        <line x1="0" y1="-153" x2="0" y2="-144" transform="rotate(50)"/>
+        <line x1="0" y1="-153" x2="0" y2="-144" transform="rotate(70)"/>
+        <line x1="0" y1="-153" x2="0" y2="-144" transform="rotate(80)"/>
+        <line x1="0" y1="-153" x2="0" y2="-144" transform="rotate(100)"/>
+        <line x1="0" y1="-153" x2="0" y2="-144" transform="rotate(110)"/>
+        <line x1="0" y1="-153" x2="0" y2="-144" transform="rotate(130)"/>
+        <line x1="0" y1="-153" x2="0" y2="-144" transform="rotate(140)"/>
+        <line x1="0" y1="-153" x2="0" y2="-144" transform="rotate(160)"/>
+        <line x1="0" y1="-153" x2="0" y2="-144" transform="rotate(170)"/>
+        <line x1="0" y1="-153" x2="0" y2="-144" transform="rotate(190)"/>
+        <line x1="0" y1="-153" x2="0" y2="-144" transform="rotate(200)"/>
+        <line x1="0" y1="-153" x2="0" y2="-144" transform="rotate(220)"/>
+        <line x1="0" y1="-153" x2="0" y2="-144" transform="rotate(230)"/>
+        <line x1="0" y1="-153" x2="0" y2="-144" transform="rotate(250)"/>
+        <line x1="0" y1="-153" x2="0" y2="-144" transform="rotate(260)"/>
+        <line x1="0" y1="-153" x2="0" y2="-144" transform="rotate(280)"/>
+        <line x1="0" y1="-153" x2="0" y2="-144" transform="rotate(290)"/>
+        <line x1="0" y1="-153" x2="0" y2="-144" transform="rotate(310)"/>
+        <line x1="0" y1="-153" x2="0" y2="-144" transform="rotate(320)"/>
+        <line x1="0" y1="-153" x2="0" y2="-144" transform="rotate(340)"/>
+        <line x1="0" y1="-153" x2="0" y2="-144" transform="rotate(350)"/>
+      </g>
+      <!-- major ticks every 30 deg -->
+      <g stroke="#e9e2ff" stroke-width="2.4">
+        <line x1="0" y1="-153" x2="0" y2="-138" transform="rotate(30)"/>
+        <line x1="0" y1="-153" x2="0" y2="-138" transform="rotate(60)"/>
+        <line x1="0" y1="-153" x2="0" y2="-138" transform="rotate(120)"/>
+        <line x1="0" y1="-153" x2="0" y2="-138" transform="rotate(150)"/>
+        <line x1="0" y1="-153" x2="0" y2="-138" transform="rotate(210)"/>
+        <line x1="0" y1="-153" x2="0" y2="-138" transform="rotate(240)"/>
+        <line x1="0" y1="-153" x2="0" y2="-138" transform="rotate(300)"/>
+        <line x1="0" y1="-153" x2="0" y2="-138" transform="rotate(330)"/>
+      </g>
+      <!-- cardinal ticks -->
+      <line x1="0" y1="-155" x2="0" y2="-134" stroke="#c9bef0" stroke-width="3.4"/>
+      <line x1="0" y1="155" x2="0" y2="134" stroke="#c9bef0" stroke-width="3.4"/>
+      <line x1="-155" y1="0" x2="-134" y2="0" stroke="#c9bef0" stroke-width="3.4"/>
+      <line x1="155" y1="0" x2="134" y2="0" stroke="#c9bef0" stroke-width="3.4"/>
+
+      <!-- decorative inner ring around rose -->
+      <circle cx="0" cy="0" r="98" fill="none" stroke="#5b4a94" stroke-width="1.3" opacity="0.55"/>
+    </g>
+
+    <!-- degree numerals -->
+    <g font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#d8cff5" text-anchor="middle" font-weight="700">
+      <text x="256" y="152">0</text>
+      <text x="333" y="173">30</text>
+      <text x="385" y="226">60</text>
+      <text x="406" y="298">90</text>
+      <text x="385" y="370">120</text>
+      <text x="333" y="423">150</text>
+      <text x="256" y="446">180</text>
+      <text x="179" y="423">210</text>
+      <text x="127" y="370">240</text>
+      <text x="106" y="298">270</text>
+      <text x="127" y="226">300</text>
+      <text x="179" y="173">330</text>
+    </g>
+
+    <!-- intercardinal labels -->
+    <g font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#b6a9e5" text-anchor="middle" font-weight="700" letter-spacing="1">
+      <text x="333" y="212">NE</text>
+      <text x="333" y="392">SE</text>
+      <text x="179" y="392">SW</text>
+      <text x="179" y="212">NW</text>
+    </g>
+
+    <!-- cardinal letters (bold serif) -->
+    <g font-family="Georgia, 'Times New Roman', serif" font-size="34" font-weight="700" text-anchor="middle">
+      <text x="256" y="212" fill="#f2edff">N</text>
+      <text x="256" y="410" fill="#e6dfff">S</text>
+      <text x="139" y="309" fill="#e6dfff">W</text>
+      <text x="373" y="309" fill="#e6dfff">E</text>
+    </g>
+  </g>
+
+  <!-- compass rose star needle -->
+  <g filter="url(#needleShadow)" transform="translate(256,298)">
+
+    <!-- diagonal short spikes (NE, SE, SW, NW) -->
+    <g>
+      <g transform="rotate(45)">
+        <polygon points="0,-62 9,0 0,7" fill="url(#diagLight)"/>
+        <polygon points="0,-62 -9,0 0,7" fill="url(#diagDark)"/>
+      </g>
+      <g transform="rotate(135)">
+        <polygon points="0,-62 9,0 0,7" fill="url(#diagLight)"/>
+        <polygon points="0,-62 -9,0 0,7" fill="url(#diagDark)"/>
+      </g>
+      <g transform="rotate(225)">
+        <polygon points="0,-62 9,0 0,7" fill="url(#diagLight)"/>
+        <polygon points="0,-62 -9,0 0,7" fill="url(#diagDark)"/>
+      </g>
+      <g transform="rotate(315)">
+        <polygon points="0,-62 9,0 0,7" fill="url(#diagLight)"/>
+        <polygon points="0,-62 -9,0 0,7" fill="url(#diagDark)"/>
+      </g>
+    </g>
+
+    <!-- E - W main axis (silver) -->
+    <polygon points="128,0 0,13 0,0" fill="url(#ewLight)"/>
+    <polygon points="128,0 0,-13 0,0" fill="url(#ewDark)"/>
+    <polygon points="-128,0 0,13 0,0" fill="url(#ewDark)"/>
+    <polygon points="-128,0 0,-13 0,0" fill="url(#ewLight)"/>
+
+    <!-- N spike (purple) -->
+    <polygon points="0,-140 15,0 0,9" fill="url(#nLight)"/>
+    <polygon points="0,-140 -15,0 0,9" fill="url(#nDark)"/>
+
+    <!-- S spike (blue) -->
+    <polygon points="0,140 15,0 0,-9" fill="url(#sDark)"/>
+    <polygon points="0,140 -15,0 0,-9" fill="url(#sLight)"/>
+
+    <!-- center pivot -->
+    <circle cx="0" cy="0" r="21" fill="#241249"/>
+    <circle cx="0" cy="0" r="17" fill="url(#ringPurpleThin)"/>
+    <circle cx="0" cy="0" r="13" fill="url(#pivot)"/>
+    <circle cx="-4" cy="-5" r="3.6" fill="#ffffff" opacity="0.9"/>
+  </g>
+
+  <!-- glass highlight -->
+  <ellipse cx="205" cy="210" rx="115" ry="65" fill="#ffffff" opacity="0.09" clip-path="url(#dialClip)"/>
+
+</g>
+</svg>
