@@ -1,0 +1,80 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <linearGradient id="caseOuter2" x1="15%" y1="8%" x2="85%" y2="95%">
+    <stop offset="0%" stop-color="#cbb2ff"/>
+    <stop offset="30%" stop-color="#7c3aed"/>
+    <stop offset="60%" stop-color="#4c1d95"/>
+    <stop offset="100%" stop-color="#2a0a5c"/>
+  </linearGradient>
+  <radialGradient id="caseSheen2" cx="30%" cy="20%" r="65%">
+    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.8"/>
+    <stop offset="30%" stop-color="#ffffff" stop-opacity="0.15"/>
+    <stop offset="100%" stop-color="#000000" stop-opacity="0.2"/>
+  </radialGradient>
+  <linearGradient id="ringSilver2" x1="12%" y1="8%" x2="88%" y2="92%">
+    <stop offset="0%" stop-color="#ffffff"/>
+    <stop offset="50%" stop-color="#c3b0f2"/>
+    <stop offset="100%" stop-color="#ffffff"/>
+  </linearGradient>
+  <radialGradient id="dialFace2" cx="38%" cy="30%" r="75%">
+    <stop offset="0%" stop-color="#ffffff"/>
+    <stop offset="50%" stop-color="#f0eafa"/>
+    <stop offset="100%" stop-color="#d9caf2"/>
+  </radialGradient>
+  <linearGradient id="nLight2" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#d3b3ff"/><stop offset="100%" stop-color="#6d28d9"/>
+  </linearGradient>
+  <linearGradient id="nDark2" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#2c0a5e"/>
+  </linearGradient>
+  <linearGradient id="sLight2" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#a3e3ff"/><stop offset="100%" stop-color="#2378c4"/>
+  </linearGradient>
+  <linearGradient id="sDark2" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#3f92d8"/><stop offset="100%" stop-color="#0a2c54"/>
+  </linearGradient>
+  <linearGradient id="ewLight2" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#9089b8"/><stop offset="100%" stop-color="#4a4468"/>
+  </linearGradient>
+  <linearGradient id="ewDark2" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#655d8c"/><stop offset="100%" stop-color="#332c55"/>
+  </linearGradient>
+  <radialGradient id="pivot2" cx="35%" cy="30%" r="70%">
+    <stop offset="0%" stop-color="#ffffff"/><stop offset="60%" stop-color="#a89ed0"/><stop offset="100%" stop-color="#4a4468"/>
+  </radialGradient>
+</defs>
+<circle cx="100" cy="100" r="92" fill="url(#caseOuter2)"/>
+<circle cx="100" cy="100" r="92" fill="url(#caseSheen2)"/>
+<circle cx="100" cy="100" r="80" fill="none" stroke="url(#ringSilver2)" stroke-width="7"/>
+<circle cx="100" cy="100" r="73" fill="#c3b0f2"/>
+<circle cx="100" cy="100" r="70" fill="url(#dialFace2)"/>
+<g transform="translate(100,100)">
+  <g transform="rotate(45)">
+    <polygon points="0,-30 5,0 0,4" fill="url(#nLight2)"/>
+    <polygon points="0,-30 -5,0 0,4" fill="url(#nDark2)"/>
+  </g>
+  <g transform="rotate(135)">
+    <polygon points="0,-30 5,0 0,4" fill="url(#nLight2)"/>
+    <polygon points="0,-30 -5,0 0,4" fill="url(#nDark2)"/>
+  </g>
+  <g transform="rotate(225)">
+    <polygon points="0,-30 5,0 0,4" fill="url(#nLight2)"/>
+    <polygon points="0,-30 -5,0 0,4" fill="url(#nDark2)"/>
+  </g>
+  <g transform="rotate(315)">
+    <polygon points="0,-30 5,0 0,4" fill="url(#nLight2)"/>
+    <polygon points="0,-30 -5,0 0,4" fill="url(#nDark2)"/>
+  </g>
+  <polygon points="62,0 0,7 0,0" fill="url(#ewLight2)"/>
+  <polygon points="62,0 0,-7 0,0" fill="url(#ewDark2)"/>
+  <polygon points="-62,0 0,7 0,0" fill="url(#ewDark2)"/>
+  <polygon points="-62,0 0,-7 0,0" fill="url(#ewLight2)"/>
+  <polygon points="0,-68 8,0 0,6" fill="url(#nLight2)"/>
+  <polygon points="0,-68 -8,0 0,6" fill="url(#nDark2)"/>
+  <polygon points="0,68 8,0 0,-6" fill="url(#sDark2)"/>
+  <polygon points="0,68 -8,0 0,-6" fill="url(#sLight2)"/>
+  <circle cx="0" cy="0" r="11" fill="#4a4468"/>
+  <circle cx="0" cy="0" r="8" fill="url(#pivot2)"/>
+  <circle cx="-2.5" cy="-3" r="2" fill="#ffffff" opacity="0.9"/>
+</g>
+</svg>
