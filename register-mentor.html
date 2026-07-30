@@ -732,7 +732,9 @@ const FALLBACK_LOGO = "data:image/svg+xml;utf8," + encodeURIComponent(`
 
 function getCompanyLogoUrl(name) {
   const domain = COMPANY_LOGO_DOMAINS[name];
-  return domain ? `https://logo.clearbit.com/${domain}?size=64` : FALLBACK_LOGO;
+  // ملحوظة: كنا بنستخدم Clearbit Logo API (logo.clearbit.com) لكنها اتقفلت نهائيًا في ديسمبر 2025
+  // فبقينا بنستخدم خدمة Google المجانية لجلب أيقونة/لوجو الموقع بدون أي API key
+  return domain ? `https://www.google.com/s2/favicons?sz=128&domain=${encodeURIComponent(domain)}` : FALLBACK_LOGO;
 }
 
 // تجميع شركات المجال + التخصص وترتيبهم أبجديًا
