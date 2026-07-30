@@ -730,11 +730,15 @@ const FALLBACK_LOGO = "data:image/svg+xml;utf8," + encodeURIComponent(`
   <path d="M9 28h22" stroke="#5B21B6" stroke-width="1.6" stroke-linecap="round"/>
 </svg>`);
 
-function getCompanyLogoUrl(name) {
+function getCompanyLogoUrls(name) {
   const domain = COMPANY_LOGO_DOMAINS[name];
-  // ملحوظة: كنا بنستخدم Clearbit Logo API (logo.clearbit.com) لكنها اتقفلت نهائيًا في ديسمبر 2025
-  // فبقينا بنستخدم خدمة Google المجانية لجلب أيقونة/لوجو الموقع بدون أي API key
-  return domain ? `https://www.google.com/s2/favicons?sz=128&domain=${encodeURIComponent(domain)}` : FALLBACK_LOGO;
+  if (!domain) return null;
+  // بنستخدم أكتر من مصدر لجلب اللوجو (احتياطي لبعض) عشان لو مصدر واحد
+  // اتحجب من إضافات المتصفح (ad-block) أو الشبكة، يجرب المصدر التاني قبل ما يظهر الأيقونة الافتراضية
+  return {
+    primary: `https://icons.duckduckgo.com/ip3/${encodeURIComponent(domain)}.ico`,
+    secondary: `https://www.google.com/s2/favicons?sz=128&domain=${encodeURIComponent(domain)}`,
+  };
 }
 
 // تجميع شركات المجال + التخصص وترتيبهم أبجديًا
@@ -812,8 +816,11 @@ function updateCompaniesDropdown() {
       if (company.toLowerCase() === employerHidden.value.toLowerCase()) {
         opt.classList.add("selected");
       }
-      const logoUrl = getCompanyLogoUrl(company);
-      opt.innerHTML = `<img class="company-logo" src="${logoUrl}" alt="" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_LOGO}';"><span>${escapeHtml(company)}</span>`;
+      const logoUrls = getCompanyLogoUrls(company);
+      const imgTag = logoUrls
+        ? `<img class="company-logo" src="${logoUrls.primary}" data-fallback="${logoUrls.secondary}" alt="" loading="lazy" onerror="if(this.dataset.fallback){this.src=this.dataset.fallback;this.dataset.fallback='';}else{this.onerror=null;this.src='${FALLBACK_LOGO}';}">`
+        : `<img class="company-logo" src="${FALLBACK_LOGO}" alt="" loading="lazy">`;
+      opt.innerHTML = `${imgTag}<span>${escapeHtml(company)}</span>`;
       opt.addEventListener("click", () => selectCompanyOption(company));
       companiesList.appendChild(opt);
     });
