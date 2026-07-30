@@ -9,6 +9,7 @@
 <link rel="apple-touch-icon" href="assets/logo-256.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -20,7 +21,7 @@
     <div>
       <span class="eyebrow">منصة إرشاد مهني ودراسي مصرية</span>
       <h1>محتار في مجالك أو كليتك؟<br>كلم حد عاش التجربة قبلك.</h1>
-      <p>احجز مكالمة ربع ساعة مع مرشد شغال فعليًا في المجال اللي عايز تدخله — هندسة، طب، محاسبة، محاماة، أو حتى اختيار الكلية بعد الثانوية العامة.</p>
+      <p>ميتينج ربع ساعة مع مرشد شغال فعليًا في مجالك يختصر عليك خطوات وتعب كتير، ويخليك تبني مستقبلك على بصيرة — هندسة، طب، محاسبة، محاماة، أو حتى اختيار الكلية بعد الثانوية العامة.</p>
       <div class="hero-actions">
         <a href="mentors.html" class="btn btn-primary">لاقي مرشد دلوقتي</a>
         <a href="register-mentor.html" class="btn btn-ghost">عايز تبقى مرشد؟</a>
@@ -90,12 +91,38 @@
 <script src="js/firebase-config.js"></script>
 <script src="js/app.js"></script>
 <script>
+  const FIELD_ICONS = {
+    "الهندسة": "fa-drafting-compass",
+    "علوم الحاسب وتكنولوجيا المعلومات": "fa-laptop-code",
+    "الطب البشري": "fa-stethoscope",
+    "طب الأسنان": "fa-tooth",
+    "الصيدلة": "fa-pills",
+    "العلاج الطبيعي": "fa-hand-holding-medical",
+    "التمريض": "fa-syringe",
+    "الطب البيطري": "fa-paw",
+    "المحاسبة": "fa-calculator",
+    "إدارة الأعمال": "fa-briefcase",
+    "الاقتصاد والعلوم السياسية": "fa-landmark",
+    "المحاماة والحقوق": "fa-scale-balanced",
+    "الآداب واللغات": "fa-book-open",
+    "الألسن والترجمة": "fa-language",
+    "الإعلام": "fa-video",
+    "التربية": "fa-chalkboard-user",
+    "الفنون الجميلة والتطبيقية": "fa-palette",
+    "الزراعة": "fa-seedling",
+    "العلوم": "fa-flask",
+    "السياحة والفنادق": "fa-hotel",
+    "التربية الرياضية": "fa-person-running",
+    "دار العلوم والدراسات الإسلامية": "fa-mosque",
+    "الخدمة الاجتماعية": "fa-hand-holding-heart",
+    "الثانوية العامة (توجيه عام)": "fa-graduation-cap"
+  };
   const preview = document.getElementById("fields-preview");
   Object.keys(FIELDS).forEach(f => {
     const d = document.createElement("div");
-    d.className = "card";
-    d.style.padding = "18px";
-    d.innerHTML = `<strong>${f}</strong>`;
+    d.className = "card field-card";
+    const icon = FIELD_ICONS[f] || "fa-compass";
+    d.innerHTML = `<span class="field-icon"><i class="fa-solid ${icon}"></i></span><strong>${f}</strong>`;
     preview.appendChild(d);
   });
 </script>
