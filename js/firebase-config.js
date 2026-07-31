@@ -12,6 +12,7 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
+auth.languageCode = "ar"; // إيميلات Firebase (زي إعادة تعيين كلمة المرور) هتتبعت بالعربي
 // db بتتفعل بس في الصفحات اللي حاطة سكريبت firebase-firestore-compat.js (زي chat/)
 // لو الصفحة مش حاطاه، db بتفضل null من غير ما تكسر باقي الكود
 const db = (typeof firebase.firestore === "function") ? firebase.firestore() : null;
