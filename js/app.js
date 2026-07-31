@@ -51,6 +51,21 @@ function employerExperienceLine(employer, years) {
   return parts.join(" · ");
 }
 
+// تطبيع رابط لينكدإن (بتضيف https:// لو المرشد كتب الرابط من غيرها)
+function normalizeLinkedinUrl(value) {
+  if (!value) return "";
+  let v = String(value).trim();
+  if (!v) return "";
+  if (!/^https?:\/\//i.test(v)) v = "https://" + v.replace(/^\/+/, "");
+  return v;
+}
+
+// أيقونة رابط لينكدإن المرشد - بتظهر بس لو المرشد حاط رابط بروفايله عند التسجيل
+function linkedinIconHtml(url) {
+  if (!url) return "";
+  return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="linkedin-link" title="بروفايل المرشد على لينكدإن" onclick="event.stopPropagation()">🔗 لينكدإن</a>`;
+}
+
 // بناء نص نجوم للتقييم (مثال: ★★★★☆)
 function starsText(rating) {
   const r = Math.round(Number(rating) || 0);
