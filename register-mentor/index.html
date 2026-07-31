@@ -239,6 +239,10 @@
       </div>
       <div class="field-hint" id="professional-fields-hint">هنحسب مستواك (جونيور / سينيور) تلقائيًا من سنوات خبرتك</div>
 
+      <label>رابط بروفايلك على لينكدإن (اختياري)</label>
+      <input type="text" id="linkedin" placeholder="مثال: linkedin.com/in/ahmed-taha">
+      <div class="field-hint">هيظهر كأيقونة 🔗 في كارت البروفايل عشان المستفيد يشوف خبراتك بنفسه</div>
+
       <div class="form-row" id="highschool-fields" style="display:none;">
         <div>
           <label>الكلية الحالية أو المتخرج منها</label>
@@ -1870,6 +1874,7 @@ document.getElementById("reg-form").addEventListener("submit", async (e) => {
   const instapay = document.getElementById("instapay").value;
   const bio = document.getElementById("bio").value;
   const availability = availabilityHidden.value;
+  const linkedin = normalizeLinkedinUrl(document.getElementById("linkedin").value);
 
   try {
     const cred = await auth.createUserWithEmailAndPassword(email, password);
@@ -1894,7 +1899,7 @@ document.getElementById("reg-form").addEventListener("submit", async (e) => {
       uid: cred.user.uid, name, email, field, specialization,
       employer, yearsOfExperience, currentCollege, gpa,
       price, instapay, meetingLink, bio, availability,
-      profilePhotoUrl
+      profilePhotoUrl, linkedin
     });
 
     if (res && res.error) {

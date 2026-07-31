@@ -51,6 +51,21 @@ function employerExperienceLine(employer, years) {
   return parts.join(" · ");
 }
 
+// تطبيع رابط لينكدإن (بتضيف https:// لو المرشد كتب الرابط من غيرها)
+function normalizeLinkedinUrl(value) {
+  if (!value) return "";
+  let v = String(value).trim();
+  if (!v) return "";
+  if (!/^https?:\/\//i.test(v)) v = "https://" + v.replace(/^\/+/, "");
+  return v;
+}
+
+// أيقونة رابط لينكدإن المرشد - بتظهر بس لو المرشد حاط رابط بروفايله عند التسجيل
+function linkedinIconHtml(url) {
+  if (!url) return "";
+  return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="linkedin-link" title="بروفايل المرشد على لينكدإن" onclick="event.stopPropagation()">🔗 لينكدإن</a>`;
+}
+
 // بناء نص نجوم للتقييم (مثال: ★★★★☆)
 function starsText(rating) {
   const r = Math.round(Number(rating) || 0);
@@ -123,8 +138,13 @@ function renderHeader() {
   auth.onAuthStateChanged(user => {
     const navAuth = document.getElementById("nav-auth");
     if (user && navAuth) {
+      // رابط لوحة الأدمن بيظهر بس لو الإيميل اللي داخل بيه موجود في ADMIN_EMAILS (js/firebase-config.js)
+      const isAdmin = typeof ADMIN_EMAILS !== "undefined" && ADMIN_EMAILS.includes(user.email);
+      const adminLinkHtml = isAdmin ? `<a href="admin/" class="btn btn-ghost">لوحة الأدمن</a>` : "";
+
       navAuth.innerHTML = `
         <a href="dashboard/" class="btn btn-ghost">لوحتي</a>
+        ${adminLinkHtml}
         <button class="btn btn-primary" id="logout-btn">تسجيل خروج</button>
       `;
       document.getElementById("logout-btn").addEventListener("click", () => {

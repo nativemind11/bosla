@@ -230,6 +230,7 @@ function renderForm(isLoggedIn) {
         <div class="form-title" style="margin-bottom:2px">احجز مع ${escapeHtml(mentor.Name)}</div>
         <div class="form-sub" style="margin-bottom:2px">${escapeHtml(mentor.Field)} · ${escapeHtml(mentor.Specialization)} — ${priceLabel}</div>
         ${employerLine ? `<span class="mentor-meta-line">🏢 ${employerLine}</span>` : ""}
+        ${linkedinIconHtml(mentor.Linkedin)}
       </div>
     </div>
 

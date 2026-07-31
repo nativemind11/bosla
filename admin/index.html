@@ -25,8 +25,8 @@
 <script src="js/firebase-config.js"></script>
 <script src="js/app.js"></script>
 <script>
-// غيّر الإيميلات دي لإيميلات الأدمن بتاعتك (تقدر تحط أكتر من واحد)
-const ADMIN_EMAILS = ["ahmedtaha.11887@gmail.com"];
+// ملحوظة: قايمة ADMIN_EMAILS بقت معرّفة مركزيًا في js/firebase-config.js
+// عشان تتحكم كمان في ظهور رابط "لوحة الأدمن" في هيدر باقي صفحات الموقع
 
 const STATUS_LABELS = {
   pending_payment: "بانتظار الدفع",
@@ -84,10 +84,29 @@ async function loadTab(name) {
   body.innerHTML = `<div class="spinner">بيحمل...</div>`;
 
   if (name === "bookings") {
-    const bookings = await apiGet("getAllBookings");
+    // بنجيب الحجوزات وقايمة المرشدين مع بعض، عشان نعرف نربط كل حجز برقم انستاباي المرشد بتاعه
+    const [bookings, mentors] = await Promise.all([
+      apiGet("getAllBookings"),
+      apiGet("getMentors")
+    ]);
+
+    // خريطة UID المرشد -> رقم إنستاباي بتاعه (بندور على المفتاح بأي حالة أحرف احتياطًا)
+    // + خريطة بالاسم كـ fallback احتياطي لو الحجز مش راجع فيه MentorUID
+    const mentorInstapayByUid = {};
+    const mentorInstapayByName = {};
+    mentors.forEach(m => {
+      const key = Object.keys(m).find(k => k.toLowerCase() === "instapay");
+      const val = key ? m[key] : "";
+      mentorInstapayByUid[m.UID] = val;
+      if (m.Name) mentorInstapayByName[m.Name] = val;
+    });
+    function getMentorInstapay(b) {
+      return mentorInstapayByUid[b.MentorUID] || mentorInstapayByName[b.MentorName] || "";
+    }
+
     body.innerHTML = bookings.length ? `
       <table>
-        <thead><tr><th>#</th><th>المرشد</th><th>المستفيد</th><th>المجال</th><th>الميعاد</th><th>الحالة</th><th>إيصال</th><th>عمولة BOSLA</th><th>نصيب المرشد</th><th>تحويل المرشد</th></tr></thead>
+        <thead><tr><th>#</th><th>المرشد</th><th>المستفيد</th><th>المجال</th><th>الميعاد</th><th>الحالة</th><th>إيصال</th><th>عمولة BOSLA</th><th>نصيب المرشد</th><th>انستاباي المرشد</th><th>تحويل المرشد</th></tr></thead>
         <tbody>${bookings.map(b => `
           <tr>
             <td>${b.BookingID}</td><td>${b.MentorName}</td><td>${b.MenteeName}</td>
@@ -98,6 +117,10 @@ async function loadTab(name) {
               : "—"}</td>
             <td>${b.PlatformCommission ? b.PlatformCommission + ' ج.م' : "—"}</td>
             <td>${b.MentorPayout ? b.MentorPayout + ' ج.م' : "—"}</td>
+            <td>${
+              !b.MentorPayout ? "—"
+              : (getMentorInstapay(b) ? `<strong>${getMentorInstapay(b)}</strong>` : `<span class="field-hint">مش موجود</span>`)
+            }</td>
             <td>${
               !b.MentorPayout ? "—"
               : b.MentorPaidOutAt ? `<span class="field-hint">اتحول ✅</span>`
@@ -113,10 +136,14 @@ async function loadTab(name) {
     const mentors = await apiGet("getMentors");
     body.innerHTML = mentors.length ? `
       <table>
-        <thead><tr><th>الاسم</th><th>المجال</th><th>التخصص</th><th>المستوى</th><th>السعر</th><th>الإيميل</th></tr></thead>
-        <tbody>${mentors.map(m => `
-          <tr><td>${m.Name}</td><td>${m.Field}</td><td>${m.Specialization}</td><td>${m.Level}</td><td>${Number(m.Price) > 0 ? m.Price + ' ج.م' : 'مجانًا'}</td><td>${m.Email}</td></tr>
-        `).join("")}</tbody>
+        <thead><tr><th>الاسم</th><th>المجال</th><th>التخصص</th><th>المستوى</th><th>السعر</th><th>الإيميل</th><th>انستاباي</th></tr></thead>
+        <tbody>${mentors.map(m => {
+          const instapayKey = Object.keys(m).find(k => k.toLowerCase() === "instapay");
+          const instapayVal = instapayKey ? m[instapayKey] : "";
+          return `
+          <tr><td>${m.Name}</td><td>${m.Field}</td><td>${m.Specialization}</td><td>${m.Level}</td><td>${Number(m.Price) > 0 ? m.Price + ' ج.م' : 'مجانًا'}</td><td>${m.Email}</td><td>${instapayVal || "—"}</td></tr>
+        `;
+        }).join("")}</tbody>
       </table>
     ` : `<div class="empty-state">مفيش مرشدين لسه.</div>`;
   }

@@ -242,6 +242,20 @@ h2.section-title { font-size: 32px; font-weight: 800; color: var(--purple-900); 
   width: fit-content;
 }
 .badge-free { background: var(--success-bg); color: var(--success); }
+.linkedin-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #e8f0fe;
+  color: #0a66c2;
+  width: fit-content;
+  text-decoration: none;
+}
+.linkedin-link:hover { background: #d7e6fd; }
 .price-tag { font-weight: 800; color: var(--purple-700); font-size: 18px; }
 
 /* ===== Forms ===== */

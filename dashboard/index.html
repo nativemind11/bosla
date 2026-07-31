@@ -191,6 +191,7 @@ async function renderMentorDashboard(user, mentor) {
         <h2 class="section-title" style="margin-bottom:2px">أهلاً ${mentor.Name}</h2>
         <p class="section-sub" style="margin-bottom:2px">${mentor.Field} · ${mentor.Specialization} — ${Number(mentor.Price) > 0 ? mentor.Price + ' ج.م' : 'مجانًا'}</p>
         ${employerLine ? `<span class="mentor-meta-line">🏢 ${employerLine}</span>` : ""}
+        ${linkedinIconHtml(mentor.Linkedin)}
       </div>
     </div>
     <div class="card" style="margin-bottom:30px">
