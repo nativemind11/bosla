@@ -23,7 +23,18 @@
     <input type="email" id="email" required>
     <label>كلمة المرور</label>
     <input type="password" id="password" required>
+    <div style="text-align:left; margin-top:8px">
+      <a href="#" id="forgot-link" style="font-size:13px; color:var(--purple-700); font-weight:700">نسيت كلمة السر؟</a>
+    </div>
     <button class="btn btn-primary btn-block" style="margin-top:24px" type="submit" id="login-btn">دخول</button>
+  </form>
+
+  <!-- ===== فورم "نسيت كلمة السر" - مخفي، بيظهر بدل فورم الدخول عند الضغط على الرابط فوق ===== -->
+  <form id="forgot-form" style="display:none" novalidate>
+    <label>اكتب إيميلك المسجل بيه حسابك، وهنبعتلك رابط إعادة تعيين كلمة المرور</label>
+    <input type="email" id="forgot-email" required placeholder="example@email.com">
+    <button class="btn btn-primary btn-block" style="margin-top:20px" type="submit" id="forgot-btn">ابعت رابط إعادة التعيين</button>
+    <button class="btn btn-ghost btn-block" style="margin-top:10px" type="button" id="cancel-forgot-btn">رجوع لتسجيل الدخول</button>
   </form>
   <p class="field-hint" style="margin-top:20px; text-align:center">
     لسه معملتش حساب؟
@@ -50,6 +61,54 @@ document.getElementById("login-form").addEventListener("submit", async (e) => {
   } catch (err) {
     showToast("الإيميل أو الباسورد غلط", "error");
     btn.disabled = false; btn.textContent = "دخول";
+  }
+});
+
+// ===================== نسيت كلمة السر =====================
+const loginForm = document.getElementById("login-form");
+const forgotForm = document.getElementById("forgot-form");
+
+document.getElementById("forgot-link").addEventListener("click", (e) => {
+  e.preventDefault();
+  document.getElementById("forgot-email").value = document.getElementById("email").value;
+  loginForm.style.display = "none";
+  forgotForm.style.display = "block";
+});
+
+document.getElementById("cancel-forgot-btn").addEventListener("click", () => {
+  forgotForm.style.display = "none";
+  loginForm.style.display = "block";
+});
+
+forgotForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("forgot-email").value.trim();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast("اكتب إيميل صحيح", "error"); return; }
+
+  const btn = document.getElementById("forgot-btn");
+  btn.disabled = true; btn.textContent = "بيتبعت...";
+
+  // رابط الصفحة اللي المستخدم هيغيّر كلمة السر فيها بعد ما يدوس على الرابط اللي جاله بالإيميل
+  const actionCodeSettings = { url: new URL("reset-password/", document.baseURI).toString() };
+
+  function backToLoginWithSuccessMsg() {
+    showToast("لو الإيميل ده مسجل عندنا، هيوصلك رابط إعادة تعيين كلمة المرور دلوقتي");
+    forgotForm.style.display = "none";
+    loginForm.style.display = "block";
+    btn.disabled = false; btn.textContent = "ابعت رابط إعادة التعيين";
+  }
+
+  try {
+    await auth.sendPasswordResetEmail(email, actionCodeSettings);
+    backToLoginWithSuccessMsg();
+  } catch (err) {
+    // بنفس رسالة النجاح حتى لو الإيميل مش مسجل عندنا، عشان محدش يقدر يتأكد من إيميلات مسجلة في الموقع ولا لأ
+    if (err.code === "auth/user-not-found" || err.code === "auth/invalid-email") {
+      backToLoginWithSuccessMsg();
+    } else {
+      showToast("حصل خطأ، جرب تاني", "error");
+      btn.disabled = false; btn.textContent = "ابعت رابط إعادة التعيين";
+    }
   }
 });
 </script>
