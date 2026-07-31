@@ -201,6 +201,7 @@ async function renderMentorDashboard(user, mentor) {
     </div>
     <h3>حجوزاتك</h3>
     ${bookings.length ? `
+      <div class="table-scroll">
       <table>
         <thead><tr><th>المستفيد</th><th>الميعاد</th><th>الحالة</th><th>الميتينج</th><th>الشات</th><th>تأكيد إتمام الجلسة</th></tr></thead>
         <tbody>${bookings.map(b => `
@@ -218,6 +219,7 @@ async function renderMentorDashboard(user, mentor) {
           </tr>
         `).join("")}</tbody>
       </table>
+      </div>
     ` : `<div class="empty-state">لسه مفيش حجوزات.</div>`}
   `;
 }
@@ -241,6 +243,7 @@ async function renderMenteeDashboard(user, mentee) {
     </div>
     ${mentee.EmployerOrSchool ? `<span class="mentor-meta-line" style="margin-bottom:20px">🏢 ${escapeHtml(mentee.EmployerOrSchool)}</span>` : ""}
     ${bookings.length ? `
+      <div class="table-scroll">
       <table>
         <thead><tr><th>المرشد</th><th>الميعاد</th><th>الحالة</th><th>الميتينج</th><th>الشات</th><th>تأكيد إتمام الجلسة</th><th>تقييمك</th></tr></thead>
         <tbody>${bookings.map(b => `
@@ -259,6 +262,7 @@ async function renderMenteeDashboard(user, mentee) {
           </tr>
         `).join("")}</tbody>
       </table>
+      </div>
     ` : `<div class="empty-state">لسه معملتش أي حجز. <a href="mentors/" style="color:var(--purple-700)">تصفح المرشدين</a></div>`}
   `;
 }
