@@ -105,6 +105,7 @@ async function loadTab(name) {
     }
 
     body.innerHTML = bookings.length ? `
+      <div class="table-scroll">
       <table>
         <thead><tr><th>#</th><th>المرشد</th><th>المستفيد</th><th>المجال</th><th>الميعاد</th><th>الحالة</th><th>إيصال</th><th>عمولة BOSLA</th><th>نصيب المرشد</th><th>انستاباي المرشد</th><th>تحويل المرشد</th></tr></thead>
         <tbody>${bookings.map(b => `
@@ -131,10 +132,12 @@ async function loadTab(name) {
           </tr>
         `).join("")}</tbody>
       </table>
+      </div>
     ` : `<div class="empty-state">مفيش حجوزات لسه.</div>`;
   } else if (name === "mentors") {
     const mentors = await apiGet("getMentors");
     body.innerHTML = mentors.length ? `
+      <div class="table-scroll">
       <table>
         <thead><tr><th>الاسم</th><th>المجال</th><th>التخصص</th><th>المستوى</th><th>السعر</th><th>الإيميل</th><th>انستاباي</th></tr></thead>
         <tbody>${mentors.map(m => {
@@ -145,6 +148,7 @@ async function loadTab(name) {
         `;
         }).join("")}</tbody>
       </table>
+      </div>
     ` : `<div class="empty-state">مفيش مرشدين لسه.</div>`;
   }
 }
