@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<base href="../">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إعادة تعيين كلمة المرور — BOSLA</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/logo-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/logo-64.png">
+<link rel="apple-touch-icon" href="assets/logo-256.png">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header id="bosla-header"></header>
+
+<div class="form-card" id="reset-box">
+  <div class="spinner">بيتحقق من رابط إعادة التعيين...</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/app.js"></script>
+<script>
+const box = document.getElementById("reset-box");
+const params = new URLSearchParams(window.location.search);
+const mode = params.get("mode");
+const oobCode = params.get("oobCode");
+
+// ===================== مؤشر قوة كلمة المرور (نفس القواعد المستخدمة في باقي الموقع) =====================
+function computePasswordStrength(pwd) {
+  const len = pwd.length;
+  const hasLower = /[a-z]/.test(pwd);
+  const hasUpper = /[A-Z]/.test(pwd);
+  const hasDigit = /[0-9]/.test(pwd);
+  const hasSymbol = /[^a-zA-Z0-9]/.test(pwd);
+  const typesCount = [hasLower, hasUpper, hasDigit, hasSymbol].filter(Boolean).length;
+
+  if (len === 0) return { level: "", acceptable: false, pct: 0, color: "var(--line)" };
+  if (len < 8) return { level: "ضعيف — لازم 8 أحرف على الأقل", acceptable: false, pct: 25, color: "var(--error)" };
+  if (len >= 10 && typesCount >= 3) return { level: "قوي 💪", acceptable: true, pct: 100, color: "var(--success)" };
+  if (len >= 8 && typesCount >= 2) return { level: "متوسط — تقدر تقويها أكتر", acceptable: true, pct: 65, color: "var(--secondary)" };
+  return { level: "ضعيف — نوّع بين حروف وأرقام ورموز", acceptable: false, pct: 25, color: "var(--error)" };
+}
+
+function showInvalidState() {
+  box.innerHTML = `
+    <div class="form-title">الرابط مش صالح</div>
+    <p style="color:var(--gray)">رابط إعادة تعيين كلمة المرور ده منتهي الصلاحية أو كان مستخدم قبل كده. اطلب رابط جديد من صفحة تسجيل الدخول.</p>
+    <a href="login/" class="btn btn-primary btn-block" style="margin-top:16px">رجوع لتسجيل الدخول</a>
+  `;
+}
+
+function renderForm(email) {
+  box.innerHTML = `
+    <div class="form-title">إعادة تعيين كلمة المرور</div>
+    <div class="form-sub">بتغيّر كلمة المرور للحساب: <strong>${escapeHtml(email)}</strong></div>
+    <form id="reset-form" novalidate>
+      <label>كلمة المرور الجديدة</label>
+      <input type="password" id="new-password" required minlength="8" placeholder="8 أحرف على الأقل">
+      <div class="pw-meter-track"><div class="pw-meter-fill" id="pw-fill"></div></div>
+      <div class="pw-meter-label" id="pw-label"></div>
+
+      <label style="margin-top:16px">تأكيد كلمة المرور</label>
+      <input type="password" id="confirm-password" required placeholder="اكتبها تاني">
+
+      <button class="btn btn-primary btn-block" style="margin-top:24px" type="submit" id="reset-btn">تغيير كلمة المرور</button>
+    </form>
+  `;
+
+  const pwInput = document.getElementById("new-password");
+  const pwFill = document.getElementById("pw-fill");
+  const pwLabel = document.getElementById("pw-label");
+  pwInput.addEventListener("input", () => {
+    const s = computePasswordStrength(pwInput.value);
+    pwFill.style.width = s.pct + "%";
+    pwFill.style.background = s.color;
+    pwLabel.textContent = s.level;
+    pwLabel.style.color = s.color;
+  });
+
+  document.getElementById("reset-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const newPassword = pwInput.value;
+    const confirmPassword = document.getElementById("confirm-password").value;
+
+    const strength = computePasswordStrength(newPassword);
+    if (!strength.acceptable) { showToast("كلمة المرور ضعيفة، اختار كلمة مرور أقوى", "error"); return; }
+    if (newPassword !== confirmPassword) { showToast("كلمتا المرور مش متطابقتين", "error"); return; }
+
+    const btn = document.getElementById("reset-btn");
+    btn.disabled = true; btn.textContent = "بيتغيّر...";
+
+    try {
+      await auth.confirmPasswordReset(oobCode, newPassword);
+      box.innerHTML = `
+        <div class="form-title">اتغيّرت كلمة المرور بنجاح! ✅</div>
+        <p style="color:var(--gray)">تقدر تسجل دخولك دلوقتي بكلمة المرور الجديدة.</p>
+        <a href="login/" class="btn btn-primary btn-block" style="margin-top:16px">تسجيل الدخول</a>
+      `;
+    } catch (err) {
+      showToast("حصل خطأ، الرابط ممكن يكون منتهي. اطلب رابط جديد", "error");
+      btn.disabled = false; btn.textContent = "تغيير كلمة المرور";
+    }
+  });
+}
+
+async function init() {
+  if (mode !== "resetPassword" || !oobCode) { showInvalidState(); return; }
+  try {
+    const email = await auth.verifyPasswordResetCode(oobCode);
+    renderForm(email);
+  } catch (err) {
+    showInvalidState();
+  }
+}
+
+init();
+</script>
+</body>
+</html>
