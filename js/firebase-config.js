@@ -19,6 +19,10 @@ const db = (typeof firebase.firestore === "function") ? firebase.firestore() : n
 // رابط Google Apps Script (Web App) - غيّره لو عملت Deploy جديد
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby7J29aCbpnNnZRmTzoDbE9-Q0yywG6SfSPCLATuFEpAnpLCzzAC1fUxj5Fsj_y/exec";
 
+// إيميلات الأدمن - غيّرها/ زوّد عليها لو عايز تضيف أدمن جديد
+// نفس القايمة دي بتتحكم في: (1) ظهور رابط "لوحة الأدمن" في الهيدر، (2) الصلاحية لدخول صفحة admin/
+const ADMIN_EMAILS = ["ahmedtaha.11887@gmail.com"];
+
 // ===================== المجالات والتخصصات =====================
 // كل فرع تخصص بقى بند منفصل (مش مجمّع بين قوسين) عشان الفلترة تبقى دقيقة
 const FIELDS = {
