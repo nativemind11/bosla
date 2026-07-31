@@ -105,25 +105,24 @@ async function loadTab(name) {
     }
 
     body.innerHTML = bookings.length ? `
-      <div class="table-scroll-hint">⇠ اسحب الجدول يمين وشمال لشوف باقي الأعمدة</div>
       <div class="table-scroll">
       <table>
         <thead><tr><th>#</th><th>المرشد</th><th>المستفيد</th><th>المجال</th><th>الميعاد</th><th>الحالة</th><th>إيصال</th><th>عمولة BOSLA</th><th>نصيب المرشد</th><th>انستاباي المرشد</th><th>تحويل المرشد</th></tr></thead>
         <tbody>${bookings.map(b => `
           <tr>
-            <td>${b.BookingID}</td><td>${b.MentorName}</td><td>${b.MenteeName}</td>
-            <td>${b.Field}</td><td>${b.SlotDateTime}</td>
-            <td><span class="status-pill status-${b.Status}">${STATUS_LABELS[b.Status] || b.Status}</span></td>
-            <td>${b.PaymentScreenshotURL
+            <td data-label="#">${b.BookingID}</td><td data-label="المرشد">${b.MentorName}</td><td data-label="المستفيد">${b.MenteeName}</td>
+            <td data-label="المجال">${b.Field}</td><td data-label="الميعاد">${b.SlotDateTime}</td>
+            <td data-label="الحالة"><span class="status-pill status-${b.Status}">${STATUS_LABELS[b.Status] || b.Status}</span></td>
+            <td data-label="إيصال">${b.PaymentScreenshotURL
               ? `<a href="${b.PaymentScreenshotURL}" target="_blank">عرض</a>${b.Status === "pending_confirmation" ? `<br><button class="btn btn-primary" style="padding:4px 10px; margin-top:6px" onclick="confirmPayment('${b.BookingID}')">تأكيد استلام الفلوس</button>` : ""}`
               : "—"}</td>
-            <td>${b.PlatformCommission ? b.PlatformCommission + ' ج.م' : "—"}</td>
-            <td>${b.MentorPayout ? b.MentorPayout + ' ج.م' : "—"}</td>
-            <td>${
+            <td data-label="عمولة BOSLA">${b.PlatformCommission ? b.PlatformCommission + ' ج.م' : "—"}</td>
+            <td data-label="نصيب المرشد">${b.MentorPayout ? b.MentorPayout + ' ج.م' : "—"}</td>
+            <td data-label="انستاباي المرشد">${
               !b.MentorPayout ? "—"
               : (getMentorInstapay(b) ? `<strong>${getMentorInstapay(b)}</strong>` : `<span class="field-hint">مش موجود</span>`)
             }</td>
-            <td>${
+            <td data-label="تحويل المرشد">${
               !b.MentorPayout ? "—"
               : b.MentorPaidOutAt ? `<span class="field-hint">اتحول ✅</span>`
               : b.Status === "completed"
@@ -138,7 +137,6 @@ async function loadTab(name) {
   } else if (name === "mentors") {
     const mentors = await apiGet("getMentors");
     body.innerHTML = mentors.length ? `
-      <div class="table-scroll-hint">⇠ اسحب الجدول يمين وشمال لشوف باقي الأعمدة</div>
       <div class="table-scroll">
       <table>
         <thead><tr><th>الاسم</th><th>المجال</th><th>التخصص</th><th>المستوى</th><th>السعر</th><th>الإيميل</th><th>انستاباي</th></tr></thead>
@@ -146,7 +144,7 @@ async function loadTab(name) {
           const instapayKey = Object.keys(m).find(k => k.toLowerCase() === "instapay");
           const instapayVal = instapayKey ? m[instapayKey] : "";
           return `
-          <tr><td>${m.Name}</td><td>${m.Field}</td><td>${m.Specialization}</td><td>${m.Level}</td><td>${Number(m.Price) > 0 ? m.Price + ' ج.م' : 'مجانًا'}</td><td>${m.Email}</td><td>${instapayVal || "—"}</td></tr>
+          <tr><td data-label="الاسم">${m.Name}</td><td data-label="المجال">${m.Field}</td><td data-label="التخصص">${m.Specialization}</td><td data-label="المستوى">${m.Level}</td><td data-label="السعر">${Number(m.Price) > 0 ? m.Price + ' ج.م' : 'مجانًا'}</td><td data-label="الإيميل">${m.Email}</td><td data-label="انستاباي">${instapayVal || "—"}</td></tr>
         `;
         }).join("")}</tbody>
       </table>
