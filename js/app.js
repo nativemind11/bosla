@@ -138,8 +138,13 @@ function renderHeader() {
   auth.onAuthStateChanged(user => {
     const navAuth = document.getElementById("nav-auth");
     if (user && navAuth) {
+      // رابط لوحة الأدمن بيظهر بس لو الإيميل اللي داخل بيه موجود في ADMIN_EMAILS (js/firebase-config.js)
+      const isAdmin = typeof ADMIN_EMAILS !== "undefined" && ADMIN_EMAILS.includes(user.email);
+      const adminLinkHtml = isAdmin ? `<a href="admin/" class="btn btn-ghost">لوحة الأدمن</a>` : "";
+
       navAuth.innerHTML = `
         <a href="dashboard/" class="btn btn-ghost">لوحتي</a>
+        ${adminLinkHtml}
         <button class="btn btn-primary" id="logout-btn">تسجيل خروج</button>
       `;
       document.getElementById("logout-btn").addEventListener("click", () => {
