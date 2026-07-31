@@ -62,6 +62,7 @@ img { max-width: 100%; display: block; }
   align-items: center;
   justify-content: space-between;
   gap: 20px;
+  flex-wrap: wrap; /* لو مساحة الشاشة مش كافية، الشعار وأزرار الحساب ينزلوا صف تاني بدل ما نصهم يتقطع */
 }
 .logo {
   display: inline-flex;
@@ -71,12 +72,13 @@ img { max-width: 100%; display: block; }
   font-size: 24px;
   color: var(--purple-700);
   letter-spacing: -0.5px;
+  white-space: nowrap; /* اسم BOSLA يفضل في سطر واحد، مش بيتقطع نص كلمة */
 }
 .logo span { color: var(--purple-500); }
 .logo img { width: 34px; height: 34px; display: block; }
 .nav-links { display: flex; gap: 28px; font-weight: 600; color: var(--gray); }
 .nav-links a:hover { color: var(--purple-700); }
-.nav-auth { display: flex; gap: 12px; }
+.nav-auth { display: flex; gap: 12px; flex-wrap: wrap; }
 
 /* ===== Buttons ===== */
 .btn {
@@ -90,6 +92,7 @@ img { max-width: 100%; display: block; }
   font-size: 15px;
   border: none;
   cursor: pointer;
+  white-space: nowrap; /* نص الزرار (زي "لوحتي") يفضل سطر واحد */
   transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
 }
 .btn-primary { background: var(--purple-700); color: var(--white); }
@@ -418,4 +421,16 @@ th { color: var(--gray); font-weight: 700; background: var(--purple-50); }
   .grid-3, .grid-2 { grid-template-columns: 1fr; }
   .form-row { flex-direction: column; }
   .wizard-step-label { display: none; }
+  .nav-wrap { padding: 12px 16px; gap: 10px; }
+  .logo { font-size: 19px; }
+  .logo img { width: 28px; height: 28px; }
+  .nav-auth { gap: 8px; }
+  .nav-auth .btn { padding: 8px 14px; font-size: 13px; }
+}
+
+/* تلميح إن الجدول بيتمرر أفقيًا (بيظهر على الموبايل بس) عشان محدش يفتكر إن أعمدة زي
+   "الشات" أو "تأكيد إتمام الجلسة" مش موجودة أصلاً */
+.table-scroll-hint { display: none; }
+@media (max-width: 768px) {
+  .table-scroll-hint { display: block; font-size: 12px; color: var(--gray); margin-bottom: 6px; }
 }
