@@ -78,6 +78,7 @@ function mentorCard(m) {
       <span class="badge">${escapeHtml(m.Field)} · ${escapeHtml(m.Specialization)}</span>
       <span class="field-hint" style="margin:0">${escapeHtml(m.Level || "")}</span>
       ${employerLine ? `<span class="mentor-meta-line">🏢 ${employerLine}</span>` : ""}
+      ${linkedinIconHtml(m.Linkedin)}
       ${ratingHtml}
       <p style="font-size:14px; color:var(--gray); min-height:40px">${escapeHtml(m.Bio) || "مرشد في " + escapeHtml(m.Field)}</p>
       ${priceHtml}
