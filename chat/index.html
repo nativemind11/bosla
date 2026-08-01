@@ -68,10 +68,13 @@
     flex: 1; min-height: 0; overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     padding: 18px 14px;
-    background: var(--purple-50);
+    background-color: var(--purple-50);
     background-image:
       radial-gradient(circle at 20% 10%, rgba(109,40,217,0.05) 0, transparent 40%),
-      radial-gradient(circle at 80% 90%, rgba(245,166,35,0.06) 0, transparent 40%);
+      radial-gradient(circle at 80% 90%, rgba(245,166,35,0.06) 0, transparent 40%),
+      url('assets/chat-watermark.svg');
+    background-repeat: no-repeat, no-repeat, repeat;
+    background-size: auto, auto, 90px 90px;
     display: flex; flex-direction: column; gap: 4px;
   }
   .chat-day-label {
