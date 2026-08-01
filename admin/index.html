@@ -10,6 +10,27 @@
 <link rel="apple-touch-icon" href="assets/logo-256.png">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<style>
+  .admin-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+    margin-bottom: 30px;
+  }
+  .stat-card {
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .stat-card.urgent { border-color: var(--purple-100); background: var(--purple-50); }
+  .stat-card.clickable { cursor: pointer; transition: box-shadow .15s ease, transform .15s ease; }
+  .stat-card.clickable:hover { box-shadow: var(--shadow); transform: translateY(-2px); border-color: var(--purple-100); }
+  .stat-num { font-size: 26px; font-weight: 800; color: var(--purple-900); line-height: 1.2; }
+  .stat-num.warn { color: #b45309; }
+  .stat-label { font-size: 13px; color: var(--gray); font-weight: 600; }
+</style>
 </head>
 <body>
 <header id="bosla-header"></header>
@@ -49,6 +70,9 @@ requireAuth(async (user) => {
 function render() {
   container.innerHTML = `
     <h2 class="section-title">لوحة الأدمن</h2>
+    <div class="admin-stats-grid" id="admin-stats">
+      <div class="spinner">بيحمل...</div>
+    </div>
     <div class="tabs">
       <button class="tab-btn active" data-tab="bookings">الحجوزات</button>
       <button class="tab-btn" data-tab="mentors">المرشدين</button>
@@ -62,13 +86,65 @@ function render() {
       loadTab(btn.dataset.tab);
     });
   });
+  loadStats();
   loadTab("bookings");
+}
+
+// نظرة سريعة فوق الجداول: عدد الحجوزات المستنية تأكيد دفع، والتحويلات
+// المعلقة للمرشدين، وإجمالي عمولة BOSLA — من غير ما تدور جوه الجدول.
+async function loadStats() {
+  const statsEl = document.getElementById("admin-stats");
+  try {
+    const bookings = await apiGet("getAllBookings");
+
+    const pendingConfirmation = bookings.filter(b => b.Status === "pending_confirmation").length;
+    const confirmedCount = bookings.filter(b => b.Status === "confirmed").length;
+    const completedCount = bookings.filter(b => b.Status === "completed").length;
+    const pendingPayout = bookings.filter(b => b.Status === "completed" && b.MentorPayout && !b.MentorPaidOutAt).length;
+    const totalCommission = bookings.reduce((sum, b) => {
+      if (b.Status === "confirmed" || b.Status === "completed") return sum + (Number(b.PlatformCommission) || 0);
+      return sum;
+    }, 0);
+
+    statsEl.innerHTML = `
+      <div class="stat-card ${pendingConfirmation > 0 ? "urgent clickable" : ""}" ${pendingConfirmation > 0 ? 'onclick="goToBookingsTab()"' : ""}>
+        <span class="stat-num ${pendingConfirmation > 0 ? "warn" : ""}">${pendingConfirmation}</span>
+        <span class="stat-label">محتاجين تأكيد دفع</span>
+      </div>
+      <div class="stat-card ${pendingPayout > 0 ? "urgent clickable" : ""}" ${pendingPayout > 0 ? 'onclick="goToBookingsTab()"' : ""}>
+        <span class="stat-num ${pendingPayout > 0 ? "warn" : ""}">${pendingPayout}</span>
+        <span class="stat-label">مستنيين تحويل للمرشد</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num">${confirmedCount}</span>
+        <span class="stat-label">حجوزات مؤكدة</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num">${completedCount}</span>
+        <span class="stat-label">جلسات اتعملت</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num">${totalCommission.toLocaleString("ar-EG")} ج.م</span>
+        <span class="stat-label">إجمالي عمولة BOSLA</span>
+      </div>
+    `;
+  } catch (err) {
+    statsEl.innerHTML = "";
+  }
+}
+
+function goToBookingsTab() {
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  document.querySelector('.tab-btn[data-tab="bookings"]').classList.add("active");
+  loadTab("bookings");
+  document.getElementById("tab-body").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 async function confirmPayment(bookingId) {
   if (!confirm("متأكد إنك استلمت الفلوس فعلاً على إنستاباي BOSLA؟")) return;
   await apiPost("confirmBooking", { bookingId });
   showToast("اتأكد الحجز وهيتبعت رابط الميتينج للمستفيد");
+  loadStats();
   loadTab("bookings");
 }
 
@@ -76,6 +152,7 @@ async function markPaidOut(bookingId) {
   if (!confirm("متأكد إنك حولت نصيب المرشد فعلاً؟")) return;
   await apiPost("markMentorPaidOut", { bookingId });
   showToast("تم تسجيل التحويل");
+  loadStats();
   loadTab("bookings");
 }
 
