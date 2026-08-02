@@ -142,93 +142,111 @@ function goToBookingsTab() {
 
 async function confirmPayment(bookingId) {
   if (!confirm("متأكد إنك استلمت الفلوس فعلاً على إنستاباي BOSLA؟")) return;
-  await apiPost("confirmBooking", { bookingId });
-  showToast("اتأكد الحجز وهيتبعت رابط الميتينج للمستفيد");
-  loadStats();
-  loadTab("bookings");
+  try {
+    await apiPost("confirmBooking", { bookingId });
+    showToast("اتأكد الحجز وهيتبعت رابط الميتينج للمستفيد");
+    loadStats();
+    loadTab("bookings");
+  } catch (err) {
+    showToast("حصل خطأ في تأكيد الحجز، جرب تاني", "error");
+  }
 }
 
 async function markPaidOut(bookingId) {
   if (!confirm("متأكد إنك حولت نصيب المرشد فعلاً؟")) return;
-  await apiPost("markMentorPaidOut", { bookingId });
-  showToast("تم تسجيل التحويل");
-  loadStats();
-  loadTab("bookings");
+  try {
+    await apiPost("markMentorPaidOut", { bookingId });
+    showToast("تم تسجيل التحويل");
+    loadStats();
+    loadTab("bookings");
+  } catch (err) {
+    showToast("حصل خطأ في تسجيل التحويل، جرب تاني", "error");
+  }
 }
 
 async function loadTab(name) {
   const body = document.getElementById("tab-body");
   body.innerHTML = `<div class="spinner">بيحمل...</div>`;
 
-  if (name === "bookings") {
-    // بنجيب الحجوزات وقايمة المرشدين مع بعض، عشان نعرف نربط كل حجز برقم انستاباي المرشد بتاعه
-    const [bookings, mentors] = await Promise.all([
-      apiGet("getAllBookings"),
-      apiGet("getMentors")
-    ]);
+  try {
+    if (name === "bookings") {
+      // بنجيب الحجوزات وقايمة المرشدين مع بعض، عشان نعرف نربط كل حجز برقم انستاباي المرشد بتاعه
+      const [bookings, mentors] = await Promise.all([
+        apiGet("getAllBookings"),
+        apiGet("getMentors")
+      ]);
 
-    // خريطة UID المرشد -> رقم إنستاباي بتاعه (بندور على المفتاح بأي حالة أحرف احتياطًا)
-    // + خريطة بالاسم كـ fallback احتياطي لو الحجز مش راجع فيه MentorUID
-    const mentorInstapayByUid = {};
-    const mentorInstapayByName = {};
-    mentors.forEach(m => {
-      const key = Object.keys(m).find(k => k.toLowerCase() === "instapay");
-      const val = key ? m[key] : "";
-      mentorInstapayByUid[m.UID] = val;
-      if (m.Name) mentorInstapayByName[m.Name] = val;
-    });
-    function getMentorInstapay(b) {
-      return mentorInstapayByUid[b.MentorUID] || mentorInstapayByName[b.MentorName] || "";
+      // خريطة UID المرشد -> رقم إنستاباي بتاعه (بندور على المفتاح بأي حالة أحرف احتياطًا)
+      // + خريطة بالاسم كـ fallback احتياطي لو الحجز مش راجع فيه MentorUID
+      const mentorInstapayByUid = {};
+      const mentorInstapayByName = {};
+      mentors.forEach(m => {
+        const key = Object.keys(m).find(k => k.toLowerCase() === "instapay");
+        const val = key ? m[key] : "";
+        mentorInstapayByUid[m.UID] = val;
+        if (m.Name) mentorInstapayByName[m.Name] = val;
+      });
+      function getMentorInstapay(b) {
+        return mentorInstapayByUid[b.MentorUID] || mentorInstapayByName[b.MentorName] || "";
+      }
+
+      body.innerHTML = bookings.length ? `
+        <div class="table-scroll">
+        <table>
+          <thead><tr><th>#</th><th>المرشد</th><th>المستفيد</th><th>المجال</th><th>الميعاد</th><th>الحالة</th><th>إيصال</th><th>عمولة BOSLA</th><th>نصيب المرشد</th><th>انستاباي المرشد</th><th>تحويل المرشد</th></tr></thead>
+          <tbody>${bookings.map(b => `
+            <tr>
+              <td data-label="#">${b.BookingID}</td><td data-label="المرشد">${b.MentorName}</td><td data-label="المستفيد">${b.MenteeName}</td>
+              <td data-label="المجال">${b.Field}</td><td data-label="الميعاد">${b.SlotDateTime}</td>
+              <td data-label="الحالة"><span class="status-pill status-${b.Status}">${STATUS_LABELS[b.Status] || b.Status}</span></td>
+              <td data-label="إيصال">${b.PaymentScreenshotURL
+                ? `<a href="${b.PaymentScreenshotURL}" target="_blank">عرض</a>${b.Status === "pending_confirmation" ? `<br><button class="btn btn-primary" style="padding:4px 10px; margin-top:6px" onclick="confirmPayment('${b.BookingID}')">تأكيد استلام الفلوس</button>` : ""}`
+                : "—"}</td>
+              <td data-label="عمولة BOSLA">${b.PlatformCommission ? b.PlatformCommission + ' ج.م' : "—"}</td>
+              <td data-label="نصيب المرشد">${b.MentorPayout ? b.MentorPayout + ' ج.م' : "—"}</td>
+              <td data-label="انستاباي المرشد">${
+                !b.MentorPayout ? "—"
+                : (getMentorInstapay(b) ? `<strong>${getMentorInstapay(b)}</strong>` : `<span class="field-hint">مش موجود</span>`)
+              }</td>
+              <td data-label="تحويل المرشد">${
+                !b.MentorPayout ? "—"
+                : b.MentorPaidOutAt ? `<span class="field-hint">اتحول ✅</span>`
+                : b.Status === "completed"
+                  ? `<button class="btn btn-primary" style="padding:6px 14px" onclick="markPaidOut('${b.BookingID}')">تم التحويل للمرشد</button>`
+                  : `<span class="field-hint">مستني تأكيد الجلسة</span>`
+              }</td>
+            </tr>
+          `).join("")}</tbody>
+        </table>
+        </div>
+      ` : `<div class="empty-state">مفيش حجوزات لسه.</div>`;
+    } else if (name === "mentors") {
+      const mentors = await apiGet("getMentors");
+      body.innerHTML = mentors.length ? `
+        <div class="table-scroll">
+        <table>
+          <thead><tr><th>الاسم</th><th>المجال</th><th>التخصص</th><th>المستوى</th><th>السعر</th><th>الإيميل</th><th>انستاباي</th></tr></thead>
+          <tbody>${mentors.map(m => {
+            const instapayKey = Object.keys(m).find(k => k.toLowerCase() === "instapay");
+            const instapayVal = instapayKey ? m[instapayKey] : "";
+            return `
+            <tr><td data-label="الاسم">${m.Name}</td><td data-label="المجال">${m.Field}</td><td data-label="التخصص">${m.Specialization}</td><td data-label="المستوى">${m.Level}</td><td data-label="السعر">${Number(m.Price) > 0 ? m.Price + ' ج.م' : 'مجانًا'}</td><td data-label="الإيميل">${m.Email}</td><td data-label="انستاباي">${instapayVal || "—"}</td></tr>
+          `;
+          }).join("")}</tbody>
+        </table>
+        </div>
+      ` : `<div class="empty-state">مفيش مرشدين لسه.</div>`;
     }
-
-    body.innerHTML = bookings.length ? `
-      <div class="table-scroll">
-      <table>
-        <thead><tr><th>#</th><th>المرشد</th><th>المستفيد</th><th>المجال</th><th>الميعاد</th><th>الحالة</th><th>إيصال</th><th>عمولة BOSLA</th><th>نصيب المرشد</th><th>انستاباي المرشد</th><th>تحويل المرشد</th></tr></thead>
-        <tbody>${bookings.map(b => `
-          <tr>
-            <td data-label="#">${b.BookingID}</td><td data-label="المرشد">${b.MentorName}</td><td data-label="المستفيد">${b.MenteeName}</td>
-            <td data-label="المجال">${b.Field}</td><td data-label="الميعاد">${b.SlotDateTime}</td>
-            <td data-label="الحالة"><span class="status-pill status-${b.Status}">${STATUS_LABELS[b.Status] || b.Status}</span></td>
-            <td data-label="إيصال">${b.PaymentScreenshotURL
-              ? `<a href="${b.PaymentScreenshotURL}" target="_blank">عرض</a>${b.Status === "pending_confirmation" ? `<br><button class="btn btn-primary" style="padding:4px 10px; margin-top:6px" onclick="confirmPayment('${b.BookingID}')">تأكيد استلام الفلوس</button>` : ""}`
-              : "—"}</td>
-            <td data-label="عمولة BOSLA">${b.PlatformCommission ? b.PlatformCommission + ' ج.م' : "—"}</td>
-            <td data-label="نصيب المرشد">${b.MentorPayout ? b.MentorPayout + ' ج.م' : "—"}</td>
-            <td data-label="انستاباي المرشد">${
-              !b.MentorPayout ? "—"
-              : (getMentorInstapay(b) ? `<strong>${getMentorInstapay(b)}</strong>` : `<span class="field-hint">مش موجود</span>`)
-            }</td>
-            <td data-label="تحويل المرشد">${
-              !b.MentorPayout ? "—"
-              : b.MentorPaidOutAt ? `<span class="field-hint">اتحول ✅</span>`
-              : b.Status === "completed"
-                ? `<button class="btn btn-primary" style="padding:6px 14px" onclick="markPaidOut('${b.BookingID}')">تم التحويل للمرشد</button>`
-                : `<span class="field-hint">مستني تأكيد الجلسة</span>`
-            }</td>
-          </tr>
-        `).join("")}</tbody>
-      </table>
-      </div>
-    ` : `<div class="empty-state">مفيش حجوزات لسه.</div>`;
-  } else if (name === "mentors") {
-    const mentors = await apiGet("getMentors");
-    body.innerHTML = mentors.length ? `
-      <div class="table-scroll">
-      <table>
-        <thead><tr><th>الاسم</th><th>المجال</th><th>التخصص</th><th>المستوى</th><th>السعر</th><th>الإيميل</th><th>انستاباي</th></tr></thead>
-        <tbody>${mentors.map(m => {
-          const instapayKey = Object.keys(m).find(k => k.toLowerCase() === "instapay");
-          const instapayVal = instapayKey ? m[instapayKey] : "";
-          return `
-          <tr><td data-label="الاسم">${m.Name}</td><td data-label="المجال">${m.Field}</td><td data-label="التخصص">${m.Specialization}</td><td data-label="المستوى">${m.Level}</td><td data-label="السعر">${Number(m.Price) > 0 ? m.Price + ' ج.م' : 'مجانًا'}</td><td data-label="الإيميل">${m.Email}</td><td data-label="انستاباي">${instapayVal || "—"}</td></tr>
-        `;
-        }).join("")}</tbody>
-      </table>
-      </div>
-    ` : `<div class="empty-state">مفيش مرشدين لسه.</div>`;
+  } catch (err) {
+    body.innerHTML = `
+      <div class="empty-state">
+        حصل خطأ في تحميل البيانات.
+        <br><button class="btn btn-primary" id="tab-retry-btn" style="margin-top:12px">حاول تاني</button>
+      </div>`;
+    document.getElementById("tab-retry-btn").addEventListener("click", () => loadTab(name));
   }
 }
+
 </script>
 </body>
 </html>
