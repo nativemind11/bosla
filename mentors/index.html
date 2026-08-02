@@ -113,7 +113,12 @@ async function load() {
     allMentors = await apiGet("getMentors");
     render();
   } catch (err) {
-    document.getElementById("mentors-list").innerHTML = `<div class="empty-state" style="grid-column:1/-1">حصل خطأ في تحميل المرشدين، حدّث الصفحة.</div>`;
+    document.getElementById("mentors-list").innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1">
+        حصل خطأ في تحميل المرشدين.
+        <br><button class="btn btn-primary" id="mentors-retry-btn" style="margin-top:12px">حاول تاني</button>
+      </div>`;
+    document.getElementById("mentors-retry-btn").addEventListener("click", load);
   }
 }
 load();
