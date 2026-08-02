@@ -1,20 +1,63 @@
 // ===================== دوال مساعدة عامة لموقع BOSLA =====================
 
 // نداء GET للباك إند (قراءة بيانات)
+// بيستخدم كاش خفيف في المتصفح (sessionStorage): لو فيه نسخة محفوظة من نفس الطلب بترجع فورًا
+// عشان الصفحة تظهر بسرعة، وفي نفس الوقت بيتم تحديثها في الخلفية من غير ما اليوزر يستنى.
+// كمان بيحط مهلة زمنية (timeout) عشان لو الباك إند اتعلق، الصفحة مش تفضل معلقة على "بيحمل..." للأبد.
+const API_TIMEOUT_MS = 15000;
+
+function withTimeout(promise, ms = API_TIMEOUT_MS) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error("الطلب استغرق وقت طويل، جرب تاني")), ms))
+  ]);
+}
+
 async function apiGet(action, params = {}) {
   const query = new URLSearchParams({ action, ...params }).toString();
-  const res = await fetch(`${SCRIPT_URL}?${query}`);
-  return res.json();
+  const cacheKey = `bosla_cache_${query}`;
+
+  const fetchFresh = async () => {
+    const res = await withTimeout(fetch(`${SCRIPT_URL}?${query}`));
+    const data = await res.json();
+    try { sessionStorage.setItem(cacheKey, JSON.stringify({ data, time: Date.now() })); } catch (e) {}
+    return data;
+  };
+
+  try {
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) {
+      const { data, time } = JSON.parse(cached);
+      // النسخة المحفوظة صالحة للعرض الفوري لمدة 5 دقايق، وبيتم تحديثها بصمت في الخلفية
+      if (Date.now() - time < 5 * 60 * 1000) {
+        fetchFresh().catch(() => {});
+        return data;
+      }
+    }
+  } catch (e) { /* لو حصل خطأ في قراءة الكاش، بنكمل عادي على الشبكة */ }
+
+  return fetchFresh();
+}
+
+// بيمسح كاش القراءة بعد أي عملية كتابة (حجز، تسجيل، تأكيد...) عشان الصفحات تجيب بيانات محدثة فورًا
+function clearApiCache() {
+  try {
+    Object.keys(sessionStorage)
+      .filter(k => k.startsWith("bosla_cache_"))
+      .forEach(k => sessionStorage.removeItem(k));
+  } catch (e) {}
 }
 
 // نداء POST للباك إند (كتابة بيانات) - بنستخدم text/plain عشان نتجنب مشاكل CORS مع Apps Script
 async function apiPost(action, payload = {}) {
-  const res = await fetch(SCRIPT_URL, {
+  const res = await withTimeout(fetch(SCRIPT_URL, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify({ action, ...payload })
-  });
-  return res.json();
+  }));
+  const data = await res.json();
+  clearApiCache(); // أي كتابة بيانات (حجز/تأكيد/تسجيل...) لازم تلغي الكاش عشان القراءة اللي بعدها تكون محدثة
+  return data;
 }
 
 // تحويل ملف صورة لـ Base64 (لرفع إثبات الدفع)
