@@ -102,16 +102,36 @@ let selectedSlot = null;
 async function init() {
   if (!mentorUid) { box.innerHTML = `<div class="empty-state">مفيش مرشد محدد.</div>`; return; }
 
-  const config = await apiGet("getPlatformConfig");
-  if (config && config.instapay) BOSLA_INSTAPAY = config.instapay;
+  box.innerHTML = `<div class="spinner">بيحمل بيانات الحجز...</div>`;
 
-  auth.onAuthStateChanged(async (user) => {
-    mentor = await apiGet("getMentor", { uid: mentorUid });
-    if (!mentor) { box.innerHTML = `<div class="empty-state">المرشد ده مش موجود.</div>`; return; }
-    currentUser = user;
-    reviewsData = await apiGet("getReviewsForMentor", { uid: mentorUid });
-    renderForm(!!user);
-  });
+  try {
+    const config = await apiGet("getPlatformConfig");
+    if (config && config.instapay) BOSLA_INSTAPAY = config.instapay;
+
+    auth.onAuthStateChanged(async (user) => {
+      try {
+        mentor = await apiGet("getMentor", { uid: mentorUid });
+        if (!mentor) { box.innerHTML = `<div class="empty-state">المرشد ده مش موجود.</div>`; return; }
+        currentUser = user;
+        reviewsData = await apiGet("getReviewsForMentor", { uid: mentorUid });
+        renderForm(!!user);
+      } catch (err) {
+        box.innerHTML = `
+          <div class="empty-state">
+            حصل خطأ في تحميل بيانات المرشد.
+            <br><button class="btn btn-primary" id="booking-retry-btn" style="margin-top:12px">حاول تاني</button>
+          </div>`;
+        document.getElementById("booking-retry-btn").addEventListener("click", init);
+      }
+    });
+  } catch (err) {
+    box.innerHTML = `
+      <div class="empty-state">
+        حصل خطأ في تحميل صفحة الحجز.
+        <br><button class="btn btn-primary" id="booking-retry-btn" style="margin-top:12px">حاول تاني</button>
+      </div>`;
+    document.getElementById("booking-retry-btn").addEventListener("click", init);
+  }
 }
 
 function reviewsSectionHtml() {
