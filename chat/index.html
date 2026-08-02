@@ -243,6 +243,7 @@ if (!db) {
       return;
     }
     myRole = (myUid === mentorUid) ? "mentor" : "mentee";
+    window.__boslaRole = myRole;
 
     // هيدر الشات: بيبين اسم الطرف التاني
     document.getElementById("chat-header-name").textContent = otherName || (myRole === "mentor" ? menteeName : mentorName) || "المستخدم";
