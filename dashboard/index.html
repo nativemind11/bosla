@@ -34,21 +34,35 @@ const STATUS_LABELS = {
   cancelled: "ملغي"
 };
 
-requireAuth(async (user) => {
-  const [mentor, mentee] = await Promise.all([
-    apiGet("getMentor", { uid: user.uid }),
-    apiGet("getMentee", { uid: user.uid })
-  ]);
+function loadDashboard(user) {
+  container.innerHTML = `<div class="spinner">بيحمل لوحتك...</div>`;
+  (async () => {
+    const [mentor, mentee] = await Promise.all([
+      apiGet("getMentor", { uid: user.uid }),
+      apiGet("getMentee", { uid: user.uid })
+    ]);
+    if (mentor) {
+      window.__boslaRole = "mentor";
+      await renderMentorDashboard(user, mentor);
+    } else if (mentee) {
+      window.__boslaRole = "mentee";
+      await renderMenteeDashboard(user, mentee);
+    } else {
+      container.innerHTML = `<div class="empty-state">مش لاقيين حسابك، جرب تسجل دخول تاني.</div>`;
+    }
+  })().catch((err) => {
+    container.innerHTML = `
+      <div class="empty-state">
+        حصل خطأ في تحميل لوحتك (${escapeHtml(err && err.message ? err.message : "تحقق من اتصالك بالإنترنت")}).
+        <br><button class="btn btn-primary" id="dash-retry-btn" style="margin-top:12px">حاول تاني</button>
+      </div>
+    `;
+    document.getElementById("dash-retry-btn").addEventListener("click", () => loadDashboard(user));
+  });
+}
 
-  if (mentor) {
-    window.__boslaRole = "mentor";
-    renderMentorDashboard(user, mentor);
-  } else if (mentee) {
-    window.__boslaRole = "mentee";
-    renderMenteeDashboard(user, mentee);
-  } else {
-    container.innerHTML = `<div class="empty-state">مش لاقيين حسابك، جرب تسجل دخول تاني.</div>`;
-  }
+requireAuth((user) => {
+  loadDashboard(user);
 });
 
 function bookingRow(b, isMentorView) {
@@ -70,17 +84,25 @@ function bookingRow(b, isMentorView) {
 }
 
 async function confirmBooking(bookingId) {
-  await apiPost("confirmBooking", { bookingId });
-  showToast("اتأكد الحجز");
-  location.reload();
+  try {
+    await apiPost("confirmBooking", { bookingId });
+    showToast("اتأكد الحجز");
+    location.reload();
+  } catch (err) {
+    showToast("حصل خطأ في تأكيد الحجز، جرب تاني", "error");
+  }
 }
 
 async function confirmSessionDone(bookingId, role) {
   if (!confirm("متأكد إن الجلسة اتعملت فعلاً؟ ده هيسمح لينا نحول نصيب المرشد بعد ما الطرف التاني يأكد كمان.")) return;
   const action = role === "mentor" ? "confirmSessionDoneByMentor" : "confirmSessionDoneByMentee";
-  await apiPost(action, { bookingId });
-  showToast("شكرًا لتأكيدك! مستنيين تأكيد الطرف التاني (لو لسه معملهوش).");
-  location.reload();
+  try {
+    await apiPost(action, { bookingId });
+    showToast("شكرًا لتأكيدك! مستنيين تأكيد الطرف التاني (لو لسه معملهوش).");
+    location.reload();
+  } catch (err) {
+    showToast("حصل خطأ في التأكيد، جرب تاني", "error");
+  }
 }
 
 function reviewCell(b) {
