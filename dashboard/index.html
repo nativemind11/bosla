@@ -41,8 +41,10 @@ requireAuth(async (user) => {
   ]);
 
   if (mentor) {
+    window.__boslaRole = "mentor";
     renderMentorDashboard(user, mentor);
   } else if (mentee) {
+    window.__boslaRole = "mentee";
     renderMenteeDashboard(user, mentee);
   } else {
     container.innerHTML = `<div class="empty-state">مش لاقيين حسابك، جرب تسجل دخول تاني.</div>`;
