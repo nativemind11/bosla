@@ -12,43 +12,76 @@
 <link rel="stylesheet" href="css/style.css">
 <style>
   /* ===== صفحة الشات (WhatsApp-style) ===== */
-  body.chat-open { height: 100vh; overflow: hidden; }
+  /* ملاحظة عن ارتفاع الشاشة على الموبايل:
+     100vh على متصفحات الموبايل (خصوصًا كروم) بتتحسب على طول الشاشة كامل حتى
+     لو شريط العنوان ظاهر، فالمحتوى بيطلع أطول من المساحة الظاهرة فعليًا
+     وبار الكتابة بيختفي تحت الشاشة. الحل: نستخدم --app-height (متغير بيتظبط
+     بالجافاسكريبت لحظيًا) كقيمة أساسية، وبعدها dvh كتحسين للمتصفحات اللي بتدعمه. */
+  html, body { height: 100%; }
+  body.chat-open {
+    height: var(--app-height, 100vh);
+    height: 100dvh;
+    overflow: hidden;
+    background: var(--purple-50);
+  }
   .chat-page-wrap {
     max-width: 720px; margin: 0 auto;
-    height: calc(100vh - 0px);
+    height: var(--app-height, 100vh);
+    height: 100dvh;
     display: flex; flex-direction: column;
+    background: #fff;
+    box-shadow: 0 0 40px rgba(46,16,101,0.06);
   }
   .chat-header {
     display: flex; align-items: center; gap: 12px;
     padding: 12px 16px;
+    padding-top: calc(12px + env(safe-area-inset-top, 0px));
     background: var(--primary-dark);
+    background-image: linear-gradient(135deg, var(--primary-dark), var(--purple-700));
     color: #fff;
     flex-shrink: 0;
+    box-shadow: 0 2px 10px rgba(46,16,101,0.18);
+    position: relative; z-index: 2;
   }
-  .chat-header .mentor-avatar { background: rgba(255,255,255,0.18); color: #fff; }
+  .chat-header .mentor-avatar,
+  .chat-header-avatar-el {
+    background: rgba(255,255,255,0.18); color: #fff;
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 15px; flex-shrink: 0;
+  }
   .chat-back {
-    color: #fff; font-size: 22px; text-decoration: none;
+    color: #fff; font-size: 20px; text-decoration: none;
     display: flex; align-items: center; justify-content: center;
     width: 34px; height: 34px; border-radius: 50%;
+    flex-shrink: 0;
   }
-  .chat-back:hover { background: rgba(255,255,255,0.12); }
-  .chat-header-name { font-weight: 800; font-size: 16px; }
-  .chat-header-sub { font-size: 12px; opacity: 0.8; }
+  .chat-back:hover, .chat-back:active { background: rgba(255,255,255,0.14); }
+  .chat-header-info { min-width: 0; }
+  .chat-header-name {
+    font-weight: 800; font-size: 15.5px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .chat-header-sub { font-size: 12px; opacity: 0.78; margin-top: 1px; }
 
   .chat-body {
-    flex: 1; overflow-y: auto;
+    flex: 1; min-height: 0; overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     padding: 18px 14px;
-    background: var(--purple-50);
+    background-color: var(--purple-50);
     background-image:
       radial-gradient(circle at 20% 10%, rgba(109,40,217,0.05) 0, transparent 40%),
-      radial-gradient(circle at 80% 90%, rgba(245,166,35,0.06) 0, transparent 40%);
+      radial-gradient(circle at 80% 90%, rgba(245,166,35,0.06) 0, transparent 40%),
+      url('assets/chat-watermark.svg');
+    background-repeat: no-repeat, no-repeat, repeat;
+    background-size: auto, auto, 90px 90px;
     display: flex; flex-direction: column; gap: 4px;
   }
   .chat-day-label {
     align-self: center;
     background: #fff; color: var(--gray);
-    font-size: 12px; font-weight: 700;
-    padding: 4px 14px; border-radius: 999px;
+    font-size: 11.5px; font-weight: 700;
+    padding: 5px 16px; border-radius: 999px;
     box-shadow: var(--shadow); margin: 10px 0;
   }
   .bubble-row { display: flex; }
@@ -56,63 +89,74 @@
   .bubble-row.theirs { justify-content: flex-end; }
   .bubble {
     max-width: 78%;
-    padding: 9px 13px 7px;
+    padding: 10px 14px 8px;
     border-radius: 16px;
     font-size: 14.5px;
     line-height: 1.55;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    box-shadow: 0 1px 3px rgba(46,16,101,0.08);
     word-wrap: break-word; white-space: pre-wrap;
     position: relative;
   }
   .bubble-row.mine .bubble {
-    background: var(--primary);
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
     color: #fff;
     border-bottom-right-radius: 4px;
   }
   .bubble-row.theirs .bubble {
     background: #fff;
     color: var(--ink);
+    border: 1px solid var(--line);
     border-bottom-left-radius: 4px;
   }
   .bubble-time {
     display: block; text-align: left;
-    font-size: 10.5px; margin-top: 3px;
+    font-size: 10.5px; margin-top: 4px;
     opacity: 0.7;
   }
   .bubble-row.mine .bubble-time { text-align: left; }
 
   .chat-empty {
     margin: auto; text-align: center; color: var(--gray);
-    padding: 30px;
+    padding: 30px; display: flex; flex-direction: column;
+    align-items: center; gap: 10px;
   }
+  .chat-empty svg { opacity: 0.35; }
+  .chat-empty span { font-size: 13.5px; font-weight: 600; }
 
   .chat-input-bar {
     flex-shrink: 0;
     display: flex; align-items: flex-end; gap: 10px;
     padding: 10px 14px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
     background: #fff;
     border-top: 1px solid var(--line);
+    position: relative; z-index: 2;
   }
   #chat-input {
     flex: 1; resize: none;
     border: 1px solid var(--line);
+    background: var(--purple-50);
     border-radius: 20px;
     padding: 10px 16px;
     font-family: inherit; font-size: 14.5px;
     max-height: 120px;
     outline: none;
+    transition: border-color 0.15s, background 0.15s;
   }
-  #chat-input:focus { border-color: var(--primary-light); }
+  #chat-input:focus { border-color: var(--primary-light); background: #fff; }
   #chat-send-btn {
     width: 42px; height: 42px; border-radius: 50%;
     background: var(--primary);
+    background-image: linear-gradient(135deg, var(--primary), var(--primary-light));
     color: #fff; border: none; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; font-size: 18px;
-    transition: opacity 0.15s;
+    flex-shrink: 0; font-size: 17px;
+    box-shadow: 0 3px 10px rgba(109,40,217,0.28);
+    transition: opacity 0.15s, transform 0.1s;
   }
-  #chat-send-btn:disabled { opacity: 0.45; cursor: default; }
-  #chat-send-btn:hover:not(:disabled) { opacity: 0.9; }
+  #chat-send-btn:disabled { opacity: 0.4; cursor: default; box-shadow: none; }
+  #chat-send-btn:hover:not(:disabled) { opacity: 0.92; }
+  #chat-send-btn:active:not(:disabled) { transform: scale(0.94); }
 
   .chat-blocked {
     margin: auto; text-align: center; padding: 40px 20px; color: var(--gray);
@@ -125,7 +169,7 @@
   <div class="chat-header" id="chat-header">
     <a href="dashboard/" class="chat-back" title="رجوع">→</a>
     <div id="chat-header-avatar"></div>
-    <div>
+    <div class="chat-header-info">
       <div class="chat-header-name" id="chat-header-name">بيحمل...</div>
       <div class="chat-header-sub" id="chat-header-sub"></div>
     </div>
@@ -151,6 +195,18 @@
    شات BOSLA — رسايل لحظية بين المرشد والمستفيد لكل حجز مؤكد
    بيستخدم Cloud Firestore (نفس مشروع Firebase بتاع تسجيل الدخول)
    ========================================================================== */
+
+/* تظبيط ارتفاع الصفحة فعليًا مع شريط العنوان في متصفحات الموبايل، عشان بار
+   الكتابة يفضل ظاهر دايمًا حتى لو المتصفح مش بيدعم وحدة القياس dvh */
+function setAppHeight() {
+  document.documentElement.style.setProperty("--app-height", window.innerHeight + "px");
+}
+setAppHeight();
+window.addEventListener("resize", setAppHeight);
+window.addEventListener("orientationchange", () => setTimeout(setAppHeight, 100));
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", setAppHeight);
+}
 
 const params = new URLSearchParams(location.search);
 const bookingId   = params.get("bookingId");
@@ -236,7 +292,12 @@ async function initChat() {
     if (qs.empty) {
       const empty = document.createElement("div");
       empty.className = "chat-empty";
-      empty.textContent = "لسه مفيش رسايل. ابعت أول رسالة!";
+      empty.innerHTML = `
+        <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 8.4 8.4 0 0 1-3.9-.94L3 20l1.06-3.5A8.4 8.4 0 0 1 3 11.5 8.5 8.5 0 0 1 11.5 3 8.5 8.5 0 0 1 21 11.5Z"/>
+        </svg>
+        <span>لسه مفيش رسايل، ابعت أول رسالة!</span>
+      `;
       chatBody.appendChild(empty);
     }
 

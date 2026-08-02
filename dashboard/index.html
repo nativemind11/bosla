@@ -201,23 +201,25 @@ async function renderMentorDashboard(user, mentor) {
     </div>
     <h3>حجوزاتك</h3>
     ${bookings.length ? `
+      <div class="table-scroll">
       <table>
         <thead><tr><th>المستفيد</th><th>الميعاد</th><th>الحالة</th><th>الميتينج</th><th>الشات</th><th>تأكيد إتمام الجلسة</th></tr></thead>
         <tbody>${bookings.map(b => `
           <tr>
-            <td>${b.MenteeName}</td>
-            <td>${b.SlotDateTime}</td>
-            <td><span class="status-pill status-${b.Status}">${STATUS_LABELS[b.Status] || b.Status}</span></td>
-            <td>
+            <td data-label="المستفيد">${b.MenteeName}</td>
+            <td data-label="الميعاد">${b.SlotDateTime}</td>
+            <td data-label="الحالة"><span class="status-pill status-${b.Status}">${STATUS_LABELS[b.Status] || b.Status}</span></td>
+            <td data-label="الميتينج">
               ${(b.Status === "confirmed" || b.Status === "completed") ? `<a href="${mentor.MeetingLink}" target="_blank" class="btn btn-ghost" style="padding:6px 14px">رابط الميتينج</a>` : "—"}
               ${b.Status === "pending_confirmation" ? `<span class="field-hint">BOSLA بتراجع الإيصال دلوقتي</span>` : ""}
               ${b.PaymentScreenshotURL ? `<a href="${b.PaymentScreenshotURL}" target="_blank" class="field-hint" style="text-decoration:underline">إيصال الدفع</a>` : ""}
             </td>
-            <td>${chatCell(b, true, user, mentor)}</td>
-            <td>${completionActionCell(b, true)}</td>
+            <td data-label="الشات">${chatCell(b, true, user, mentor)}</td>
+            <td data-label="تأكيد إتمام الجلسة">${completionActionCell(b, true)}</td>
           </tr>
         `).join("")}</tbody>
       </table>
+      </div>
     ` : `<div class="empty-state">لسه مفيش حجوزات.</div>`}
   `;
 }
@@ -241,24 +243,26 @@ async function renderMenteeDashboard(user, mentee) {
     </div>
     ${mentee.EmployerOrSchool ? `<span class="mentor-meta-line" style="margin-bottom:20px">🏢 ${escapeHtml(mentee.EmployerOrSchool)}</span>` : ""}
     ${bookings.length ? `
+      <div class="table-scroll">
       <table>
         <thead><tr><th>المرشد</th><th>الميعاد</th><th>الحالة</th><th>الميتينج</th><th>الشات</th><th>تأكيد إتمام الجلسة</th><th>تقييمك</th></tr></thead>
         <tbody>${bookings.map(b => `
           <tr>
-            <td>${b.MentorName}</td>
-            <td>${b.SlotDateTime}</td>
-            <td><span class="status-pill status-${b.Status}">${STATUS_LABELS[b.Status] || b.Status}</span></td>
-            <td>
+            <td data-label="المرشد">${b.MentorName}</td>
+            <td data-label="الميعاد">${b.SlotDateTime}</td>
+            <td data-label="الحالة"><span class="status-pill status-${b.Status}">${STATUS_LABELS[b.Status] || b.Status}</span></td>
+            <td data-label="الميتينج">
               ${(b.Status === "confirmed" || b.Status === "completed") && mentorLinks[b.MentorUID]
                 ? `<a href="${mentorLinks[b.MentorUID]}" target="_blank" class="btn btn-primary" style="padding:6px 14px">ادخل الميتينج</a>`
                 : "—"}
             </td>
-            <td>${chatCell(b, false, user, mentee)}</td>
-            <td>${completionActionCell(b, false)}</td>
-            <td>${reviewCell(b)}</td>
+            <td data-label="الشات">${chatCell(b, false, user, mentee)}</td>
+            <td data-label="تأكيد إتمام الجلسة">${completionActionCell(b, false)}</td>
+            <td data-label="تقييمك">${reviewCell(b)}</td>
           </tr>
         `).join("")}</tbody>
       </table>
+      </div>
     ` : `<div class="empty-state">لسه معملتش أي حجز. <a href="mentors/" style="color:var(--purple-700)">تصفح المرشدين</a></div>`}
   `;
 }
