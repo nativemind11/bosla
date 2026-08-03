@@ -1881,6 +1881,7 @@ document.getElementById("reg-form").addEventListener("submit", async (e) => {
   try {
     const cred = await auth.createUserWithEmailAndPassword(email, password);
     await cred.user.updateProfile({ displayName: name });
+    cred.user.sendEmailVerification().catch(() => {}); // بنبعت إيميل التأكيد، من غير ما نوقف التسجيل لو فشل
 
     let profilePhotoUrl = "";
     if (selectedPhotoFile) {
@@ -1910,7 +1911,7 @@ document.getElementById("reg-form").addEventListener("submit", async (e) => {
       return;
     }
 
-    showToast("اتسجلت كمرشد بنجاح!");
+    showToast("اتسجلت كمرشد بنجاح! تأكد من إيميلك عشان تفعّل حسابك بالكامل");
     window.location.href = "dashboard/";
   } catch (err) {
     showToast(err.message.includes("email-already") ? "الإيميل ده مسجل قبل كده" : "حصل خطأ، جرب تاني", "error");
