@@ -141,6 +141,7 @@ document.getElementById("reg-form").addEventListener("submit", async (e) => {
   try {
     const cred = await auth.createUserWithEmailAndPassword(email, password);
     await cred.user.updateProfile({ displayName: name });
+    cred.user.sendEmailVerification().catch(() => {}); // بنبعت إيميل التأكيد، من غير ما نوقف التسجيل لو فشل
 
     // رفع صورة البروفايل (لو المستخدم اختار صورة) قبل ما نبعت بيانات التسجيل
     let profilePhotoUrl = "";
@@ -166,7 +167,7 @@ document.getElementById("reg-form").addEventListener("submit", async (e) => {
       return;
     }
 
-    showToast("الحساب اتعمل بنجاح!");
+    showToast("الحساب اتعمل بنجاح! تأكد من إيميلك عشان تفعّل حسابك بالكامل");
     window.location.href = "mentors/";
   } catch (err) {
     showToast(err.message.includes("email-already") ? "الإيميل ده مسجل قبل كده" : "حصل خطأ، جرب تاني", "error");
