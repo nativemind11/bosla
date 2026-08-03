@@ -14,10 +14,18 @@ function withTimeout(promise, ms = API_TIMEOUT_MS) {
 }
 
 async function apiGet(action, params = {}) {
-  const query = new URLSearchParams({ action, ...params }).toString();
-  const cacheKey = `bosla_cache_${query}`;
+  // مفتاح الكاش من الأكشن والبارامترز بس (من غير idToken)، عشان الكاش يفضل شغال صح
+  const cacheKey = `bosla_cache_${new URLSearchParams({ action, ...params }).toString()}`;
 
   const fetchFresh = async () => {
+    // لو فيه مستخدم مسجل دخول، بنرفق "تذكرة الدخول" بتاعته مع الطلب عشان الباك إند
+    // يقدر يتأكد إن الطلب ده فعلاً منه (مطلوب للأكشنز الشخصية زي getMentee/getBookingsFor...)
+    let idToken = null;
+    try {
+      if (auth.currentUser) idToken = await auth.currentUser.getIdToken();
+    } catch (e) { /* لو فشل جيب التوكن، نكمل من غيره والباك إند هيرفض الأكشنز اللي محتاجاه */ }
+
+    const query = new URLSearchParams({ action, ...params, ...(idToken ? { idToken } : {}) }).toString();
     const res = await withTimeout(fetch(`${SCRIPT_URL}?${query}`));
     const data = await res.json();
     try { sessionStorage.setItem(cacheKey, JSON.stringify({ data, time: Date.now() })); } catch (e) {}
@@ -50,10 +58,16 @@ function clearApiCache() {
 
 // نداء POST للباك إند (كتابة بيانات) - بنستخدم text/plain عشان نتجنب مشاكل CORS مع Apps Script
 async function apiPost(action, payload = {}) {
+  // نفس فكرة apiGet: لو فيه مستخدم مسجل دخول، نرفق تذكرة الدخول بتاعته مع الطلب
+  let idToken = null;
+  try {
+    if (auth.currentUser) idToken = await auth.currentUser.getIdToken();
+  } catch (e) { /* لو فشل جيب التوكن، نكمل من غيره والباك إند هيرفض الأكشنز اللي محتاجاه */ }
+
   const res = await withTimeout(fetch(SCRIPT_URL, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({ action, ...payload })
+    body: JSON.stringify({ action, ...payload, ...(idToken ? { idToken } : {}) })
   }));
   const data = await res.json();
   clearApiCache(); // أي كتابة بيانات (حجز/تأكيد/تسجيل...) لازم تلغي الكاش عشان القراءة اللي بعدها تكون محدثة
@@ -207,11 +221,11 @@ document.addEventListener("DOMContentLoaded", renderHeader);
 const MENTEE_FAQ = [
   {
     q: "كيف تتم عملية الدفع؟",
-    a: "يتم تحويل قيمة الجلسة إلى رقم إنستاباي الخاص بالمرشد، ثم رفع صورة إيصال التحويل على المنصة. بعد مراجعة المرشد للإيصال وتأكيده، يظهر رابط الاجتماع في لوحة حسابك."
+    a: "يتم تحويل قيمة الجلسة إلى رقم إنستاباي الرسمي الخاص بمنصة BOSLA (وليس لحساب المرشد مباشرة)، ثم رفع صورة إيصال التحويل على المنصة. بعد مراجعة فريق BOSLA للإيصال وتأكيده، يظهر رابط الاجتماع في لوحة حسابك."
   },
   {
     q: "إلى أين تذهب الأموال، ومتى يستلمها المرشد؟",
-    a: "يُحوَّل المبلغ مباشرة إلى حساب المرشد عند تأكيد عملية الدفع. وبعد انتهاء الجلسة وتأكيدها من الطرفين، يستلم المرشد المبلغ بعد خصم نسبة بسيطة كعمولة للمنصة."
+    a: "المبلغ بيتحول أول حاجة لحساب BOSLA، مش لحساب المرشد مباشرة. وبعد انتهاء الجلسة وتأكيدها من الطرفين (المستفيد والمرشد)، تقوم BOSLA بتحويل نصيب المرشد على رقم الإنستاباي المسجل في حسابه، بعد خصم عمولة المنصة (10%)."
   },
   {
     q: "ماذا لو لم يحضر المرشد أو لم يُرسل رابط الاجتماع؟",
@@ -230,11 +244,11 @@ const MENTEE_FAQ = [
 const MENTOR_FAQ = [
   {
     q: "كيف أستلم مستحقاتي المالية؟",
-    a: "يقوم المستفيد بتحويل قيمة الجلسة إلى رقم إنستاباي الخاص بك، ويرفع صورة إيصال التحويل. تراجع الإيصال وتؤكده، وبعد انتهاء الجلسة وتأكيدها من الطرفين تُحوَّل المستحقات إليك بعد خصم نسبة بسيطة كعمولة للمنصة."
+    a: "يقوم المستفيد بتحويل قيمة الجلسة إلى رقم إنستاباي BOSLA الرسمي (مش لحسابك مباشرة)، ويرفع صورة إيصال التحويل. يراجع فريق BOSLA الإيصال ويؤكده، وبعد انتهاء الجلسة وتأكيدها من الطرفين، تحول BOSLA نصيبك على رقم الإنستاباي المسجل في حسابك، بعد خصم عمولة المنصة (10%)."
   },
   {
     q: "هل هناك عمولة على المنصة؟",
-    a: "نعم، تخصم BOSLA نسبة بسيطة من قيمة كل جلسة مقابل استخدام المنصة وخدمات المتابعة والدعم الفني."
+    a: "نعم، تخصم BOSLA عمولة 10% من قيمة كل جلسة مدفوعة مقابل استخدام المنصة وخدمات المتابعة والدعم الفني."
   },
   {
     q: "كيف يظهر رابط الاجتماع للمستفيد؟",
