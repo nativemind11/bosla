@@ -153,6 +153,41 @@ function requireAuth(callback) {
   });
 }
 
+// بانر تذكير بتأكيد الإيميل - بيظهر فوق أي صفحة فيها الهيدر المشترك، لو المستخدم
+// مسجل دخول بس لسه ماأكدش إيميله. بيدي زرار "أعد الإرسال" لو الإيميل الأول راح Spam أو ضاع.
+function renderVerifyEmailBanner(user) {
+  const existing = document.getElementById("bosla-verify-banner");
+  if (existing) existing.remove();
+  if (!user) return;
+
+  user.reload().then(() => {
+    if (user.emailVerified) return;
+
+    const banner = document.createElement("div");
+    banner.id = "bosla-verify-banner";
+    banner.style.cssText = "position:sticky;top:0;z-index:999;background:#fff7e6;border-bottom:1px solid #f0c36d;color:#7a5b00;padding:10px 16px;text-align:center;font-size:13.5px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap";
+    banner.innerHTML = `
+      <span>⚠️ لسه ماأكدتش إيميلك (${escapeHtml(user.email || "")}). افتح الإيميل ودوس على رابط التأكيد.</span>
+      <button id="bosla-resend-verify-btn" style="background:#7a5b00;color:#fff;border:none;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12.5px">أعد إرسال رابط التأكيد</button>
+    `;
+    document.body.prepend(banner);
+
+    document.getElementById("bosla-resend-verify-btn").addEventListener("click", async (e) => {
+      const btn = e.currentTarget;
+      btn.disabled = true;
+      btn.textContent = "بيتبعت...";
+      try {
+        await user.sendEmailVerification();
+        showToast("اتبعت رابط تأكيد جديد على إيميلك");
+      } catch (err) {
+        showToast("حصل خطأ، جرب تاني كمان شوية", "error");
+      }
+      btn.disabled = false;
+      btn.textContent = "أعد إرسال رابط التأكيد";
+    });
+  }).catch(() => { /* لو فشل التحديث، منسيبش الصفحة تتعطل */ });
+}
+
 // تعبئة قائمة المجالات (select)
 function populateFieldsSelect(selectEl) {
   selectEl.innerHTML = '<option value="">اختر المجال</option>';
@@ -208,6 +243,7 @@ function renderHeader() {
         auth.signOut().then(() => window.location.href = "./");
       });
     }
+    renderVerifyEmailBanner(user);
   });
 }
 
