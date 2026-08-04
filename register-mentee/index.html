@@ -9,6 +9,7 @@
 <link rel="icon" type="image/png" sizes="64x64" href="assets/logo-64.png">
 <link rel="apple-touch-icon" href="assets/logo-256.png">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -55,6 +56,7 @@
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script src="js/app.js"></script>
@@ -141,6 +143,7 @@ document.getElementById("reg-form").addEventListener("submit", async (e) => {
   try {
     const cred = await auth.createUserWithEmailAndPassword(email, password);
     await cred.user.updateProfile({ displayName: name });
+    cred.user.sendEmailVerification().catch(() => {}); // بنبعت إيميل التأكيد، من غير ما نوقف التسجيل لو فشل
 
     // رفع صورة البروفايل (لو المستخدم اختار صورة) قبل ما نبعت بيانات التسجيل
     let profilePhotoUrl = "";
@@ -166,7 +169,7 @@ document.getElementById("reg-form").addEventListener("submit", async (e) => {
       return;
     }
 
-    showToast("الحساب اتعمل بنجاح!");
+    showToast("الحساب اتعمل بنجاح! تأكد من إيميلك عشان تفعّل حسابك بالكامل");
     window.location.href = "mentors/";
   } catch (err) {
     showToast(err.message.includes("email-already") ? "الإيميل ده مسجل قبل كده" : "حصل خطأ، جرب تاني", "error");

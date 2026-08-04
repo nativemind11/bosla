@@ -1,20 +1,77 @@
 // ===================== دوال مساعدة عامة لموقع BOSLA =====================
 
 // نداء GET للباك إند (قراءة بيانات)
+// بيستخدم كاش خفيف في المتصفح (sessionStorage): لو فيه نسخة محفوظة من نفس الطلب بترجع فورًا
+// عشان الصفحة تظهر بسرعة، وفي نفس الوقت بيتم تحديثها في الخلفية من غير ما اليوزر يستنى.
+// كمان بيحط مهلة زمنية (timeout) عشان لو الباك إند اتعلق، الصفحة مش تفضل معلقة على "بيحمل..." للأبد.
+const API_TIMEOUT_MS = 15000;
+
+function withTimeout(promise, ms = API_TIMEOUT_MS) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error("الطلب استغرق وقت طويل، جرب تاني")), ms))
+  ]);
+}
+
 async function apiGet(action, params = {}) {
-  const query = new URLSearchParams({ action, ...params }).toString();
-  const res = await fetch(`${SCRIPT_URL}?${query}`);
-  return res.json();
+  // مفتاح الكاش من الأكشن والبارامترز بس (من غير idToken)، عشان الكاش يفضل شغال صح
+  const cacheKey = `bosla_cache_${new URLSearchParams({ action, ...params }).toString()}`;
+
+  const fetchFresh = async () => {
+    // لو فيه مستخدم مسجل دخول، بنرفق "تذكرة الدخول" بتاعته مع الطلب عشان الباك إند
+    // يقدر يتأكد إن الطلب ده فعلاً منه (مطلوب للأكشنز الشخصية زي getMentee/getBookingsFor...)
+    let idToken = null;
+    try {
+      if (auth.currentUser) idToken = await auth.currentUser.getIdToken();
+    } catch (e) { /* لو فشل جيب التوكن، نكمل من غيره والباك إند هيرفض الأكشنز اللي محتاجاه */ }
+
+    const query = new URLSearchParams({ action, ...params, ...(idToken ? { idToken } : {}) }).toString();
+    const res = await withTimeout(fetch(`${SCRIPT_URL}?${query}`));
+    const data = await res.json();
+    try { sessionStorage.setItem(cacheKey, JSON.stringify({ data, time: Date.now() })); } catch (e) {}
+    return data;
+  };
+
+  try {
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) {
+      const { data, time } = JSON.parse(cached);
+      // النسخة المحفوظة صالحة للعرض الفوري لمدة 5 دقايق، وبيتم تحديثها بصمت في الخلفية
+      if (Date.now() - time < 5 * 60 * 1000) {
+        fetchFresh().catch(() => {});
+        return data;
+      }
+    }
+  } catch (e) { /* لو حصل خطأ في قراءة الكاش، بنكمل عادي على الشبكة */ }
+
+  return fetchFresh();
+}
+
+// بيمسح كاش القراءة بعد أي عملية كتابة (حجز، تسجيل، تأكيد...) عشان الصفحات تجيب بيانات محدثة فورًا
+function clearApiCache() {
+  try {
+    Object.keys(sessionStorage)
+      .filter(k => k.startsWith("bosla_cache_"))
+      .forEach(k => sessionStorage.removeItem(k));
+  } catch (e) {}
 }
 
 // نداء POST للباك إند (كتابة بيانات) - بنستخدم text/plain عشان نتجنب مشاكل CORS مع Apps Script
 async function apiPost(action, payload = {}) {
-  const res = await fetch(SCRIPT_URL, {
+  // نفس فكرة apiGet: لو فيه مستخدم مسجل دخول، نرفق تذكرة الدخول بتاعته مع الطلب
+  let idToken = null;
+  try {
+    if (auth.currentUser) idToken = await auth.currentUser.getIdToken();
+  } catch (e) { /* لو فشل جيب التوكن، نكمل من غيره والباك إند هيرفض الأكشنز اللي محتاجاه */ }
+
+  const res = await withTimeout(fetch(SCRIPT_URL, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({ action, ...payload })
-  });
-  return res.json();
+    body: JSON.stringify({ action, ...payload, ...(idToken ? { idToken } : {}) })
+  }));
+  const data = await res.json();
+  clearApiCache(); // أي كتابة بيانات (حجز/تأكيد/تسجيل...) لازم تلغي الكاش عشان القراءة اللي بعدها تكون محدثة
+  return data;
 }
 
 // تحويل ملف صورة لـ Base64 (لرفع إثبات الدفع)
@@ -96,6 +153,41 @@ function requireAuth(callback) {
   });
 }
 
+// بانر تذكير بتأكيد الإيميل - بيظهر فوق أي صفحة فيها الهيدر المشترك، لو المستخدم
+// مسجل دخول بس لسه ماأكدش إيميله. بيدي زرار "أعد الإرسال" لو الإيميل الأول راح Spam أو ضاع.
+function renderVerifyEmailBanner(user) {
+  const existing = document.getElementById("bosla-verify-banner");
+  if (existing) existing.remove();
+  if (!user) return;
+
+  user.reload().then(() => {
+    if (user.emailVerified) return;
+
+    const banner = document.createElement("div");
+    banner.id = "bosla-verify-banner";
+    banner.style.cssText = "position:sticky;top:0;z-index:999;background:#fff7e6;border-bottom:1px solid #f0c36d;color:#7a5b00;padding:10px 16px;text-align:center;font-size:13.5px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap";
+    banner.innerHTML = `
+      <span>⚠️ لسه ماأكدتش إيميلك (${escapeHtml(user.email || "")}). افتح الإيميل ودوس على رابط التأكيد.</span>
+      <button id="bosla-resend-verify-btn" style="background:#7a5b00;color:#fff;border:none;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12.5px">أعد إرسال رابط التأكيد</button>
+    `;
+    document.body.prepend(banner);
+
+    document.getElementById("bosla-resend-verify-btn").addEventListener("click", async (e) => {
+      const btn = e.currentTarget;
+      btn.disabled = true;
+      btn.textContent = "بيتبعت...";
+      try {
+        await user.sendEmailVerification();
+        showToast("اتبعت رابط تأكيد جديد على إيميلك");
+      } catch (err) {
+        showToast("حصل خطأ، جرب تاني كمان شوية", "error");
+      }
+      btn.disabled = false;
+      btn.textContent = "أعد إرسال رابط التأكيد";
+    });
+  }).catch(() => { /* لو فشل التحديث، منسيبش الصفحة تتعطل */ });
+}
+
 // تعبئة قائمة المجالات (select)
 function populateFieldsSelect(selectEl) {
   selectEl.innerHTML = '<option value="">اختر المجال</option>';
@@ -151,6 +243,7 @@ function renderHeader() {
         auth.signOut().then(() => window.location.href = "./");
       });
     }
+    renderVerifyEmailBanner(user);
   });
 }
 
@@ -158,28 +251,64 @@ document.addEventListener("DOMContentLoaded", renderHeader);
 
 // ===================== بوت الأسئلة الشائعة (Chatbot) =====================
 // أسئلة جاهزة بضغطة زرار — من غير أي API خارجي أو تكلفة. آخر خيار بيفتح فورم تواصل بسيط.
-const CHATBOT_FAQ = [
+// فيه مجموعتين: أسئلة للمستفيد (Mentee) وأسئلة للمرشد (Mentor)، وبيتم اختيار المجموعة المناسبة
+// حسب الصفحة أو حسب دور المستخدم (window.__boslaRole) اللي بتحدده صفحات الداشبورد والشات.
+
+const MENTEE_FAQ = [
   {
-    q: "الدفع بيتم إزاي؟",
-    a: "بتحول مبلغ الجلسة على رقم إنستاباي بتاع المرشد، وبترفع صورة إيصال التحويل. المرشد بيراجعها ويأكدها، وبعد التأكيد بيظهرلك رابط الميتينج في لوحة حسابك."
+    q: "كيف تتم عملية الدفع؟",
+    a: "يتم تحويل قيمة الجلسة إلى رقم إنستاباي الرسمي الخاص بمنصة BOSLA (وليس لحساب المرشد مباشرة)، ثم رفع صورة إيصال التحويل على المنصة. بعد مراجعة فريق BOSLA للإيصال وتأكيده، يظهر رابط الاجتماع في لوحة حسابك."
   },
   {
-    q: "فلوسي بتروح فين، وإمتى المرشد ياخدها؟",
-    a: "الفلوس بتتحول مباشرة من حسابك لحساب المرشد وقت التأكيد. بعد ما الجلسة تخلص ويأكدها الطرفين، المرشد بياخد المبلغ بعد خصم عمولة بسيطة لمنصة BOSLA."
+    q: "إلى أين تذهب الأموال، ومتى يستلمها المرشد؟",
+    a: "المبلغ بيتحول أول حاجة لحساب BOSLA، مش لحساب المرشد مباشرة. وبعد انتهاء الجلسة وتأكيدها من الطرفين (المستفيد والمرشد)، تقوم BOSLA بتحويل نصيب المرشد على رقم الإنستاباي المسجل في حسابه، بعد خصم عمولة المنصة (10%)."
   },
   {
-    q: "لو المرشد ملبيش أو معملش الميتينج؟",
-    a: "بلغنا فورًا من نفس الصفحة دي (زرار \"لسه عندي مشكلة\" تحت). الحالة بتتراجع يدويًا من فريق BOSLA، ولو اتأكد إن الجلسة معملتش هيتم استرجاع المبلغ."
+    q: "ماذا لو لم يحضر المرشد أو لم يُرسل رابط الاجتماع؟",
+    a: "يمكنك التبليغ فورًا من خلال زر \"لسه عندي مشكلة\" في هذه الصفحة. سيراجع فريق BOSLA الحالة يدويًا، وفي حال ثبوت عدم انعقاد الجلسة يتم استرداد المبلغ المدفوع."
   },
   {
-    q: "بياناتي وصورة الإيصال بتتحفظ فين؟",
-    a: "بتتحفظ في مساحة تخزين خاصة بـ BOSLA، ومش بتتشارك مع أي حد غير المرشد اللي حجزت معاه لغرض تأكيد الدفع بس."
+    q: "أين يتم حفظ بياناتي وصورة إيصال الدفع؟",
+    a: "تُحفظ بياناتك وصورة الإيصال في مساحة تخزين خاصة بمنصة BOSLA، ولا تتم مشاركتها مع أي طرف سوى المرشد الذي حجزت معه، وذلك بغرض تأكيد الدفع فقط."
   },
   {
-    q: "ممكن أستفسر عن حاجة تانية؟",
+    q: "هل لديك استفسار آخر؟",
     a: null // ده اللي بيفتح فورم التواصل
   }
 ];
+
+const MENTOR_FAQ = [
+  {
+    q: "كيف أستلم مستحقاتي المالية؟",
+    a: "يقوم المستفيد بتحويل قيمة الجلسة إلى رقم إنستاباي BOSLA الرسمي (مش لحسابك مباشرة)، ويرفع صورة إيصال التحويل. يراجع فريق BOSLA الإيصال ويؤكده، وبعد انتهاء الجلسة وتأكيدها من الطرفين، تحول BOSLA نصيبك على رقم الإنستاباي المسجل في حسابك، بعد خصم عمولة المنصة (10%)."
+  },
+  {
+    q: "هل هناك عمولة على المنصة؟",
+    a: "نعم، تخصم BOSLA عمولة 10% من قيمة كل جلسة مدفوعة مقابل استخدام المنصة وخدمات المتابعة والدعم الفني."
+  },
+  {
+    q: "كيف يظهر رابط الاجتماع للمستفيد؟",
+    a: "تقوم بإضافة رابط الاجتماع الخاص بك من لوحة حسابك، وسيظهر تلقائيًا للمستفيد فور تأكيد الحجز."
+  },
+  {
+    q: "ماذا لو لم يحضر المستفيد إلى الجلسة؟",
+    a: "يمكنك الإبلاغ عن ذلك من لوحة حسابك، وسيقوم فريق BOSLA بمراجعة الحالة والتواصل مع المستفيد لمعرفة السبب."
+  },
+  {
+    q: "هل لديك استفسار آخر؟",
+    a: null // ده اللي بيفتح فورم التواصل
+  }
+];
+
+// بيحدد مجموعة الأسئلة المناسبة: أولوية للدور المحدد صراحة (window.__boslaRole)،
+// وإلا بيعتمد على مسار الصفحة (صفحة تسجيل المرشد = أسئلة مرشد)، وإلا الافتراضي أسئلة المستفيد.
+function getActiveFaq() {
+  const role = window.__boslaRole || "";
+  if (role === "mentor") return MENTOR_FAQ;
+  if (role === "mentee") return MENTEE_FAQ;
+  if (window.location.pathname.includes("register-mentor")) return MENTOR_FAQ;
+  return MENTEE_FAQ;
+}
 
 function renderChatbot() {
   if (document.getElementById("bosla-chatbot-fab")) return;
@@ -205,8 +334,8 @@ function renderChatbot() {
 
   function renderMenu() {
     const body = panel.querySelector("#chatbot-body");
-    body.innerHTML = `<p class="chatbot-intro">اختار سؤالك:</p>`;
-    CHATBOT_FAQ.forEach((item, i) => {
+    body.innerHTML = `<p class="chatbot-intro">اختر سؤالك:</p>`;
+    getActiveFaq().forEach((item, i) => {
       const btn = document.createElement("button");
       btn.className = "chatbot-option-btn";
       btn.textContent = item.q;
