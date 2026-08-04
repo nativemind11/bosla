@@ -1883,7 +1883,8 @@ document.getElementById("reg-form").addEventListener("submit", async (e) => {
   try {
     const cred = await auth.createUserWithEmailAndPassword(email, password);
     await cred.user.updateProfile({ displayName: name });
-    cred.user.sendEmailVerification().catch(() => {}); // بنبعت إيميل التأكيد، من غير ما نوقف التسجيل لو فشل
+    // تأكيد الإيميل متوقف مؤقتًا (هيتفعل تاني بعد ربط دومين مخصص بفايربيز)
+    // cred.user.sendEmailVerification().catch(() => {});
 
     let profilePhotoUrl = "";
     if (selectedPhotoFile) {

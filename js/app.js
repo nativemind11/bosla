@@ -243,7 +243,8 @@ function renderHeader() {
         auth.signOut().then(() => window.location.href = "./");
       });
     }
-    renderVerifyEmailBanner(user);
+    // بانر تأكيد الإيميل متوقف مؤقتًا (هيتفعل تاني بعد ربط دومين مخصص بفايربيز)
+    // renderVerifyEmailBanner(user);
   });
 }
 
