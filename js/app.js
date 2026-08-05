@@ -1,10 +1,11 @@
 // ===================== دوال مساعدة عامة لموقع BUSLA =====================
 
 // نداء GET للباك إند (قراءة بيانات)
-// بيستخدم كاش خفيف في المتصفح (sessionStorage): لو فيه نسخة محفوظة من نفس الطلب بترجع فورًا
+// بيستخدم كاش محسّن في المتصفح (localStorage): لو فيه نسخة محفوظة من نفس الطلب بترجع فورًا
 // عشان الصفحة تظهر بسرعة، وفي نفس الوقت بيتم تحديثها في الخلفية من غير ما اليوزر يستنى.
 // كمان بيحط مهلة زمنية (timeout) عشان لو الباك إند اتعلق، الصفحة مش تفضل معلقة على "بيحمل..." للأبد.
 const API_TIMEOUT_MS = 15000;
+const CACHE_DURATION_MS = 10 * 60 * 1000; // 10 دقايق (بدل 5)
 
 function withTimeout(promise, ms = API_TIMEOUT_MS) {
   return Promise.race([
@@ -28,16 +29,16 @@ async function apiGet(action, params = {}) {
     const query = new URLSearchParams({ action, ...params, ...(idToken ? { idToken } : {}) }).toString();
     const res = await withTimeout(fetch(`${SCRIPT_URL}?${query}`));
     const data = await res.json();
-    try { sessionStorage.setItem(cacheKey, JSON.stringify({ data, time: Date.now() })); } catch (e) {}
+    try { localStorage.setItem(cacheKey, JSON.stringify({ data, time: Date.now() })); } catch (e) {}
     return data;
   };
 
   try {
-    const cached = sessionStorage.getItem(cacheKey);
+    const cached = localStorage.getItem(cacheKey);
     if (cached) {
       const { data, time } = JSON.parse(cached);
-      // النسخة المحفوظة صالحة للعرض الفوري لمدة 5 دقايق، وبيتم تحديثها بصمت في الخلفية
-      if (Date.now() - time < 5 * 60 * 1000) {
+      // النسخة المحفوظة صالحة للعرض الفوري لمدة 10 دقايق، وبيتم تحديثها بصمت في الخلفية
+      if (Date.now() - time < CACHE_DURATION_MS) {
         fetchFresh().catch(() => {});
         return data;
       }
@@ -50,9 +51,9 @@ async function apiGet(action, params = {}) {
 // بيمسح كاش القراءة بعد أي عملية كتابة (حجز، تسجيل، تأكيد...) عشان الصفحات تجيب بيانات محدثة فورًا
 function clearApiCache() {
   try {
-    Object.keys(sessionStorage)
+    Object.keys(localStorage)
       .filter(k => k.startsWith("bosla_cache_"))
-      .forEach(k => sessionStorage.removeItem(k));
+      .forEach(k => localStorage.removeItem(k));
   } catch (e) {}
 }
 
@@ -199,18 +200,20 @@ function populateFieldsSelect(selectEl) {
   });
 }
 
-// تعبئة قائمة التخصصات بناءً على المجال المختار
-function populateSpecializationsSelect(fieldValue, selectEl) {
+// تعبئة قائمة التخصصات (select) بناءً على المجال المختار
+function populateSpecializedSelect(fieldValue, selectEl) {
   selectEl.innerHTML = '<option value="">اختر التخصص</option>';
-  (FIELDS[fieldValue] || []).forEach(spec => {
-    const opt = document.createElement("option");
-    opt.value = spec;
-    opt.textContent = spec;
-    selectEl.appendChild(opt);
-  });
+  if (fieldValue && FIELDS[fieldValue]) {
+    FIELDS[fieldValue].forEach(spec => {
+      const opt = document.createElement("option");
+      opt.value = spec;
+      opt.textContent = spec;
+      selectEl.appendChild(opt);
+    });
+  }
 }
 
-// حقن الهيدر والفوتر المشترك في أي صفحة فيها عنصر #bosla-header / #bosla-footer
+// ===================== الهيدر المشترك (Navigation) =====================
 function renderHeader() {
   const header = document.getElementById("bosla-header");
   if (!header) return;
