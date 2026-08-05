@@ -11,15 +11,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="css/style.css">
-<script>
-(function(){
-  try {
-    var t = localStorage.getItem("bosla_theme");
-    if (!t) t = (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
-    document.documentElement.setAttribute("data-theme", t);
-  } catch (e) { document.documentElement.setAttribute("data-theme", "light"); }
-})();
-</script>
 </head>
 <body>
 <header id="bosla-header"></header>
@@ -34,7 +25,7 @@
     <label>كلمة المرور</label>
     <input type="password" id="password" required>
     <div style="text-align:left; margin-top:8px">
-      <a href="#" id="forgot-link" style="font-size:13px; color:var(--accent-text); font-weight:700">نسيت كلمة السر؟</a>
+      <a href="#" id="forgot-link" style="font-size:13px; color:var(--purple-700); font-weight:700">نسيت كلمة السر؟</a>
     </div>
     <button class="btn btn-primary btn-block" style="margin-top:24px" type="submit" id="login-btn">دخول</button>
   </form>
@@ -48,9 +39,9 @@
   </form>
   <p class="field-hint" style="margin-top:20px; text-align:center">
     لسه معملتش حساب؟
-    <a href="register-mentee/" style="color:var(--accent-text); font-weight:700">سجل كمستفيد</a>
+    <a href="register-mentee/" style="color:var(--purple-700); font-weight:700">سجل كمستفيد</a>
     أو
-    <a href="register-mentor/" style="color:var(--accent-text); font-weight:700">كمرشد</a>
+    <a href="register-mentor/" style="color:var(--purple-700); font-weight:700">كمرشد</a>
   </p>
 </div>
 

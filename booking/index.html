@@ -11,15 +11,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="css/style.css">
-<script>
-(function(){
-  try {
-    var t = localStorage.getItem("bosla_theme");
-    if (!t) t = (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
-    document.documentElement.setAttribute("data-theme", t);
-  } catch (e) { document.documentElement.setAttribute("data-theme", "light"); }
-})();
-</script>
 <style>
   /* ===== Availability Slots Display ===== */
   .availability-wrapper {
@@ -34,12 +25,12 @@
     border: 1px solid var(--line);
     border-radius: 8px;
     padding: 12px;
-    background: var(--soft-bg);
+    background: var(--purple-50);
   }
   .day-group-title {
     font-weight: 600;
     margin-bottom: 8px;
-    color: var(--accent-text);
+    color: var(--purple);
     font-size: 14px;
   }
   .time-slots-grid {
@@ -50,7 +41,7 @@
   .time-slot-option {
     padding: 8px 6px;
     border: 2px solid var(--line);
-    background: var(--bg-input);
+    background: white;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 500;
@@ -59,14 +50,14 @@
     transition: all 0.2s;
   }
   .time-slot-option:hover {
-    border-color: var(--accent-border);
-    color: var(--accent-text);
-    background: var(--bg-input);
+    border-color: var(--purple);
+    color: var(--purple);
+    background: white;
   }
   .time-slot-option.selected {
-    background: var(--purple-700);
-    border-color: var(--purple-700);
-    color: #fff;
+    background: var(--purple);
+    border-color: var(--purple);
+    color: white;
   }
   .no-availability {
     padding: 12px;
@@ -169,7 +160,7 @@ function reviewsSectionHtml() {
     <div class="card" style="margin-bottom:24px">
       <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px">
         <strong>تقييمات المرشد</strong>
-        <span style="color:var(--accent-text); font-weight:800">
+        <span style="color:var(--purple-700); font-weight:800">
           <span class="stars">${starsText(avg)}</span> ${avg} <span class="field-hint" style="margin:0">(${count} تقييم)</span>
         </span>
       </div>
@@ -287,7 +278,7 @@ function renderForm(isLoggedIn) {
 
       ${Number(mentor.Price) > 0 ? `
       <label style="margin-top:20px">حوّل ${mentor.Price} ج.م على إنستاباي BUSLA</label>
-      <div class="card" style="padding:14px; background:var(--soft-bg); border:none">
+      <div class="card" style="padding:14px; background:var(--purple-50); border:none">
         رقم إنستاباي BUSLA: <strong>${BUSLA_INSTAPAY}</strong>
         <div class="field-hint" style="margin-top:6px">
           التحويل بيروح لـ BUSLA مش للمرشد مباشرة، وده عشان لو المرشد ماحضرش الميتينج تقدر تسترجع فلوسك.

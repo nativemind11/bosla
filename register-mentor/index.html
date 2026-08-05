@@ -11,15 +11,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="css/style.css">
-<script>
-(function(){
-  try {
-    var t = localStorage.getItem("bosla_theme");
-    if (!t) t = (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
-    document.documentElement.setAttribute("data-theme", t);
-  } catch (e) { document.documentElement.setAttribute("data-theme", "light"); }
-})();
-</script>
 <style>
   /* ===== Companies Dropdown Styles ===== */
   .companies-combobox {
@@ -38,7 +29,7 @@
     top: 100%;
     left: 0;
     right: 0;
-    background: var(--bg-card);
+    background: white;
     border: 1px solid var(--line);
     border-top: none;
     max-height: 200px;
@@ -71,20 +62,20 @@
     flex-shrink: 0;
   }
   .company-option:hover {
-    background: var(--soft-bg);
+    background: var(--purple-50);
   }
   .company-option.selected {
-    background: var(--soft-bg);
-    color: var(--accent-text);
+    background: var(--purple-100);
+    color: var(--purple);
     font-weight: 600;
   }
   .company-option:last-child {
     border-bottom: none;
   }
   .company-option.add-new {
-    color: var(--accent-text);
+    color: var(--purple);
     font-weight: 600;
-    background: var(--soft-bg);
+    background: var(--purple-50);
   }
 
   /* ===== Time Slot Scheduler Styles ===== */
@@ -100,7 +91,7 @@
   .day-btn {
     padding: 10px;
     border: 2px solid var(--line);
-    background: var(--bg-input);
+    background: white;
     border-radius: 8px;
     cursor: pointer;
     font-weight: 500;
@@ -109,13 +100,13 @@
     text-align: center;
   }
   .day-btn:hover {
-    border-color: var(--accent-border);
-    color: var(--accent-text);
+    border-color: var(--purple);
+    color: var(--purple);
   }
   .day-btn.active {
-    background: var(--purple-700);
-    border-color: var(--purple-700);
-    color: #fff;
+    background: var(--purple);
+    border-color: var(--purple);
+    color: white;
   }
   .times-wrapper {
     margin-top: 12px;
@@ -128,7 +119,7 @@
   .time-slot-btn {
     padding: 8px 6px;
     border: 2px solid var(--line);
-    background: var(--bg-input);
+    background: white;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 400;
@@ -137,24 +128,24 @@
     text-align: center;
   }
   .time-slot-btn:hover {
-    border-color: var(--accent-border);
-    color: var(--accent-text);
+    border-color: var(--purple);
+    color: var(--purple);
   }
   .time-slot-btn.selected {
-    background: var(--purple-700);
-    border-color: var(--purple-700);
-    color: #fff;
+    background: var(--purple);
+    border-color: var(--purple);
+    color: white;
   }
   .schedule-summary {
     margin-top: 16px;
     padding: 12px;
-    background: var(--soft-bg);
+    background: var(--purple-50);
     border-radius: 8px;
     font-size: 13px;
     color: var(--gray);
   }
   .schedule-summary strong {
-    color: var(--accent-text);
+    color: var(--purple);
   }
   .schedule-item {
     margin: 4px 0;
@@ -319,7 +310,7 @@
 
       <input type="hidden" id="availability">
 
-      <p style="font-size:13px; color:var(--gray); margin-top:16px">بإنشاء الحساب، إنت موافق على <a href="../legal/" style="color:var(--accent-text); font-weight:700">الشروط والخصوصية</a> بتاعة BUSLA.</p>
+      <p style="font-size:13px; color:var(--gray); margin-top:16px">بإنشاء الحساب، إنت موافق على <a href="../legal/" style="color:var(--purple-700); font-weight:700">الشروط والخصوصية</a> بتاعة BUSLA.</p>
 
       <div class="wizard-nav">
         <button type="button" class="btn btn-ghost btn-block" id="back-3">السابق</button>

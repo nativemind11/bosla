@@ -11,15 +11,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="css/style.css">
-<script>
-(function(){
-  try {
-    var t = localStorage.getItem("bosla_theme");
-    if (!t) t = (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
-    document.documentElement.setAttribute("data-theme", t);
-  } catch (e) { document.documentElement.setAttribute("data-theme", "light"); }
-})();
-</script>
 </head>
 <body>
 <header id="bosla-header"></header>
@@ -310,7 +301,7 @@ async function renderMenteeDashboard(user, mentee) {
         `).join("")}</tbody>
       </table>
       </div>
-    ` : `<div class="empty-state">لسه معملتش أي حجز. <a href="mentors/" style="color:var(--accent-text)">تصفح المرشدين</a></div>`}
+    ` : `<div class="empty-state">لسه معملتش أي حجز. <a href="mentors/" style="color:var(--purple-700)">تصفح المرشدين</a></div>`}
   `;
   
   // تحميل روابط الميتينج بالخلفية (واحد واحد عشان ما نثقلش)
