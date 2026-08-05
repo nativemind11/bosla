@@ -219,6 +219,7 @@ async function renderMentorDashboard(user, mentor) {
         ${employerLine ? `<span class="mentor-meta-line">🏢 ${employerLine}</span>` : ""}
         ${linkedinIconHtml(mentor.Linkedin)}
       </div>
+      <a href="edit-profile/" class="btn btn-ghost" style="margin-inline-start:auto; padding:8px 16px">✏️ عدّل بياناتك</a>
     </div>
     <div class="card" style="margin-bottom:30px">
       <strong>رابط الميتينج الحالي:</strong> ${mentor.MeetingLink}<br>
@@ -266,6 +267,7 @@ async function renderMenteeDashboard(user, mentee) {
         <h2 class="section-title" style="margin-bottom:2px">أهلاً ${mentee.Name}</h2>
         <p class="section-sub" style="margin-bottom:2px">حجوزاتك مع المرشدين</p>
       </div>
+      <a href="edit-profile/" class="btn btn-ghost" style="margin-inline-start:auto; padding:8px 16px">✏️ عدّل بياناتك</a>
     </div>
     ${mentee.EmployerOrSchool ? `<span class="mentor-meta-line" style="margin-bottom:20px">🏢 ${escapeHtml(mentee.EmployerOrSchool)}</span>` : ""}
     ${bookings.length ? `

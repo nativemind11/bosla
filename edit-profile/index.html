@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<base href="../">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تعديل بياناتك — BUSLA</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/logo-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/logo-64.png">
+<link rel="apple-touch-icon" href="assets/logo-256.png">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  /* ===== Time Slot Scheduler Styles (نفس صفحة تسجيل المرشد) ===== */
+  .schedule-selector { margin-top: 12px; }
+  .days-selector { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; margin-bottom: 16px; }
+  .day-btn { padding: 10px; border: 2px solid var(--line); background: white; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 14px; transition: all 0.2s; text-align: center; }
+  .day-btn:hover { border-color: var(--purple); color: var(--purple); }
+  .day-btn.active { background: var(--purple); border-color: var(--purple); color: white; }
+  .times-wrapper { margin-top: 12px; }
+  .time-slots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; }
+  .time-slot-btn { padding: 8px 6px; border: 2px solid var(--line); background: white; border-radius: 6px; cursor: pointer; font-weight: 400; font-size: 13px; transition: all 0.2s; text-align: center; }
+  .time-slot-btn:hover { border-color: var(--purple); color: var(--purple); }
+  .time-slot-btn.selected { background: var(--purple); border-color: var(--purple); color: white; }
+  .schedule-summary { margin-top: 16px; padding: 12px; background: var(--purple-50); border-radius: 8px; font-size: 13px; color: var(--gray); }
+  .schedule-summary strong { color: var(--purple); }
+  .schedule-item { margin: 4px 0; }
+</style>
+</head>
+<body>
+<header id="bosla-header"></header>
+
+<section class="section-tight">
+  <div class="container" id="edit-container" style="max-width:640px; margin:0 auto">
+    <div class="spinner">بيحمل بياناتك...</div>
+  </div>
+</section>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/app.js"></script>
+<script>
+const container = document.getElementById("edit-container");
+
+// ===================== تحويل نص المواعيد (من الشيت) لأوبجيكت وبالعكس =====================
+// نفس صيغة صفحة تسجيل المرشد بالظبط: "السبت: 6:00 صباحًا، 6:15 صباحًا | الأحد: ..."
+function parseAvailability(str) {
+  const result = {};
+  if (!str) return result;
+  String(str).split("|").forEach(chunk => {
+    const trimmed = chunk.trim();
+    const idx = trimmed.indexOf(":");
+    if (idx === -1) return;
+    const day = trimmed.slice(0, idx).trim();
+    const times = trimmed.slice(idx + 1).trim().split("،").map(t => t.trim()).filter(Boolean);
+    if (day && times.length) result[day] = times;
+  });
+  return result;
+}
+
+const WORK_HOURS = ["6:00 صباحًا", "6:15 صباحًا", "6:30 صباحًا", "6:45 صباحًا",
+  "7:00 صباحًا", "7:15 صباحًا", "7:30 صباحًا", "7:45 صباحًا",
+  "8:00 صباحًا", "8:15 صباحًا", "8:30 صباحًا", "8:45 صباحًا",
+  "9:00 صباحًا", "9:15 صباحًا", "9:30 صباحًا", "9:45 صباحًا",
+  "10:00 صباحًا", "10:15 صباحًا", "10:30 صباحًا", "10:45 صباحًا",
+  "11:00 صباحًا", "11:15 صباحًا", "11:30 صباحًا", "11:45 صباحًا",
+  "12:00 ظهرًا", "12:15 ظهرًا", "12:30 ظهرًا", "12:45 ظهرًا",
+  "1:00 مساءً", "1:15 مساءً", "1:30 مساءً", "1:45 مساءً",
+  "2:00 مساءً", "2:15 مساءً", "2:30 مساءً", "2:45 مساءً",
+  "3:00 مساءً", "3:15 مساءً", "3:30 مساءً", "3:45 مساءً",
+  "4:00 مساءً", "4:15 مساءً", "4:30 مساءً", "4:45 مساءً",
+  "5:00 مساءً", "5:15 مساءً", "5:30 مساءً", "5:45 مساءً",
+  "6:00 مساءً", "6:15 مساءً", "6:30 مساءً", "6:45 مساءً",
+  "7:00 مساءً", "7:15 مساءً", "7:30 مساءً", "7:45 مساءً",
+  "8:00 مساءً", "8:15 مساءً", "8:30 مساءً", "8:45 مساءً",
+  "9:00 مساءً", "9:15 مساءً", "9:30 مساءً", "9:45 مساءً",
+  "10:00 مساءً", "10:15 مساءً", "10:30 مساءً", "10:45 مساءً"];
+
+const DAYS_ORDER = ["السبت", "الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];
+
+// ===================== رفع/معاينة صورة البروفايل (مشترك بين الفورمين) =====================
+let selectedPhotoFile = null;
+function wirePhotoUpload() {
+  selectedPhotoFile = null;
+  const photoInput = document.getElementById("photo-input");
+  const photoPreview = document.getElementById("photo-preview");
+  const photoPlaceholder = document.getElementById("photo-placeholder");
+  photoInput.addEventListener("change", () => {
+    const file = photoInput.files[0];
+    if (!file) return;
+    const allowed = ["image/jpeg", "image/jpg", "image/png"];
+    if (allowed.indexOf(file.type) === -1) {
+      showToast("الصورة لازم تكون JPG أو PNG بس", "error");
+      photoInput.value = "";
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      showToast("حجم الصورة أكبر من 2 ميجا، اختار صورة أصغر", "error");
+      photoInput.value = "";
+      return;
+    }
+    selectedPhotoFile = file;
+    const reader = new FileReader();
+    reader.onload = () => {
+      photoPreview.src = reader.result;
+      photoPreview.style.display = "block";
+      photoPlaceholder.style.display = "none";
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function photoUploadHtml(existingPhotoUrl, name) {
+  return `
+    <div class="photo-upload">
+      <label class="photo-circle" id="photo-circle">
+        <span id="photo-placeholder" style="${existingPhotoUrl ? "display:none" : ""}">حط صورتك<br>(اختياري)</span>
+        <img id="photo-preview" src="${existingPhotoUrl ? escapeHtml(existingPhotoUrl) : ""}" style="${existingPhotoUrl ? "" : "display:none"}">
+        <input type="file" id="photo-input" accept="image/png,image/jpeg">
+      </label>
+      <div class="photo-upload-hint">JPG أو PNG، أقل من 2 ميجا</div>
+    </div>
+  `;
+}
+
+// لو المستخدم اختار صورة جديدة، بيرفعها ويرجع رابطها. لو مفيش صورة جديدة، بيرجع الرابط القديم
+async function resolveProfilePhotoUrl(uid, isMentor, oldUrl) {
+  if (!selectedPhotoFile) return oldUrl || "";
+  try {
+    const base64 = await fileToBase64(selectedPhotoFile);
+    const uploadRes = await apiPost("uploadProfilePhoto", {
+      uid, isMentor, imageBase64: base64, mimeType: selectedPhotoFile.type
+    });
+    if (uploadRes && uploadRes.success) return uploadRes.url;
+    showToast("مشكلة في رفع الصورة الجديدة: " + (uploadRes.error || "خطأ غير معروف") + " — هنحتفظ بصورتك القديمة", "error");
+    return oldUrl || "";
+  } catch (err) {
+    showToast("الصورة الجديدة متترفعتش، هنحتفظ بصورتك القديمة", "error");
+    return oldUrl || "";
+  }
+}
+
+// ===================== منطق اختيار المواعيد (نفس صفحة تسجيل المرشد) =====================
+let selectedSchedule = {};
+
+function wireScheduleSelector(initialAvailability) {
+  selectedSchedule = parseAvailability(initialAvailability);
+
+  const daysSelector = document.getElementById("days-selector");
+  const timesWrapper = document.getElementById("times-wrapper");
+  const selectedDayName = document.getElementById("selected-day-name");
+  const timeSlots = document.getElementById("time-slots");
+  const scheduleList = document.getElementById("schedule-list");
+  const scheduleSummary = document.getElementById("schedule-summary");
+  const availabilityHidden = document.getElementById("availability");
+
+  function renderTimeSlots() {
+    timeSlots.innerHTML = "";
+    WORK_HOURS.forEach(time => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "time-slot-btn";
+      btn.textContent = time;
+
+      const currentDay = Array.from(daysSelector.querySelectorAll(".day-btn")).find(b => b.classList.contains("active"))?.dataset.day;
+      if (currentDay && selectedSchedule[currentDay]?.includes(time)) {
+        btn.classList.add("selected");
+      }
+
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const day = Array.from(daysSelector.querySelectorAll(".day-btn")).find(b => b.classList.contains("active"))?.dataset.day;
+        if (!day) return;
+        if (!selectedSchedule[day]) selectedSchedule[day] = [];
+        if (selectedSchedule[day].includes(time)) {
+          selectedSchedule[day] = selectedSchedule[day].filter(t => t !== time);
+        } else {
+          selectedSchedule[day].push(time);
+        }
+        if (selectedSchedule[day].length === 0) delete selectedSchedule[day];
+        renderTimeSlots();
+        updateScheduleSummary();
+      });
+
+      timeSlots.appendChild(btn);
+    });
+  }
+
+  function updateScheduleSummary() {
+    const hasDays = Object.keys(selectedSchedule).length > 0;
+    if (!hasDays) {
+      scheduleSummary.style.display = "none";
+      availabilityHidden.value = "";
+      return;
+    }
+    scheduleSummary.style.display = "block";
+    let summary = "";
+    DAYS_ORDER.forEach(day => {
+      if (selectedSchedule[day] && selectedSchedule[day].length > 0) {
+        summary += `<div class="schedule-item"><strong>${day}:</strong> ${selectedSchedule[day].join(" ، ")}</div>`;
+      }
+    });
+    scheduleList.innerHTML = summary;
+    const formatted = DAYS_ORDER
+      .filter(d => selectedSchedule[d])
+      .map(d => `${d}: ${selectedSchedule[d].join("، ")}`)
+      .join(" | ");
+    availabilityHidden.value = formatted;
+  }
+
+  daysSelector.addEventListener("click", (e) => {
+    if (e.target.classList.contains("day-btn")) {
+      daysSelector.querySelectorAll(".day-btn").forEach(b => b.classList.remove("active"));
+      e.target.classList.add("active");
+      selectedDayName.textContent = e.target.dataset.day;
+      timesWrapper.style.display = "block";
+      renderTimeSlots();
+      document.querySelector(".time-slot-btn")?.focus();
+    }
+  });
+
+  updateScheduleSummary();
+}
+
+// ===================== قوة كلمة المرور (لو حابب المستخدم يغيّرها) =====================
+function computePasswordStrength(pwd) {
+  const len = pwd.length;
+  const hasLower = /[a-z]/.test(pwd);
+  const hasUpper = /[A-Z]/.test(pwd);
+  const hasDigit = /[0-9]/.test(pwd);
+  const hasSymbol = /[^a-zA-Z0-9]/.test(pwd);
+  const typesCount = [hasLower, hasUpper, hasDigit, hasSymbol].filter(Boolean).length;
+  if (len === 0) return { level: "", acceptable: false, pct: 0, color: "var(--line)" };
+  if (len < 8) return { level: "ضعيف — لازم 8 أحرف على الأقل", acceptable: false, pct: 25, color: "var(--error)" };
+  if (len >= 10 && typesCount >= 3) return { level: "قوي 💪", acceptable: true, pct: 100, color: "var(--success)" };
+  if (len >= 8 && typesCount >= 2) return { level: "متوسط — تقدر تقويها أكتر", acceptable: true, pct: 65, color: "var(--secondary)" };
+  return { level: "ضعيف — نوّع بين حروف وأرقام ورموز", acceptable: false, pct: 25, color: "var(--error)" };
+}
+
+function wirePasswordChangeUI() {
+  const toggleBtn = document.getElementById("toggle-pw-btn");
+  const pwWrap = document.getElementById("pw-change-wrap");
+  const pwInput = document.getElementById("new-password");
+  const pwFill = document.getElementById("pw-fill");
+  const pwLabel = document.getElementById("pw-label");
+  if (!toggleBtn) return;
+  toggleBtn.addEventListener("click", () => {
+    const showing = pwWrap.style.display !== "none";
+    pwWrap.style.display = showing ? "none" : "block";
+    toggleBtn.textContent = showing ? "عايز تغيّر كلمة المرور؟" : "إلغاء تغيير كلمة المرور";
+    if (showing) pwInput.value = "";
+  });
+  pwInput.addEventListener("input", () => {
+    const s = computePasswordStrength(pwInput.value);
+    pwFill.style.width = s.pct + "%";
+    pwFill.style.background = s.color;
+    pwLabel.textContent = s.level;
+    pwLabel.style.color = s.color;
+  });
+}
+
+// لو المستخدم كتب كلمة مرور جديدة، بيحاول يغيّرها في Firebase Auth مباشرة
+// (مش عن طريق الباك إند، عشان الباك إند مش بيلمس الباسورد أصلاً)
+async function applyPasswordChangeIfNeeded(user) {
+  const pwWrap = document.getElementById("pw-change-wrap");
+  if (!pwWrap || pwWrap.style.display === "none") return { ok: true };
+  const pwInput = document.getElementById("new-password");
+  const newPw = pwInput.value;
+  if (!newPw) return { ok: true };
+  const strength = computePasswordStrength(newPw);
+  if (!strength.acceptable) return { ok: false, message: "كلمة المرور الجديدة ضعيفة، اختار كلمة مرور أقوى" };
+  try {
+    await user.updatePassword(newPw);
+    return { ok: true, changed: true };
+  } catch (err) {
+    if (err.code === "auth/requires-recent-login") {
+      return { ok: false, message: "لتغيير كلمة المرور، لازم تسجل خروج وتدخل تاني الأول ثم تعيد المحاولة" };
+    }
+    return { ok: false, message: "حصل خطأ في تغيير كلمة المرور، جرب تاني" };
+  }
+}
+
+// ===================== فورم تعديل بيانات المرشد =====================
+function renderMentorEditForm(user, mentor) {
+  container.innerHTML = `
+    <div class="form-card" style="max-width:640px; margin:0 auto">
+      <div class="form-title">تعديل بياناتك</div>
+      <div class="form-sub">عدّل بيانات حسابك كمرشد في أي وقت</div>
+
+      <form id="edit-form" novalidate>
+        ${photoUploadHtml(mentor.ProfilePhotoURL, mentor.Name)}
+
+        <label>الاسم بالكامل</label>
+        <input type="text" id="name" required value="${escapeHtml(mentor.Name || "")}">
+
+        <label>الإيميل</label>
+        <input type="email" value="${escapeHtml(mentor.Email || "")}" disabled style="opacity:.65">
+        <div class="field-hint">مينفعش تتغيّر من هنا، لو محتاج تغيّرها كلّم فريق BUSLA</div>
+
+        <button type="button" class="btn btn-ghost" id="toggle-pw-btn" style="margin-top:14px">عايز تغيّر كلمة المرور؟</button>
+        <div id="pw-change-wrap" style="display:none; margin-top:10px">
+          <label>كلمة المرور الجديدة</label>
+          <input type="password" id="new-password" minlength="8" placeholder="8 أحرف على الأقل">
+          <div class="pw-meter-track"><div class="pw-meter-fill" id="pw-fill"></div></div>
+          <div class="pw-meter-label" id="pw-label"></div>
+        </div>
+
+        <div class="form-row" style="margin-top:16px">
+          <div>
+            <label>المجال</label>
+            <select id="field" required></select>
+          </div>
+          <div>
+            <label>التخصص</label>
+            <select id="specialization" required></select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label>جهة العمل الحالية</label>
+            <input type="text" id="employer" placeholder="مثال: اسم الشركة" value="${escapeHtml(mentor.Employer || "")}">
+          </div>
+          <div>
+            <label>سنوات الخبرة</label>
+            <input type="number" id="yearsOfExperience" min="0" max="50" value="${escapeHtml(mentor.YearsOfExperience !== undefined ? mentor.YearsOfExperience : "")}">
+          </div>
+        </div>
+        <div class="field-hint">هنحسب مستواك (جونيور / سينيور) تلقائيًا من سنوات خبرتك</div>
+
+        <label>رابط بروفايلك على لينكدإن (اختياري)</label>
+        <input type="text" id="linkedin" placeholder="مثال: linkedin.com/in/ahmed-taha" value="${escapeHtml(mentor.Linkedin || "")}">
+
+        <label>نبذة عنك (هتظهر للمستفيدين)</label>
+        <textarea id="bio" rows="3">${escapeHtml(mentor.Bio || "")}</textarea>
+
+        <label>سعر الجلسة (ربع ساعة)</label>
+        <div class="radio-group">
+          <label><input type="radio" name="priceType" value="paid" ${Number(mentor.Price) > 0 ? "checked" : ""}> بسعر محدد</label>
+          <label><input type="radio" name="priceType" value="free" ${Number(mentor.Price) > 0 ? "" : "checked"}> مجانًا</label>
+        </div>
+        <input type="number" id="price" placeholder="السعر بالجنيه" style="margin-top:10px" min="0" value="${Number(mentor.Price) > 0 ? escapeHtml(String(mentor.Price)) : ""}">
+
+        <label>رقم إنستاباي لاستقبال الدفع</label>
+        <input type="text" id="instapay" value="${escapeHtml(mentor.Instapay || "")}">
+
+        <label>رابط الميتينج الثابت بتاعك (زوم / تيمز / جوجل ميت)</label>
+        <input type="url" id="meetingLink" required value="${escapeHtml(mentor.MeetingLink || "")}">
+        <div class="field-hint">نفس الرابط ده هيتبعت لكل مستفيد بيحجز معاك بعد ما تأكد الحجز</div>
+
+        <label>المواعيد المتاحة أسبوعيًا</label>
+        <div class="schedule-selector">
+          <label style="display:block; margin-bottom:12px; font-weight:600; font-size:14px">اختار الأيام والأوقات اللي أنت متاح فيها:</label>
+          <div class="days-selector" id="days-selector">
+            <button type="button" class="day-btn" data-day="السبت">السبت</button>
+            <button type="button" class="day-btn" data-day="الأحد">الأحد</button>
+            <button type="button" class="day-btn" data-day="الاثنين">الاثنين</button>
+            <button type="button" class="day-btn" data-day="الثلاثاء">الثلاثاء</button>
+            <button type="button" class="day-btn" data-day="الأربعاء">الأربعاء</button>
+            <button type="button" class="day-btn" data-day="الخميس">الخميس</button>
+            <button type="button" class="day-btn" data-day="الجمعة">الجمعة</button>
+          </div>
+          <div class="times-wrapper" id="times-wrapper" style="display:none;">
+            <label style="display:block; margin-bottom:8px; font-weight:600; font-size:14px">أوقات يوم <span id="selected-day-name"></span>:</label>
+            <div class="time-slots-grid" id="time-slots"></div>
+          </div>
+          <div class="schedule-summary" id="schedule-summary" style="display:none;">
+            <div style="margin-bottom:6px">📅 المواعيد المختارة:</div>
+            <div id="schedule-list"></div>
+          </div>
+        </div>
+        <input type="hidden" id="availability" value="${escapeHtml(mentor.Availability || "")}">
+
+        <div style="display:flex; gap:10px; margin-top:24px">
+          <button class="btn btn-primary btn-block" type="submit" id="save-btn">احفظ التعديلات</button>
+          <a href="dashboard/" class="btn btn-ghost btn-block">إلغاء</a>
+        </div>
+      </form>
+    </div>
+  `;
+
+  wirePhotoUpload();
+  wirePasswordChangeUI();
+
+  const fieldSelect = document.getElementById("field");
+  const specSelect = document.getElementById("specialization");
+  populateFieldsSelect(fieldSelect);
+  fieldSelect.value = mentor.Field || "";
+  populateSpecializationsSelect(fieldSelect.value, specSelect);
+  specSelect.value = mentor.Specialization || "";
+  fieldSelect.addEventListener("change", () => {
+    populateSpecializationsSelect(fieldSelect.value, specSelect);
+  });
+
+  wireScheduleSelector(mentor.Availability || "");
+
+  document.getElementById("edit-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const priceType = document.querySelector('input[name="priceType"]:checked').value;
+    const name = document.getElementById("name").value.trim();
+    const field = fieldSelect.value;
+    const specialization = specSelect.value;
+    const meetingLink = document.getElementById("meetingLink").value.trim();
+    const availability = document.getElementById("availability").value;
+
+    if (!name) { showToast("اكتب اسمك الكامل", "error"); return; }
+    if (!field) { showToast("اختار المجال", "error"); return; }
+    if (!specialization) { showToast("اختار التخصص", "error"); return; }
+    if (!meetingLink) { showToast("لازم تحط رابط الميتينج بتاعك", "error"); return; }
+    if (priceType === "paid" && !document.getElementById("price").value) {
+      showToast("حدد سعر الجلسة أو اختار مجانًا", "error"); return;
+    }
+    if (!availability) { showToast("اختار الأقل يوم واحد وساعة واحدة للمواعيد", "error"); return; }
+
+    const btn = document.getElementById("save-btn");
+    btn.disabled = true; btn.textContent = "بيتم الحفظ...";
+
+    const pwResult = await applyPasswordChangeIfNeeded(user);
+    if (!pwResult.ok) {
+      showToast(pwResult.message, "error");
+      btn.disabled = false; btn.textContent = "احفظ التعديلات";
+      return;
+    }
+
+    const profilePhotoUrl = await resolveProfilePhotoUrl(user.uid, true, mentor.ProfilePhotoURL);
+
+    const price = priceType === "free" ? 0 : (document.getElementById("price").value || 0);
+    const payload = {
+      uid: user.uid,
+      name,
+      field,
+      specialization,
+      employer: document.getElementById("employer").value.trim(),
+      yearsOfExperience: document.getElementById("yearsOfExperience").value,
+      linkedin: normalizeLinkedinUrl(document.getElementById("linkedin").value),
+      bio: document.getElementById("bio").value,
+      price,
+      instapay: document.getElementById("instapay").value.trim(),
+      meetingLink,
+      availability,
+      profilePhotoUrl
+    };
+
+    try {
+      if (user.displayName !== name) {
+        await user.updateProfile({ displayName: name }).catch(() => {});
+      }
+      const res = await apiPost("updateMentor", payload);
+      if (res && res.error) {
+        showToast(res.error, "error");
+        btn.disabled = false; btn.textContent = "احفظ التعديلات";
+        return;
+      }
+      showToast(pwResult.changed ? "اتحفظت بياناتك وكلمة المرور اتغيّرت" : "اتحفظت بياناتك بنجاح");
+      window.location.href = "dashboard/";
+    } catch (err) {
+      showToast("حصل خطأ، جرب تاني", "error");
+      btn.disabled = false; btn.textContent = "احفظ التعديلات";
+    }
+  });
+}
+
+// ===================== فورم تعديل بيانات المستفيد =====================
+function renderMenteeEditForm(user, mentee) {
+  container.innerHTML = `
+    <div class="form-card" style="max-width:640px; margin:0 auto">
+      <div class="form-title">تعديل بياناتك</div>
+      <div class="form-sub">عدّل بيانات حسابك في أي وقت</div>
+
+      <form id="edit-form" novalidate>
+        ${photoUploadHtml(mentee.ProfilePhotoURL, mentee.Name)}
+
+        <label>الاسم بالكامل</label>
+        <input type="text" id="name" required value="${escapeHtml(mentee.Name || "")}">
+
+        <label>رقم الموبايل</label>
+        <input type="tel" id="phone" required placeholder="01xxxxxxxxx" value="${escapeHtml(mentee.Phone || "")}">
+
+        <label>الإيميل</label>
+        <input type="email" value="${escapeHtml(mentee.Email || "")}" disabled style="opacity:.65">
+        <div class="field-hint">مينفعش تتغيّر من هنا، لو محتاج تغيّرها كلّم فريق BUSLA</div>
+
+        <label>جهة العمل أو الدراسة</label>
+        <input type="text" id="employer" placeholder="مثال: اسم الشركة أو الكلية (اختياري)" value="${escapeHtml(mentee.EmployerOrSchool || "")}">
+
+        <button type="button" class="btn btn-ghost" id="toggle-pw-btn" style="margin-top:14px">عايز تغيّر كلمة المرور؟</button>
+        <div id="pw-change-wrap" style="display:none; margin-top:10px">
+          <label>كلمة المرور الجديدة</label>
+          <input type="password" id="new-password" minlength="8" placeholder="8 أحرف على الأقل">
+          <div class="pw-meter-track"><div class="pw-meter-fill" id="pw-fill"></div></div>
+          <div class="pw-meter-label" id="pw-label"></div>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:24px">
+          <button class="btn btn-primary btn-block" type="submit" id="save-btn">احفظ التعديلات</button>
+          <a href="dashboard/" class="btn btn-ghost btn-block">إلغاء</a>
+        </div>
+      </form>
+    </div>
+  `;
+
+  wirePhotoUpload();
+  wirePasswordChangeUI();
+
+  document.getElementById("edit-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    if (!name) { showToast("اكتب اسمك الكامل", "error"); return; }
+    if (!phone) { showToast("اكتب رقم موبايلك", "error"); return; }
+
+    const btn = document.getElementById("save-btn");
+    btn.disabled = true; btn.textContent = "بيتم الحفظ...";
+
+    const pwResult = await applyPasswordChangeIfNeeded(user);
+    if (!pwResult.ok) {
+      showToast(pwResult.message, "error");
+      btn.disabled = false; btn.textContent = "احفظ التعديلات";
+      return;
+    }
+
+    const profilePhotoUrl = await resolveProfilePhotoUrl(user.uid, false, mentee.ProfilePhotoURL);
+
+    const payload = {
+      uid: user.uid,
+      name,
+      phone,
+      employer: document.getElementById("employer").value.trim(),
+      profilePhotoUrl
+    };
+
+    try {
+      if (user.displayName !== name) {
+        await user.updateProfile({ displayName: name }).catch(() => {});
+      }
+      const res = await apiPost("updateMentee", payload);
+      if (res && res.error) {
+        showToast(res.error, "error");
+        btn.disabled = false; btn.textContent = "احفظ التعديلات";
+        return;
+      }
+      showToast(pwResult.changed ? "اتحفظت بياناتك وكلمة المرور اتغيّرت" : "اتحفظت بياناتك بنجاح");
+      window.location.href = "dashboard/";
+    } catch (err) {
+      showToast("حصل خطأ، جرب تاني", "error");
+      btn.disabled = false; btn.textContent = "احفظ التعديلات";
+    }
+  });
+}
+
+// ===================== تحميل بيانات المستخدم الحالي =====================
+function loadEditProfile(user) {
+  container.innerHTML = `<div class="spinner">بيحمل بياناتك...</div>`;
+  (async () => {
+    const [mentor, mentee] = await Promise.all([
+      apiGet("getMentor", { uid: user.uid }),
+      apiGet("getMentee", { uid: user.uid })
+    ]);
+    if (mentor) {
+      renderMentorEditForm(user, mentor);
+    } else if (mentee) {
+      renderMenteeEditForm(user, mentee);
+    } else {
+      container.innerHTML = `<div class="empty-state">مش لاقيين حسابك، جرب تسجل دخول تاني.</div>`;
+    }
+  })().catch((err) => {
+    container.innerHTML = `
+      <div class="empty-state">
+        حصل خطأ في تحميل بياناتك (${escapeHtml(err && err.message ? err.message : "تحقق من اتصالك بالإنترنت")}).
+        <br><button class="btn btn-primary" id="edit-retry-btn" style="margin-top:12px">حاول تاني</button>
+      </div>
+    `;
+    document.getElementById("edit-retry-btn").addEventListener("click", () => loadEditProfile(user));
+  });
+}
+
+requireAuth((user) => {
+  loadEditProfile(user);
+});
+</script>
+</body>
+</html>
