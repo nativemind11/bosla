@@ -4,7 +4,7 @@
 <base href="../">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لوحتي — BOSLA</title>
+<title>لوحتي — BUSLA</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/logo-32.png">
 <link rel="icon" type="image/png" sizes="64x64" href="assets/logo-64.png">
 <link rel="apple-touch-icon" href="assets/logo-256.png">
@@ -78,7 +78,7 @@ function bookingRow(b, isMentorView) {
       <td><span class="status-pill status-${b.Status}">${STATUS_LABELS[b.Status] || b.Status}</span></td>
       <td>
         ${showLink ? `<a href="${window.__mentorMeetingLink || ''}" target="_blank" class="btn btn-ghost" style="padding:6px 14px">رابط الميتينج</a>` : "—"}
-        ${awaitingBoslaConfirm ? `<span class="field-hint">BOSLA بتراجع الإيصال دلوقتي</span>` : ""}
+        ${awaitingBoslaConfirm ? `<span class="field-hint">BUSLA بتراجع الإيصال دلوقتي</span>` : ""}
         ${b.PaymentScreenshotURL ? `<a href="${b.PaymentScreenshotURL}" target="_blank" class="field-hint" style="text-decoration:underline">إيصال الدفع</a>` : ""}
       </td>
     </tr>
@@ -202,14 +202,16 @@ function completionActionCell(b, isMentorView) {
   return `<button class="btn btn-ghost" style="padding:6px 14px" onclick="confirmSessionDone('${b.BookingID}', '${isMentorView ? "mentor" : "mentee"}')">أكدت إن الجلسة اتعملت</button>${otherDone ? `<div class="field-hint">${isMentorView ? "المستفيد" : "المرشد"} أكد بالفعل</div>` : ""}`;
 }
 
+// ===== renderMentorDashboard محسّن مع lazy loading للـ reviews =====
 async function renderMentorDashboard(user, mentor) {
   window.__mentorMeetingLink = mentor.MeetingLink;
+  
+  // تحميل الحجوزات بسرعة، والـ reviews بالخلفية
   const bookings = await apiGet("getBookingsForMentor", { uid: user.uid });
-  const reviewsData = await apiGet("getReviewsForMentor", { uid: user.uid });
-  const ratingHtml = reviewsData && reviewsData.count > 0
-    ? `<span class="stars">${starsText(reviewsData.avg)}</span> <strong>${reviewsData.avg}</strong> <span class="field-hint" style="margin:0">(${reviewsData.count} تقييم)</span>`
-    : `<span class="field-hint" style="margin:0">لسه مفيش تقييمات عليك</span>`;
+  
   const employerLine = employerExperienceLine(mentor.Employer, mentor.YearsOfExperience);
+  
+  // عرض اللوحة بسرعة بدون انتظار الـ reviews
   container.innerHTML = `
     <div class="mentor-header-flex" style="margin-bottom:8px">
       ${avatarHtml(mentor.Name, mentor.ProfilePhotoURL, "mentor-avatar-lg")}
@@ -219,11 +221,12 @@ async function renderMentorDashboard(user, mentor) {
         ${employerLine ? `<span class="mentor-meta-line">🏢 ${employerLine}</span>` : ""}
         ${linkedinIconHtml(mentor.Linkedin)}
       </div>
+      <a href="edit-profile/" class="btn btn-ghost" style="margin-inline-start:auto; padding:8px 16px">✏️ عدّل بياناتك</a>
     </div>
     <div class="card" style="margin-bottom:30px">
       <strong>رابط الميتينج الحالي:</strong> ${mentor.MeetingLink}<br>
       <strong>المواعيد المتاحة:</strong> ${mentor.Availability || "—"}<br>
-      <strong>تقييمك:</strong> ${ratingHtml}
+      <strong>تقييمك:</strong> <span id="mentor-rating-container">⏳ بيحمل...</span>
     </div>
     <h3>حجوزاتك</h3>
     ${bookings.length ? `
@@ -237,7 +240,7 @@ async function renderMentorDashboard(user, mentor) {
             <td data-label="الحالة"><span class="status-pill status-${b.Status}">${STATUS_LABELS[b.Status] || b.Status}</span></td>
             <td data-label="الميتينج">
               ${(b.Status === "confirmed" || b.Status === "completed") ? `<a href="${mentor.MeetingLink}" target="_blank" class="btn btn-ghost" style="padding:6px 14px">رابط الميتينج</a>` : "—"}
-              ${b.Status === "pending_confirmation" ? `<span class="field-hint">BOSLA بتراجع الإيصال دلوقتي</span>` : ""}
+              ${b.Status === "pending_confirmation" ? `<span class="field-hint">BUSLA بتراجع الإيصال دلوقتي</span>` : ""}
               ${b.PaymentScreenshotURL ? `<a href="${b.PaymentScreenshotURL}" target="_blank" class="field-hint" style="text-decoration:underline">إيصال الدفع</a>` : ""}
             </td>
             <td data-label="الشات">${chatCell(b, true, user, mentor)}</td>
@@ -248,17 +251,29 @@ async function renderMentorDashboard(user, mentor) {
       </div>
     ` : `<div class="empty-state">لسه مفيش حجوزات.</div>`}
   `;
+  
+  // تحميل الـ reviews بالخلفية وتحديث العرض
+  try {
+    const reviewsData = await apiGet("getReviewsForMentor", { uid: user.uid });
+    const ratingHtml = reviewsData && reviewsData.count > 0
+      ? `<span class="stars">${starsText(reviewsData.avg)}</span> <strong>${reviewsData.avg}</strong> <span class="field-hint" style="margin:0">(${reviewsData.count} تقييم)</span>`
+      : `<span class="field-hint" style="margin:0">لسه مفيش تقييمات عليك</span>`;
+    const ratingContainer = document.getElementById("mentor-rating-container");
+    if (ratingContainer) ratingContainer.innerHTML = ratingHtml;
+  } catch (err) {
+    const ratingContainer = document.getElementById("mentor-rating-container");
+    if (ratingContainer) ratingContainer.innerHTML = `<span class="field-hint">خطأ في تحميل التقييمات</span>`;
+  }
 }
 
+// ===== renderMenteeDashboard محسّن - تجنب تحميل كل المرشدين =====
 async function renderMenteeDashboard(user, mentee) {
+  // تحميل الحجوزات بسرعة
   const bookings = await apiGet("getBookingsForMentee", { uid: user.uid });
-  // نجيب رابط الميتينج بتاع كل مرشد للحجوزات المؤكدة
+  
+  // إنشاء خريطة سريعة للروابط (بدون تحميل كل بيانات المرشد)
   const mentorLinks = {};
-  await Promise.all([...new Set(bookings.map(b => b.MentorUID))].map(async (uid) => {
-    const m = await apiGet("getMentor", { uid });
-    if (m) mentorLinks[uid] = m.MeetingLink;
-  }));
-
+  
   container.innerHTML = `
     <div class="mentor-header-flex" style="margin-bottom:8px">
       ${avatarHtml(mentee.Name, mentee.ProfilePhotoURL, "mentor-avatar-lg")}
@@ -266,6 +281,7 @@ async function renderMenteeDashboard(user, mentee) {
         <h2 class="section-title" style="margin-bottom:2px">أهلاً ${mentee.Name}</h2>
         <p class="section-sub" style="margin-bottom:2px">حجوزاتك مع المرشدين</p>
       </div>
+      <a href="edit-profile/" class="btn btn-ghost" style="margin-inline-start:auto; padding:8px 16px">✏️ عدّل بياناتك</a>
     </div>
     ${mentee.EmployerOrSchool ? `<span class="mentor-meta-line" style="margin-bottom:20px">🏢 ${escapeHtml(mentee.EmployerOrSchool)}</span>` : ""}
     ${bookings.length ? `
@@ -277,11 +293,7 @@ async function renderMenteeDashboard(user, mentee) {
             <td data-label="المرشد">${b.MentorName}</td>
             <td data-label="الميعاد">${b.SlotDateTime}</td>
             <td data-label="الحالة"><span class="status-pill status-${b.Status}">${STATUS_LABELS[b.Status] || b.Status}</span></td>
-            <td data-label="الميتينج">
-              ${(b.Status === "confirmed" || b.Status === "completed") && mentorLinks[b.MentorUID]
-                ? `<a href="${mentorLinks[b.MentorUID]}" target="_blank" class="btn btn-primary" style="padding:6px 14px">ادخل الميتينج</a>`
-                : "—"}
-            </td>
+            <td data-label="الميتينج"><span id="meeting-${b.MentorUID}-${b.BookingID}">⏳</span></td>
             <td data-label="الشات">${chatCell(b, false, user, mentee)}</td>
             <td data-label="تأكيد إتمام الجلسة">${completionActionCell(b, false)}</td>
             <td data-label="تقييمك">${reviewCell(b)}</td>
@@ -291,6 +303,33 @@ async function renderMenteeDashboard(user, mentee) {
       </div>
     ` : `<div class="empty-state">لسه معملتش أي حجز. <a href="mentors/" style="color:var(--purple-700)">تصفح المرشدين</a></div>`}
   `;
+  
+  // تحميل روابط الميتينج بالخلفية (واحد واحد عشان ما نثقلش)
+  for (const mentorUid of [...new Set(bookings.map(b => b.MentorUID))]) {
+    try {
+      const m = await apiGet("getMentor", { uid: mentorUid });
+      if (m) {
+        mentorLinks[mentorUid] = m.MeetingLink;
+        // تحديث كل الحجوزات بتاع المرشد ده
+        bookings.forEach(b => {
+          if (b.MentorUID === mentorUid && (b.Status === "confirmed" || b.Status === "completed")) {
+            const cell = document.getElementById(`meeting-${mentorUid}-${b.BookingID}`);
+            if (cell) {
+              cell.innerHTML = `<a href="${escapeHtml(m.MeetingLink)}" target="_blank" class="btn btn-primary" style="padding:6px 14px">ادخل الميتينج</a>`;
+            }
+          }
+        });
+      }
+    } catch (err) {
+      // لو فشل تحميل مرشد معين، خلي ـــ بدل الرابط
+      bookings.forEach(b => {
+        if (b.MentorUID === mentorUid) {
+          const cell = document.getElementById(`meeting-${mentorUid}-${b.BookingID}`);
+          if (cell) cell.innerHTML = "—";
+        }
+      });
+    }
+  }
 }
 </script>
 </body>
