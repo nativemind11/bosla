@@ -11,6 +11,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="css/style.css">
+<script>
+(function(){
+  try {
+    var t = localStorage.getItem("bosla_theme");
+    if (!t) t = (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", t);
+  } catch (e) { document.documentElement.setAttribute("data-theme", "light"); }
+})();
+</script>
 <style>
   .admin-stats-grid {
     display: grid;
@@ -19,16 +28,16 @@
     margin-bottom: 30px;
   }
   .stat-card {
-    background: var(--white);
+    background: var(--bg-card);
     border: 1px solid var(--line);
     border-radius: var(--radius);
     padding: 16px 18px;
     display: flex; flex-direction: column; gap: 4px;
   }
-  .stat-card.urgent { border-color: var(--purple-100); background: var(--purple-50); }
+  .stat-card.urgent { border-color: var(--soft-border); background: var(--soft-bg); }
   .stat-card.clickable { cursor: pointer; transition: box-shadow .15s ease, transform .15s ease; }
-  .stat-card.clickable:hover { box-shadow: var(--shadow); transform: translateY(-2px); border-color: var(--purple-100); }
-  .stat-num { font-size: 26px; font-weight: 800; color: var(--purple-900); line-height: 1.2; }
+  .stat-card.clickable:hover { box-shadow: var(--shadow); transform: translateY(-2px); border-color: var(--soft-border); }
+  .stat-num { font-size: 26px; font-weight: 800; color: var(--heading); line-height: 1.2; }
   .stat-num.warn { color: #b45309; }
   .stat-label { font-size: 13px; color: var(--gray); font-weight: 600; }
 </style>
