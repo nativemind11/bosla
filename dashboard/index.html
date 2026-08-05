@@ -4,7 +4,7 @@
 <base href="../">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لوحتي — BOSLA</title>
+<title>لوحتي — BUSLA</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/logo-32.png">
 <link rel="icon" type="image/png" sizes="64x64" href="assets/logo-64.png">
 <link rel="apple-touch-icon" href="assets/logo-256.png">
@@ -78,7 +78,7 @@ function bookingRow(b, isMentorView) {
       <td><span class="status-pill status-${b.Status}">${STATUS_LABELS[b.Status] || b.Status}</span></td>
       <td>
         ${showLink ? `<a href="${window.__mentorMeetingLink || ''}" target="_blank" class="btn btn-ghost" style="padding:6px 14px">رابط الميتينج</a>` : "—"}
-        ${awaitingBoslaConfirm ? `<span class="field-hint">BOSLA بتراجع الإيصال دلوقتي</span>` : ""}
+        ${awaitingBoslaConfirm ? `<span class="field-hint">BUSLA بتراجع الإيصال دلوقتي</span>` : ""}
         ${b.PaymentScreenshotURL ? `<a href="${b.PaymentScreenshotURL}" target="_blank" class="field-hint" style="text-decoration:underline">إيصال الدفع</a>` : ""}
       </td>
     </tr>
@@ -237,7 +237,7 @@ async function renderMentorDashboard(user, mentor) {
             <td data-label="الحالة"><span class="status-pill status-${b.Status}">${STATUS_LABELS[b.Status] || b.Status}</span></td>
             <td data-label="الميتينج">
               ${(b.Status === "confirmed" || b.Status === "completed") ? `<a href="${mentor.MeetingLink}" target="_blank" class="btn btn-ghost" style="padding:6px 14px">رابط الميتينج</a>` : "—"}
-              ${b.Status === "pending_confirmation" ? `<span class="field-hint">BOSLA بتراجع الإيصال دلوقتي</span>` : ""}
+              ${b.Status === "pending_confirmation" ? `<span class="field-hint">BUSLA بتراجع الإيصال دلوقتي</span>` : ""}
               ${b.PaymentScreenshotURL ? `<a href="${b.PaymentScreenshotURL}" target="_blank" class="field-hint" style="text-decoration:underline">إيصال الدفع</a>` : ""}
             </td>
             <td data-label="الشات">${chatCell(b, true, user, mentor)}</td>

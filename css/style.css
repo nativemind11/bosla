@@ -72,7 +72,7 @@ img { max-width: 100%; display: block; }
   font-size: 24px;
   color: var(--purple-700);
   letter-spacing: -0.5px;
-  white-space: nowrap; /* اسم BOSLA يفضل في سطر واحد، مش بيتقطع نص كلمة */
+  white-space: nowrap; /* اسم BUSLA يفضل في سطر واحد، مش بيتقطع نص كلمة */
 }
 .logo span { color: var(--purple-500); }
 .logo img { width: 34px; height: 34px; display: block; }
