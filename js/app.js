@@ -213,6 +213,26 @@ function populateSpecializedSelect(fieldValue, selectEl) {
   }
 }
 
+// ===================== الوضع الليلي (Dark Mode) =====================
+// المفتاح المخزن في localStorage: "bosla_theme" بقيمة "light" أو "dark"
+// بيتطبق فورًا (قبل حقن الهيدر) عن طريق سكريبت صغير في <head> كل صفحة، عشان
+// مايحصلش وميض (flash) للوضع الغلط قبل ما الصفحة تحمل. الدالة دي بس بتزامن
+// الزرار نفسه مع الحالة الحالية وبتتعامل مع الضغط عليه.
+function getStoredTheme() {
+  try { return localStorage.getItem("bosla_theme"); } catch (e) { return null; }
+}
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+}
+function toggleTheme() {
+  const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  const next = current === "dark" ? "light" : "dark";
+  applyTheme(next);
+  try { localStorage.setItem("bosla_theme", next); } catch (e) {}
+}
+// تأكيد إضافي (لو الصفحة مفيهاش سكريبت الـ head المانع للوميض لأي سبب)
+applyTheme(getStoredTheme() || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+
 // ===================== الهيدر المشترك (Navigation) =====================
 function renderHeader() {
   const header = document.getElementById("bosla-header");
@@ -225,11 +245,16 @@ function renderHeader() {
         <a href="./#how">إزاي بتشتغل</a>
       </nav>
       <div class="nav-auth" id="nav-auth">
+        <button type="button" class="theme-toggle-btn" id="theme-toggle-btn" title="بدّل الوضع الليلي/النهاري" aria-label="بدّل الوضع الليلي/النهاري">
+          <span class="theme-icon-sun">☀️</span><span class="theme-icon-moon">🌙</span>
+        </button>
         <a href="login/" class="btn btn-ghost">تسجيل الدخول</a>
         <a href="register-mentee/" class="btn btn-primary">ابدأ دلوقتي</a>
       </div>
     </div>
   `;
+  const themeBtn = document.getElementById("theme-toggle-btn");
+  if (themeBtn) themeBtn.addEventListener("click", toggleTheme);
   auth.onAuthStateChanged(user => {
     const navAuth = document.getElementById("nav-auth");
     if (user && navAuth) {
@@ -238,10 +263,14 @@ function renderHeader() {
       const adminLinkHtml = isAdmin ? `<a href="admin/" class="btn btn-ghost">لوحة الأدمن</a>` : "";
 
       navAuth.innerHTML = `
+        <button type="button" class="theme-toggle-btn" id="theme-toggle-btn" title="بدّل الوضع الليلي/النهاري" aria-label="بدّل الوضع الليلي/النهاري">
+          <span class="theme-icon-sun">☀️</span><span class="theme-icon-moon">🌙</span>
+        </button>
         <a href="dashboard/" class="btn btn-ghost">لوحتي</a>
         ${adminLinkHtml}
         <button class="btn btn-primary" id="logout-btn">تسجيل خروج</button>
       `;
+      document.getElementById("theme-toggle-btn").addEventListener("click", toggleTheme);
       document.getElementById("logout-btn").addEventListener("click", () => {
         auth.signOut().then(() => window.location.href = "./");
       });

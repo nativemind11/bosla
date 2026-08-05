@@ -12,19 +12,28 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="css/style.css">
+<script>
+(function(){
+  try {
+    var t = localStorage.getItem("bosla_theme");
+    if (!t) t = (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", t);
+  } catch (e) { document.documentElement.setAttribute("data-theme", "light"); }
+})();
+</script>
 <style>
   .legal-page { max-width: 760px; }
   .legal-page h2.section-title { margin-bottom: 6px; }
   .legal-page .updated-note { color: var(--gray); font-size: 13px; margin-bottom: 40px; }
   .legal-section { margin-bottom: 40px; }
-  .legal-section h3 { color: var(--purple-900); font-size: 20px; margin-bottom: 14px; }
-  .legal-section h4 { color: var(--purple-700); font-size: 16px; margin: 20px 0 8px; }
+  .legal-section h3 { color: var(--heading); font-size: 20px; margin-bottom: 14px; }
+  .legal-section h4 { color: var(--accent-text); font-size: 16px; margin: 20px 0 8px; }
   .legal-section p, .legal-section li { color: var(--ink); font-size: 15px; line-height: 1.9; }
   .legal-section ul { padding-right: 20px; margin: 10px 0; }
   .legal-toc { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 44px; }
   .legal-toc a {
-    background: var(--purple-50); border: 1px solid var(--line); border-radius: 999px;
-    padding: 8px 18px; font-weight: 700; font-size: 14px; color: var(--purple-700);
+    background: var(--soft-bg); border: 1px solid var(--line); border-radius: 999px;
+    padding: 8px 18px; font-weight: 700; font-size: 14px; color: var(--accent-text);
   }
 </style>
 </head>
@@ -54,7 +63,7 @@
         <li>BUSLA ليها الحق تعلّق أي حساب بيستخدم بيانات غير صحيحة أو بيسيء استخدام المنصة.</li>
       </ul>
       <h4>الدفع</h4>
-      <p>الدفع بيتم مباشرة من الباحث عن إرشاد لحساب المرشد عن طريق إنستاباي، وبيتأكد برفع صورة إيصال التحويل ومراجعة المرشد لها. بعد إتمام الجلسة وتأكيد الطرفين، بتخصم BUSLA عمولة بسيطة من مبلغ الجلسة.</p>
+      <p>قيمة الجلسة بتتحول من الباحث عن إرشاد إلى رقم إنستاباي الرسمي الخاص بمنصة BUSLA (مش لحساب المرشد مباشرة)، ويتم رفع صورة إيصال التحويل على المنصة. يراجع فريق BUSLA الإيصال ويؤكده، وبعدها يظهر رابط الجلسة. بعد إتمام الجلسة وتأكيدها من الطرفين (المستفيد والمرشد)، تقوم BUSLA بتحويل نصيب المرشد على رقم الإنستاباي المسجل في حسابه، بعد خصم عمولة المنصة (10%).</p>
     </div>
 
     <div class="legal-section" id="privacy">
