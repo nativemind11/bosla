@@ -4,22 +4,13 @@
 <base href="../">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>احجز جلسة — BUSLA</title>
+<title>احجز جلسة — BOSLA</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/logo-32.png">
 <link rel="icon" type="image/png" sizes="64x64" href="assets/logo-64.png">
 <link rel="apple-touch-icon" href="assets/logo-256.png">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="css/style.css">
-<script>
-(function(){
-  try {
-    var t = localStorage.getItem("bosla_theme");
-    if (!t) t = (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
-    document.documentElement.setAttribute("data-theme", t);
-  } catch (e) { document.documentElement.setAttribute("data-theme", "light"); }
-})();
-</script>
 <style>
   /* ===== Availability Slots Display ===== */
   .availability-wrapper {
@@ -34,12 +25,12 @@
     border: 1px solid var(--line);
     border-radius: 8px;
     padding: 12px;
-    background: var(--soft-bg);
+    background: var(--purple-50);
   }
   .day-group-title {
     font-weight: 600;
     margin-bottom: 8px;
-    color: var(--accent-text);
+    color: var(--purple);
     font-size: 14px;
   }
   .time-slots-grid {
@@ -50,7 +41,7 @@
   .time-slot-option {
     padding: 8px 6px;
     border: 2px solid var(--line);
-    background: var(--bg-input);
+    background: white;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 500;
@@ -59,14 +50,14 @@
     transition: all 0.2s;
   }
   .time-slot-option:hover {
-    border-color: var(--accent-border);
-    color: var(--accent-text);
-    background: var(--bg-input);
+    border-color: var(--purple);
+    color: var(--purple);
+    background: white;
   }
   .time-slot-option.selected {
-    background: var(--purple-700);
-    border-color: var(--purple-700);
-    color: #fff;
+    background: var(--purple);
+    border-color: var(--purple);
+    color: white;
   }
   .no-availability {
     padding: 12px;
@@ -107,7 +98,7 @@ const box = document.getElementById("booking-box");
 let mentor = null;
 let currentUser = null;
 let reviewsData = null;
-let BUSLA_INSTAPAY = "01025406188";
+let BOSLA_INSTAPAY = "01025406188";
 let selectedSlot = null;
 
 async function init() {
@@ -117,7 +108,7 @@ async function init() {
 
   try {
     const config = await apiGet("getPlatformConfig");
-    if (config && config.instapay) BUSLA_INSTAPAY = config.instapay;
+    if (config && config.instapay) BOSLA_INSTAPAY = config.instapay;
 
     auth.onAuthStateChanged(async (user) => {
       try {
@@ -159,7 +150,7 @@ function reviewsSectionHtml() {
   const list = reviews.slice(0, 6).map(r => `
     <div style="padding:12px 0; border-bottom:1px solid var(--line)">
       <div style="display:flex; justify-content:space-between; align-items:center; gap:10px">
-        <strong style="font-size:14px">${escapeHtml(r.MenteeName) || "مستفيد BUSLA"}</strong>
+        <strong style="font-size:14px">${escapeHtml(r.MenteeName) || "مستفيد BOSLA"}</strong>
         <span class="stars">${starsText(r.Rating)}</span>
       </div>
       ${r.Comment ? `<p style="font-size:14px; color:var(--gray); margin:6px 0 0">${escapeHtml(r.Comment)}</p>` : ""}
@@ -169,7 +160,7 @@ function reviewsSectionHtml() {
     <div class="card" style="margin-bottom:24px">
       <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px">
         <strong>تقييمات المرشد</strong>
-        <span style="color:var(--accent-text); font-weight:800">
+        <span style="color:var(--purple-700); font-weight:800">
           <span class="stars">${starsText(avg)}</span> ${avg} <span class="field-hint" style="margin:0">(${count} تقييم)</span>
         </span>
       </div>
@@ -286,11 +277,11 @@ function renderForm(isLoggedIn) {
       <div class="field-hint" style="margin-top:12px;">اختر أحد الأوقات المتاحة من القائمة أعلى</div>
 
       ${Number(mentor.Price) > 0 ? `
-      <label style="margin-top:20px">حوّل ${mentor.Price} ج.م على إنستاباي BUSLA</label>
-      <div class="card" style="padding:14px; background:var(--soft-bg); border:none">
-        رقم إنستاباي BUSLA: <strong>${BUSLA_INSTAPAY}</strong>
+      <label style="margin-top:20px">حوّل ${mentor.Price} ج.م على إنستاباي BOSLA</label>
+      <div class="card" style="padding:14px; background:var(--purple-50); border:none">
+        رقم إنستاباي BOSLA: <strong>${BOSLA_INSTAPAY}</strong>
         <div class="field-hint" style="margin-top:6px">
-          التحويل بيروح لـ BUSLA مش للمرشد مباشرة، وده عشان لو المرشد ماحضرش الميتينج تقدر تسترجع فلوسك.
+          التحويل بيروح لـ BOSLA مش للمرشد مباشرة، وده عشان لو المرشد ماحضرش الميتينج تقدر تسترجع فلوسك.
         </div>
       </div>
       <label>ارفع صورة سكرين شوت إيصال التحويل</label>
@@ -348,7 +339,7 @@ async function submitBooking() {
       <div class="form-title">تم الحجز!</div>
       <p style="color:var(--gray)">
         ${Number(mentor.Price) > 0
-          ? "فريق BUSLA هيراجع إيصال الدفع ويأكد استلام الفلوس. هتلاقي رابط الميتينج في لوحة حسابك بعد التأكيد. بعد ما تخلصوا الجلسة، أنت والمرشد هتأكدوا كل واحد من حسابه إن الجلسة اتعملت، وبعدها بوصلة تحول نصيب المرشد (بعد خصم عمولة 10%)."
+          ? "فريق BOSLA هيراجع إيصال الدفع ويأكد استلام الفلوس. هتلاقي رابط الميتينج في لوحة حسابك بعد التأكيد. بعد ما تخلصوا الجلسة، أنت والمرشد هتأكدوا كل واحد من حسابه إن الجلسة اتعملت، وبعدها بوصلة تحول نصيب المرشد (بعد خصم عمولة 10%)."
           : "الحجز اتأكد أوتوماتيك لأنها جلسة مجانية. هتلاقي رابط الميتينج في لوحة حسابك."}
       </p>
       <a href="dashboard/" class="btn btn-primary btn-block">روح للوحة حسابي</a>

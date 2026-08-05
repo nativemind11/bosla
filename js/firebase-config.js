@@ -1,4 +1,4 @@
-// ===================== إعدادات BUSLA العامة =====================
+// ===================== إعدادات BOSLA العامة =====================
 
 const firebaseConfig = {
   apiKey: "AIzaSyDtb3a3_a4C6mSnLyth-MkunjDROUw03rc",

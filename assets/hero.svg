@@ -10,7 +10,7 @@
       <stop offset="100%" stop-color="#6D28D9"/>
     </linearGradient>
 
-    <!-- compass badge gradients, matched to the real BUSLA logo mark -->
+    <!-- compass badge gradients, matched to the real BOSLA logo mark -->
     <linearGradient id="caseOuter" x1="15%" y1="8%" x2="85%" y2="95%">
       <stop offset="0%" stop-color="#cbb2ff"/>
       <stop offset="30%" stop-color="#7c3aed"/>
@@ -91,7 +91,7 @@
     <line x1="600" y1="270" x2="552" y2="285"/>
   </g>
 
-  <!-- ===== central compass badge, matched exactly to the real BUSLA logo ===== -->
+  <!-- ===== central compass badge, matched exactly to the real BOSLA logo ===== -->
   <g filter="url(#cardShadow)" transform="translate(600,270) scale(1.55)">
     <circle cx="0" cy="0" r="42" fill="url(#caseOuter)"/>
     <circle cx="0" cy="0" r="42" fill="url(#caseSheen)"/>
