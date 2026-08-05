@@ -376,6 +376,21 @@ th { color: var(--gray); font-weight: 700; background: var(--soft-bg); }
 .status-completed { background: var(--purple-100); color: var(--purple-700); }
 .status-cancelled { background: var(--error-bg); color: var(--error); }
 
+/* ===== تايمر الجلسة (عداد تنازلي للربع ساعة، بيبدأ لما الاتنين يدخلوا الميتينج) ===== */
+.session-timer {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  font-size: 15px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1.5px solid var(--success);
+}
+.session-timer-ending { background: #FDE8CC; color: #9A4B00; border-color: #9A4B00; }
+.session-timer-done { background: var(--error-bg); color: var(--error); border-color: var(--error); }
+
 /* ===== Tabs ===== */
 .tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--line); margin-bottom: 28px; }
 .tab-btn {
