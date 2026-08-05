@@ -4,7 +4,7 @@
 <base href="../">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لوحة الأدمن — BOSLA</title>
+<title>لوحة الأدمن — BUSLA</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/logo-32.png">
 <link rel="icon" type="image/png" sizes="64x64" href="assets/logo-64.png">
 <link rel="apple-touch-icon" href="assets/logo-256.png">
@@ -93,7 +93,7 @@ function render() {
 }
 
 // نظرة سريعة فوق الجداول: عدد الحجوزات المستنية تأكيد دفع، والتحويلات
-// المعلقة للمرشدين، وإجمالي عمولة BOSLA — من غير ما تدور جوه الجدول.
+// المعلقة للمرشدين، وإجمالي عمولة BUSLA — من غير ما تدور جوه الجدول.
 async function loadStats() {
   const statsEl = document.getElementById("admin-stats");
   try {
@@ -127,7 +127,7 @@ async function loadStats() {
       </div>
       <div class="stat-card">
         <span class="stat-num">${totalCommission.toLocaleString("ar-EG")} ج.م</span>
-        <span class="stat-label">إجمالي عمولة BOSLA</span>
+        <span class="stat-label">إجمالي عمولة BUSLA</span>
       </div>
     `;
   } catch (err) {
@@ -143,7 +143,7 @@ function goToBookingsTab() {
 }
 
 async function confirmPayment(bookingId) {
-  if (!confirm("متأكد إنك استلمت الفلوس فعلاً على إنستاباي BOSLA؟")) return;
+  if (!confirm("متأكد إنك استلمت الفلوس فعلاً على إنستاباي BUSLA؟")) return;
   try {
     await apiPost("confirmBooking", { bookingId });
     showToast("اتأكد الحجز وهيتبعت رابط الميتينج للمستفيد");
@@ -195,7 +195,7 @@ async function loadTab(name) {
       body.innerHTML = bookings.length ? `
         <div class="table-scroll">
         <table>
-          <thead><tr><th>#</th><th>المرشد</th><th>المستفيد</th><th>المجال</th><th>الميعاد</th><th>الحالة</th><th>إيصال</th><th>عمولة BOSLA</th><th>نصيب المرشد</th><th>انستاباي المرشد</th><th>تحويل المرشد</th></tr></thead>
+          <thead><tr><th>#</th><th>المرشد</th><th>المستفيد</th><th>المجال</th><th>الميعاد</th><th>الحالة</th><th>إيصال</th><th>عمولة BUSLA</th><th>نصيب المرشد</th><th>انستاباي المرشد</th><th>تحويل المرشد</th></tr></thead>
           <tbody>${bookings.map(b => `
             <tr>
               <td data-label="#">${b.BookingID}</td><td data-label="المرشد">${b.MentorName}</td><td data-label="المستفيد">${b.MenteeName}</td>
@@ -204,7 +204,7 @@ async function loadTab(name) {
               <td data-label="إيصال">${b.PaymentScreenshotURL
                 ? `<a href="${b.PaymentScreenshotURL}" target="_blank">عرض</a>${b.Status === "pending_confirmation" ? `<br><button class="btn btn-primary" style="padding:4px 10px; margin-top:6px" onclick="confirmPayment('${b.BookingID}')">تأكيد استلام الفلوس</button>` : ""}`
                 : "—"}</td>
-              <td data-label="عمولة BOSLA">${b.PlatformCommission ? b.PlatformCommission + ' ج.م' : "—"}</td>
+              <td data-label="عمولة BUSLA">${b.PlatformCommission ? b.PlatformCommission + ' ج.م' : "—"}</td>
               <td data-label="نصيب المرشد">${b.MentorPayout ? b.MentorPayout + ' ج.م' : "—"}</td>
               <td data-label="انستاباي المرشد">${
                 !b.MentorPayout ? "—"

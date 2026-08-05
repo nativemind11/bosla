@@ -4,7 +4,7 @@
 <base href="../">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>احجز جلسة — BOSLA</title>
+<title>احجز جلسة — BUSLA</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/logo-32.png">
 <link rel="icon" type="image/png" sizes="64x64" href="assets/logo-64.png">
 <link rel="apple-touch-icon" href="assets/logo-256.png">
@@ -98,7 +98,7 @@ const box = document.getElementById("booking-box");
 let mentor = null;
 let currentUser = null;
 let reviewsData = null;
-let BOSLA_INSTAPAY = "01025406188";
+let BUSLA_INSTAPAY = "01025406188";
 let selectedSlot = null;
 
 async function init() {
@@ -108,7 +108,7 @@ async function init() {
 
   try {
     const config = await apiGet("getPlatformConfig");
-    if (config && config.instapay) BOSLA_INSTAPAY = config.instapay;
+    if (config && config.instapay) BUSLA_INSTAPAY = config.instapay;
 
     auth.onAuthStateChanged(async (user) => {
       try {
@@ -150,7 +150,7 @@ function reviewsSectionHtml() {
   const list = reviews.slice(0, 6).map(r => `
     <div style="padding:12px 0; border-bottom:1px solid var(--line)">
       <div style="display:flex; justify-content:space-between; align-items:center; gap:10px">
-        <strong style="font-size:14px">${escapeHtml(r.MenteeName) || "مستفيد BOSLA"}</strong>
+        <strong style="font-size:14px">${escapeHtml(r.MenteeName) || "مستفيد BUSLA"}</strong>
         <span class="stars">${starsText(r.Rating)}</span>
       </div>
       ${r.Comment ? `<p style="font-size:14px; color:var(--gray); margin:6px 0 0">${escapeHtml(r.Comment)}</p>` : ""}
@@ -277,11 +277,11 @@ function renderForm(isLoggedIn) {
       <div class="field-hint" style="margin-top:12px;">اختر أحد الأوقات المتاحة من القائمة أعلى</div>
 
       ${Number(mentor.Price) > 0 ? `
-      <label style="margin-top:20px">حوّل ${mentor.Price} ج.م على إنستاباي BOSLA</label>
+      <label style="margin-top:20px">حوّل ${mentor.Price} ج.م على إنستاباي BUSLA</label>
       <div class="card" style="padding:14px; background:var(--purple-50); border:none">
-        رقم إنستاباي BOSLA: <strong>${BOSLA_INSTAPAY}</strong>
+        رقم إنستاباي BUSLA: <strong>${BUSLA_INSTAPAY}</strong>
         <div class="field-hint" style="margin-top:6px">
-          التحويل بيروح لـ BOSLA مش للمرشد مباشرة، وده عشان لو المرشد ماحضرش الميتينج تقدر تسترجع فلوسك.
+          التحويل بيروح لـ BUSLA مش للمرشد مباشرة، وده عشان لو المرشد ماحضرش الميتينج تقدر تسترجع فلوسك.
         </div>
       </div>
       <label>ارفع صورة سكرين شوت إيصال التحويل</label>
@@ -339,7 +339,7 @@ async function submitBooking() {
       <div class="form-title">تم الحجز!</div>
       <p style="color:var(--gray)">
         ${Number(mentor.Price) > 0
-          ? "فريق BOSLA هيراجع إيصال الدفع ويأكد استلام الفلوس. هتلاقي رابط الميتينج في لوحة حسابك بعد التأكيد. بعد ما تخلصوا الجلسة، أنت والمرشد هتأكدوا كل واحد من حسابه إن الجلسة اتعملت، وبعدها بوصلة تحول نصيب المرشد (بعد خصم عمولة 10%)."
+          ? "فريق BUSLA هيراجع إيصال الدفع ويأكد استلام الفلوس. هتلاقي رابط الميتينج في لوحة حسابك بعد التأكيد. بعد ما تخلصوا الجلسة، أنت والمرشد هتأكدوا كل واحد من حسابه إن الجلسة اتعملت، وبعدها بوصلة تحول نصيب المرشد (بعد خصم عمولة 10%)."
           : "الحجز اتأكد أوتوماتيك لأنها جلسة مجانية. هتلاقي رابط الميتينج في لوحة حسابك."}
       </p>
       <a href="dashboard/" class="btn btn-primary btn-block">روح للوحة حسابي</a>
