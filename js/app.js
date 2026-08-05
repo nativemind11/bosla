@@ -1,10 +1,11 @@
-// ===================== دوال مساعدة عامة لموقع BOSLA =====================
+// ===================== دوال مساعدة عامة لموقع BUSLA =====================
 
 // نداء GET للباك إند (قراءة بيانات)
-// بيستخدم كاش خفيف في المتصفح (sessionStorage): لو فيه نسخة محفوظة من نفس الطلب بترجع فورًا
+// بيستخدم كاش محسّن في المتصفح (localStorage): لو فيه نسخة محفوظة من نفس الطلب بترجع فورًا
 // عشان الصفحة تظهر بسرعة، وفي نفس الوقت بيتم تحديثها في الخلفية من غير ما اليوزر يستنى.
 // كمان بيحط مهلة زمنية (timeout) عشان لو الباك إند اتعلق، الصفحة مش تفضل معلقة على "بيحمل..." للأبد.
 const API_TIMEOUT_MS = 15000;
+const CACHE_DURATION_MS = 10 * 60 * 1000; // 10 دقايق (بدل 5)
 
 function withTimeout(promise, ms = API_TIMEOUT_MS) {
   return Promise.race([
@@ -28,16 +29,16 @@ async function apiGet(action, params = {}) {
     const query = new URLSearchParams({ action, ...params, ...(idToken ? { idToken } : {}) }).toString();
     const res = await withTimeout(fetch(`${SCRIPT_URL}?${query}`));
     const data = await res.json();
-    try { sessionStorage.setItem(cacheKey, JSON.stringify({ data, time: Date.now() })); } catch (e) {}
+    try { localStorage.setItem(cacheKey, JSON.stringify({ data, time: Date.now() })); } catch (e) {}
     return data;
   };
 
   try {
-    const cached = sessionStorage.getItem(cacheKey);
+    const cached = localStorage.getItem(cacheKey);
     if (cached) {
       const { data, time } = JSON.parse(cached);
-      // النسخة المحفوظة صالحة للعرض الفوري لمدة 5 دقايق، وبيتم تحديثها بصمت في الخلفية
-      if (Date.now() - time < 5 * 60 * 1000) {
+      // النسخة المحفوظة صالحة للعرض الفوري لمدة 10 دقايق، وبيتم تحديثها بصمت في الخلفية
+      if (Date.now() - time < CACHE_DURATION_MS) {
         fetchFresh().catch(() => {});
         return data;
       }
@@ -50,9 +51,9 @@ async function apiGet(action, params = {}) {
 // بيمسح كاش القراءة بعد أي عملية كتابة (حجز، تسجيل، تأكيد...) عشان الصفحات تجيب بيانات محدثة فورًا
 function clearApiCache() {
   try {
-    Object.keys(sessionStorage)
+    Object.keys(localStorage)
       .filter(k => k.startsWith("bosla_cache_"))
-      .forEach(k => sessionStorage.removeItem(k));
+      .forEach(k => localStorage.removeItem(k));
   } catch (e) {}
 }
 
@@ -199,24 +200,26 @@ function populateFieldsSelect(selectEl) {
   });
 }
 
-// تعبئة قائمة التخصصات بناءً على المجال المختار
-function populateSpecializationsSelect(fieldValue, selectEl) {
+// تعبئة قائمة التخصصات (select) بناءً على المجال المختار
+function populateSpecializedSelect(fieldValue, selectEl) {
   selectEl.innerHTML = '<option value="">اختر التخصص</option>';
-  (FIELDS[fieldValue] || []).forEach(spec => {
-    const opt = document.createElement("option");
-    opt.value = spec;
-    opt.textContent = spec;
-    selectEl.appendChild(opt);
-  });
+  if (fieldValue && FIELDS[fieldValue]) {
+    FIELDS[fieldValue].forEach(spec => {
+      const opt = document.createElement("option");
+      opt.value = spec;
+      opt.textContent = spec;
+      selectEl.appendChild(opt);
+    });
+  }
 }
 
-// حقن الهيدر والفوتر المشترك في أي صفحة فيها عنصر #bosla-header / #bosla-footer
+// ===================== الهيدر المشترك (Navigation) =====================
 function renderHeader() {
   const header = document.getElementById("bosla-header");
   if (!header) return;
   header.innerHTML = `
     <div class="nav-wrap">
-      <a href="./" class="logo"><img src="assets/logo-mark.svg" alt="" width="34" height="34">BOSLA</a>
+      <a href="./" class="logo"><img src="assets/logo-mark.svg" alt="" width="34" height="34">BUSLA</a>
       <nav class="nav-links" id="nav-links">
         <a href="mentors/">لاقي مرشد</a>
         <a href="./#how">إزاي بتشتغل</a>
@@ -258,19 +261,19 @@ document.addEventListener("DOMContentLoaded", renderHeader);
 const MENTEE_FAQ = [
   {
     q: "كيف تتم عملية الدفع؟",
-    a: "يتم تحويل قيمة الجلسة إلى رقم إنستاباي الرسمي الخاص بمنصة BOSLA (وليس لحساب المرشد مباشرة)، ثم رفع صورة إيصال التحويل على المنصة. بعد مراجعة فريق BOSLA للإيصال وتأكيده، يظهر رابط الاجتماع في لوحة حسابك."
+    a: "يتم تحويل قيمة الجلسة إلى رقم إنستاباي الرسمي الخاص بمنصة BUSLA (وليس لحساب المرشد مباشرة)، ثم رفع صورة إيصال التحويل على المنصة. بعد مراجعة فريق BUSLA للإيصال وتأكيده، يظهر رابط الاجتماع في لوحة حسابك."
   },
   {
     q: "إلى أين تذهب الأموال، ومتى يستلمها المرشد؟",
-    a: "المبلغ بيتحول أول حاجة لحساب BOSLA، مش لحساب المرشد مباشرة. وبعد انتهاء الجلسة وتأكيدها من الطرفين (المستفيد والمرشد)، تقوم BOSLA بتحويل نصيب المرشد على رقم الإنستاباي المسجل في حسابه، بعد خصم عمولة المنصة (10%)."
+    a: "المبلغ بيتحول أول حاجة لحساب BUSLA، مش لحساب المرشد مباشرة. وبعد انتهاء الجلسة وتأكيدها من الطرفين (المستفيد والمرشد)، تقوم BUSLA بتحويل نصيب المرشد على رقم الإنستاباي المسجل في حسابه، بعد خصم عمولة المنصة (10%)."
   },
   {
     q: "ماذا لو لم يحضر المرشد أو لم يُرسل رابط الاجتماع؟",
-    a: "يمكنك التبليغ فورًا من خلال زر \"لسه عندي مشكلة\" في هذه الصفحة. سيراجع فريق BOSLA الحالة يدويًا، وفي حال ثبوت عدم انعقاد الجلسة يتم استرداد المبلغ المدفوع."
+    a: "يمكنك التبليغ فورًا من خلال زر \"لسه عندي مشكلة\" في هذه الصفحة. سيراجع فريق BUSLA الحالة يدويًا، وفي حال ثبوت عدم انعقاد الجلسة يتم استرداد المبلغ المدفوع."
   },
   {
     q: "أين يتم حفظ بياناتي وصورة إيصال الدفع؟",
-    a: "تُحفظ بياناتك وصورة الإيصال في مساحة تخزين خاصة بمنصة BOSLA، ولا تتم مشاركتها مع أي طرف سوى المرشد الذي حجزت معه، وذلك بغرض تأكيد الدفع فقط."
+    a: "تُحفظ بياناتك وصورة الإيصال في مساحة تخزين خاصة بمنصة BUSLA، ولا تتم مشاركتها مع أي طرف سوى المرشد الذي حجزت معه، وذلك بغرض تأكيد الدفع فقط."
   },
   {
     q: "هل لديك استفسار آخر؟",
@@ -281,11 +284,11 @@ const MENTEE_FAQ = [
 const MENTOR_FAQ = [
   {
     q: "كيف أستلم مستحقاتي المالية؟",
-    a: "يقوم المستفيد بتحويل قيمة الجلسة إلى رقم إنستاباي BOSLA الرسمي (مش لحسابك مباشرة)، ويرفع صورة إيصال التحويل. يراجع فريق BOSLA الإيصال ويؤكده، وبعد انتهاء الجلسة وتأكيدها من الطرفين، تحول BOSLA نصيبك على رقم الإنستاباي المسجل في حسابك، بعد خصم عمولة المنصة (10%)."
+    a: "يقوم المستفيد بتحويل قيمة الجلسة إلى رقم إنستاباي BUSLA الرسمي (مش لحسابك مباشرة)، ويرفع صورة إيصال التحويل. يراجع فريق BUSLA الإيصال ويؤكده، وبعد انتهاء الجلسة وتأكيدها من الطرفين، تحول BUSLA نصيبك على رقم الإنستاباي المسجل في حسابك، بعد خصم عمولة المنصة (10%)."
   },
   {
     q: "هل هناك عمولة على المنصة؟",
-    a: "نعم، تخصم BOSLA عمولة 10% من قيمة كل جلسة مدفوعة مقابل استخدام المنصة وخدمات المتابعة والدعم الفني."
+    a: "نعم، تخصم BUSLA عمولة 10% من قيمة كل جلسة مدفوعة مقابل استخدام المنصة وخدمات المتابعة والدعم الفني."
   },
   {
     q: "كيف يظهر رابط الاجتماع للمستفيد؟",
@@ -293,7 +296,7 @@ const MENTOR_FAQ = [
   },
   {
     q: "ماذا لو لم يحضر المستفيد إلى الجلسة؟",
-    a: "يمكنك الإبلاغ عن ذلك من لوحة حسابك، وسيقوم فريق BOSLA بمراجعة الحالة والتواصل مع المستفيد لمعرفة السبب."
+    a: "يمكنك الإبلاغ عن ذلك من لوحة حسابك، وسيقوم فريق BUSLA بمراجعة الحالة والتواصل مع المستفيد لمعرفة السبب."
   },
   {
     q: "هل لديك استفسار آخر؟",
@@ -326,7 +329,7 @@ function renderChatbot() {
   panel.className = "chatbot-panel";
   panel.innerHTML = `
     <div class="chatbot-header">
-      <span>مساعدة BOSLA</span>
+      <span>مساعدة BUSLA</span>
       <button class="chatbot-close" aria-label="قفل">&times;</button>
     </div>
     <div class="chatbot-body" id="chatbot-body"></div>
