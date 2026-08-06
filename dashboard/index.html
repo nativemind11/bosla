@@ -320,7 +320,7 @@ async function renderMentorDashboard(user, mentor) {
             <td data-label="الميعاد">${b.SlotDateTime}</td>
             <td data-label="الحالة"><span class="status-pill status-${b.Status}">${STATUS_LABELS[b.Status] || b.Status}</span></td>
             <td data-label="الميتينج">
-              ${(b.Status === "confirmed" || b.Status === "completed") ? `<button type="button" class="btn btn-ghost" style="padding:6px 14px" onclick="joinMeeting('${b.BookingID}','mentor','${escapeHtml(mentor.MeetingLink || "").replace(/'/g, "")}')">رابط الميتينج</button>` : "—"}
+              ${b.Status === "completed" ? `<span class="field-hint">الجلسة اتعملت ✅</span>` : (b.Status === "confirmed" ? `<button type="button" class="btn btn-ghost" style="padding:6px 14px" onclick="joinMeeting('${b.BookingID}','mentor','${escapeHtml(mentor.MeetingLink || "").replace(/'/g, "")}')">رابط الميتينج</button>` : "—")}
               ${b.Status === "pending_confirmation" ? `<span class="field-hint">BUSLA بتراجع الإيصال دلوقتي</span>` : ""}
               ${b.PaymentScreenshotURL ? `<a href="${b.PaymentScreenshotURL}" target="_blank" class="field-hint" style="text-decoration:underline">إيصال الدفع</a>` : ""}
             </td>
@@ -400,7 +400,9 @@ async function renderMenteeDashboard(user, mentee) {
           if (b.MentorUID === mentorUid && (b.Status === "confirmed" || b.Status === "completed")) {
             const cell = document.getElementById(`meeting-${mentorUid}-${b.BookingID}`);
             if (cell) {
-              cell.innerHTML = `<button type="button" class="btn btn-primary" style="padding:6px 14px" onclick="joinMeeting('${b.BookingID}','mentee','${escapeHtml(m.MeetingLink || "").replace(/'/g, "")}')">ادخل الميتينج</button>`;
+              cell.innerHTML = b.Status === "completed"
+                ? `<span class="field-hint">الجلسة اتعملت ✅</span>`
+                : `<button type="button" class="btn btn-primary" style="padding:6px 14px" onclick="joinMeeting('${b.BookingID}','mentee','${escapeHtml(m.MeetingLink || "").replace(/'/g, "")}')">ادخل الميتينج</button>`;
             }
           }
         });
