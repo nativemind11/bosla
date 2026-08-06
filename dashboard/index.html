@@ -182,6 +182,89 @@ function openReviewModal(bookingId, mentorUid, mentorName) {
   });
 }
 
+// ===== دفع الحجز (لما الحالة "بانتظار الدفع") — المستفيد يقدر يدفع أو يرفع الإيصال من هنا =====
+let BOSLA_INSTAPAY_CACHE = null;
+async function getBoslaInstapay() {
+  if (BOSLA_INSTAPAY_CACHE) return BOSLA_INSTAPAY_CACHE;
+  try {
+    const cfg = await apiGet("getPlatformConfig");
+    BOSLA_INSTAPAY_CACHE = (cfg && cfg.instapay) || "01025406188";
+  } catch (err) {
+    BOSLA_INSTAPAY_CACHE = "01025406188";
+  }
+  return BOSLA_INSTAPAY_CACHE;
+}
+
+async function openPaymentModal(bookingId, mentorName, price) {
+  const old = document.getElementById("payment-overlay");
+  if (old) old.remove();
+
+  const instapay = await getBoslaInstapay();
+
+  const overlay = document.createElement("div");
+  overlay.id = "payment-overlay";
+  overlay.innerHTML = `
+    <div class="review-modal">
+      <div class="form-title" style="font-size:20px">ادفع جلستك مع ${escapeHtml(mentorName)}</div>
+      <div class="form-sub">حوّل ${price} ج.م على إنستاباي BUSLA وارفع صورة الإيصال</div>
+      <div class="card" style="padding:14px; background:var(--soft-bg); border:none; margin-top:14px">
+        رقم إنستاباي BUSLA: <strong>${instapay}</strong>
+        <div class="field-hint" style="margin-top:6px">
+          التحويل بيروح لـ BUSLA مش للمرشد مباشرة، وده عشان لو المرشد ماحضرش الميتينج تقدر تسترجع فلوسك.
+        </div>
+      </div>
+      <label style="margin-top:14px">ارفع صورة سكرين شوت إيصال التحويل</label>
+      <input type="file" id="payment-proof-input" accept="image/*">
+      <div style="display:flex; gap:10px; margin-top:18px">
+        <button class="btn btn-primary btn-block" id="submit-payment-btn">تأكيد الدفع</button>
+        <button class="btn btn-ghost btn-block" id="cancel-payment-btn">إلغاء</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
+  overlay.querySelector("#cancel-payment-btn").addEventListener("click", () => overlay.remove());
+  overlay.querySelector("#submit-payment-btn").addEventListener("click", async () => {
+    const fileInput = overlay.querySelector("#payment-proof-input");
+    const file = fileInput.files[0];
+    if (!file) { showToast("ارفع صورة الإيصال الأول", "error"); return; }
+
+    const btn = overlay.querySelector("#submit-payment-btn");
+    btn.disabled = true; btn.textContent = "بيترفع...";
+    try {
+      const compressed = await compressImageFile(file);
+      const base64 = await fileToBase64(compressed);
+      const res = await apiPost("uploadPaymentProof", {
+        bookingId: bookingId,
+        imageBase64: base64,
+        mimeType: compressed.type || file.type
+      }, API_TIMEOUT_MS_UPLOAD);
+      if (res && res.error) { showToast(res.error, "error"); btn.disabled = false; btn.textContent = "تأكيد الدفع"; return; }
+      showToast("تم رفع الإيصال! فريق BUSLA هيراجعه وهيتأكد الحجز بمجرد ما الفلوس توصل.");
+      overlay.remove();
+      location.reload();
+    } catch (err) {
+      showToast("حصل خطأ في رفع الإيصال، جرب تاني", "error");
+      btn.disabled = false; btn.textContent = "تأكيد الدفع";
+    }
+  });
+}
+
+// بترجع الـ HTML بتاع خلية "الميتينج" لما الحجز لسه بانتظار الدفع أو مراجعة الإيصال
+function paymentPendingCell(b) {
+  if (b.Status === "pending_payment") {
+    const price = (Number(b.PlatformCommission) || 0) + (Number(b.MentorPayout) || 0);
+    return `<button type="button" class="btn btn-primary" style="padding:6px 14px" onclick="openPaymentModal('${b.BookingID}','${escapeHtml(b.MentorName || "").replace(/'/g, "")}',${price})">ادفع الآن</button>`;
+  }
+  if (b.Status === "pending_confirmation") {
+    return `<span class="field-hint">بانتظار مراجعة الفريق</span>` +
+      (b.PaymentScreenshotURL ? `<br><a href="${b.PaymentScreenshotURL}" target="_blank" class="field-hint" style="text-decoration:underline">الإيصال اللي رفعته</a>` : "");
+  }
+  if (b.Status === "cancelled") return "—";
+  return null; // معناها الحجز مؤكد/مكتمل - هيتعرض رابط الميتينج بدل كده
+}
+
 // خلية "الشات" في جدول الحجوزات — بتظهر بس لو الحجز مؤكد أو خلص (نفس شرط رابط الميتينج)
 function chatCell(b, isMentorView, user, myProfile) {
   if (b.Status !== "confirmed" && b.Status !== "completed") return "—";
@@ -376,7 +459,7 @@ async function renderMenteeDashboard(user, mentee) {
             <td data-label="المرشد">${b.MentorName}</td>
             <td data-label="الميعاد">${b.SlotDateTime}</td>
             <td data-label="الحالة"><span class="status-pill status-${b.Status}">${STATUS_LABELS[b.Status] || b.Status}</span></td>
-            <td data-label="الميتينج"><span id="meeting-${b.MentorUID}-${b.BookingID}">⏳</span></td>
+            <td data-label="الميتينج">${paymentPendingCell(b) !== null ? paymentPendingCell(b) : `<span id="meeting-${b.MentorUID}-${b.BookingID}">⏳</span>`}</td>
             <td data-label="تايمر الجلسة" id="timer-cell-${b.BookingID}">${timerCell(b, false)}</td>
             <td data-label="الشات">${chatCell(b, false, user, mentee)}</td>
             <td data-label="تأكيد إتمام الجلسة">${completionActionCell(b, false)}</td>
