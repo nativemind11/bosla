@@ -530,3 +530,4 @@ function renderChatbot() {
 }
 
 document.addEventListener("DOMContentLoaded", renderChatbot);
+
