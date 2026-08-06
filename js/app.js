@@ -251,7 +251,7 @@ function populateFieldsSelect(selectEl) {
 }
 
 // تعبئة قائمة التخصصات (select) بناءً على المجال المختار
-function populateSpecializedSelect(fieldValue, selectEl) {
+function populateSpecializationsSelect(fieldValue, selectEl) {
   selectEl.innerHTML = '<option value="">اختر التخصص</option>';
   if (fieldValue && FIELDS[fieldValue]) {
     FIELDS[fieldValue].forEach(spec => {

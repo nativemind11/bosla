@@ -46,6 +46,8 @@ const STATUS_LABELS = {
 };
 
 function loadDashboard(user) {
+  window.__boslaUser = user;
+  if (window.__sessionPollTimer) { clearInterval(window.__sessionPollTimer); window.__sessionPollTimer = null; }
   container.innerHTML = `<div class="spinner">بيحمل لوحتك...</div>`;
   (async () => {
     const [mentor, mentee] = await Promise.all([
@@ -202,6 +204,76 @@ function chatCell(b, isMentorView, user, myProfile) {
   return `<a href="${url}" class="btn btn-ghost" style="padding:6px 14px">💬 الشات</a>`;
 }
 
+// ===== تايمر الجلسة (ربع ساعة) — بيبدأ لما الاتنين (المرشد والمستفيد) يدوسوا رابط الميتينج =====
+const SESSION_DURATION_MS = 15 * 60 * 1000;
+
+function formatCountdown(ms) {
+  if (ms <= 0) return "خلصت الربع ساعة ⏰";
+  const totalSec = Math.ceil(ms / 1000);
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+// بيبدأ عداد تنازلي جوه عنصر معين، ومبيبدأش تاني لو شغال بالفعل على نفس وقت البداية
+function startCountdown(elId, startTimeMs) {
+  const key = String(startTimeMs);
+  const el = document.getElementById(elId);
+  if (!el || el.dataset.startedFor === key) return;
+  el.dataset.startedFor = key;
+  const tick = () => {
+    const target = document.getElementById(elId);
+    if (!target || target.dataset.startedFor !== key) return; // اتشال أو بدأ توقيت تاني
+    const remaining = (startTimeMs + SESSION_DURATION_MS) - Date.now();
+    target.textContent = formatCountdown(remaining);
+    target.classList.toggle("session-timer-ending", remaining > 0 && remaining <= 60000);
+    target.classList.toggle("session-timer-done", remaining <= 0);
+    if (remaining > 0) setTimeout(tick, 1000);
+  };
+  tick();
+}
+
+// بترجع الـ HTML بتاع خلية "تايمر الجلسة" حسب حالة دخول الطرفين للميتينج
+function timerCell(b, isMentorView) {
+  if (b.Status !== "confirmed" && b.Status !== "completed") return "—";
+  const myJoinedAt = isMentorView ? b.MentorJoinedAt : b.MenteeJoinedAt;
+  const otherJoinedAt = isMentorView ? b.MenteeJoinedAt : b.MentorJoinedAt;
+  if (myJoinedAt && otherJoinedAt) {
+    const startMs = Math.max(new Date(myJoinedAt).getTime(), new Date(otherJoinedAt).getTime());
+    const timerId = `session-timer-${b.BookingID}`;
+    setTimeout(() => startCountdown(timerId, startMs), 0);
+    return `<span class="session-timer" id="${timerId}">--:--</span>`;
+  }
+  if (myJoinedAt) return `<span class="field-hint">مستنيين ${isMentorView ? "المستفيد" : "المرشد"} يدخل الميتينج</span>`;
+  return `<span class="field-hint">هيبدأ لما الاتنين تدخلوا الميتينج</span>`;
+}
+
+// بتتسجل إن الطرف ده دخل الميتينج، وبتفتح الرابط فعليًا في تاب جديد
+async function joinMeeting(bookingId, role, url) {
+  window.open(url, "_blank");
+  const action = role === "mentor" ? "markMentorJoined" : "markMenteeJoined";
+  try { await apiPost(action, { bookingId }); } catch (err) { /* الرابط اتفتح على أي حال، هنحاول تاني في البولينج */ }
+  refreshSessionTimers();
+}
+
+// بتحدّث خلايا تايمر الجلسة كل شوية عشان تلتقط لحظة دخول الطرف التاني بدون ريفريش كامل للصفحة
+async function refreshSessionTimers() {
+  try {
+    const isMentorView = window.__boslaRole === "mentor";
+    const uid = window.__boslaUser.uid;
+    const bookings = await apiGet(isMentorView ? "getBookingsForMentor" : "getBookingsForMentee", { uid });
+    bookings.forEach(b => {
+      const cell = document.getElementById(`timer-cell-${b.BookingID}`);
+      if (cell) cell.innerHTML = timerCell(b, isMentorView);
+    });
+  } catch (err) { /* هنحاول تاني في البولينج الجاي */ }
+}
+
+function startSessionPolling() {
+  if (window.__sessionPollTimer) clearInterval(window.__sessionPollTimer);
+  window.__sessionPollTimer = setInterval(refreshSessionTimers, 8000);
+}
+
 function completionActionCell(b, isMentorView) {
   if (b.Status === "completed") return `<span class="field-hint">اتأكدت من الطرفين ✅</span>`;
   if (b.Status !== "confirmed") return "";
@@ -241,17 +313,18 @@ async function renderMentorDashboard(user, mentor) {
     ${bookings.length ? `
       <div class="table-scroll">
       <table>
-        <thead><tr><th>المستفيد</th><th>الميعاد</th><th>الحالة</th><th>الميتينج</th><th>الشات</th><th>تأكيد إتمام الجلسة</th></tr></thead>
+        <thead><tr><th>المستفيد</th><th>الميعاد</th><th>الحالة</th><th>الميتينج</th><th>تايمر الجلسة</th><th>الشات</th><th>تأكيد إتمام الجلسة</th></tr></thead>
         <tbody>${bookings.map(b => `
           <tr>
             <td data-label="المستفيد">${b.MenteeName}</td>
             <td data-label="الميعاد">${b.SlotDateTime}</td>
             <td data-label="الحالة"><span class="status-pill status-${b.Status}">${STATUS_LABELS[b.Status] || b.Status}</span></td>
             <td data-label="الميتينج">
-              ${(b.Status === "confirmed" || b.Status === "completed") ? `<a href="${mentor.MeetingLink}" target="_blank" class="btn btn-ghost" style="padding:6px 14px">رابط الميتينج</a>` : "—"}
+              ${(b.Status === "confirmed" || b.Status === "completed") ? `<button type="button" class="btn btn-ghost" style="padding:6px 14px" onclick="joinMeeting('${b.BookingID}','mentor','${escapeHtml(mentor.MeetingLink || "").replace(/'/g, "")}')">رابط الميتينج</button>` : "—"}
               ${b.Status === "pending_confirmation" ? `<span class="field-hint">BUSLA بتراجع الإيصال دلوقتي</span>` : ""}
               ${b.PaymentScreenshotURL ? `<a href="${b.PaymentScreenshotURL}" target="_blank" class="field-hint" style="text-decoration:underline">إيصال الدفع</a>` : ""}
             </td>
+            <td data-label="تايمر الجلسة" id="timer-cell-${b.BookingID}">${timerCell(b, true)}</td>
             <td data-label="الشات">${chatCell(b, true, user, mentor)}</td>
             <td data-label="تأكيد إتمام الجلسة">${completionActionCell(b, true)}</td>
           </tr>
@@ -260,7 +333,8 @@ async function renderMentorDashboard(user, mentor) {
       </div>
     ` : `<div class="empty-state">لسه مفيش حجوزات.</div>`}
   `;
-  
+  startSessionPolling();
+
   // تحميل الـ reviews بالخلفية وتحديث العرض
   try {
     const reviewsData = await apiGet("getReviewsForMentor", { uid: user.uid });
@@ -296,13 +370,14 @@ async function renderMenteeDashboard(user, mentee) {
     ${bookings.length ? `
       <div class="table-scroll">
       <table>
-        <thead><tr><th>المرشد</th><th>الميعاد</th><th>الحالة</th><th>الميتينج</th><th>الشات</th><th>تأكيد إتمام الجلسة</th><th>تقييمك</th></tr></thead>
+        <thead><tr><th>المرشد</th><th>الميعاد</th><th>الحالة</th><th>الميتينج</th><th>تايمر الجلسة</th><th>الشات</th><th>تأكيد إتمام الجلسة</th><th>تقييمك</th></tr></thead>
         <tbody>${bookings.map(b => `
           <tr>
             <td data-label="المرشد">${b.MentorName}</td>
             <td data-label="الميعاد">${b.SlotDateTime}</td>
             <td data-label="الحالة"><span class="status-pill status-${b.Status}">${STATUS_LABELS[b.Status] || b.Status}</span></td>
             <td data-label="الميتينج"><span id="meeting-${b.MentorUID}-${b.BookingID}">⏳</span></td>
+            <td data-label="تايمر الجلسة" id="timer-cell-${b.BookingID}">${timerCell(b, false)}</td>
             <td data-label="الشات">${chatCell(b, false, user, mentee)}</td>
             <td data-label="تأكيد إتمام الجلسة">${completionActionCell(b, false)}</td>
             <td data-label="تقييمك">${reviewCell(b)}</td>
@@ -312,7 +387,8 @@ async function renderMenteeDashboard(user, mentee) {
       </div>
     ` : `<div class="empty-state">لسه معملتش أي حجز. <a href="mentors/" style="color:var(--accent-text)">تصفح المرشدين</a></div>`}
   `;
-  
+  startSessionPolling();
+
   // تحميل روابط الميتينج بالخلفية - كل المرشدين مع بعض (parallel) مش واحد واحد،
   // عشان كل طلب لباك إند Google Apps Script بياخد كام ثانية لوحده، ولو عندك حجوزات
   // مع أكتر من مرشد وعملناها واحد واحد بالتتابع الوقت هيتراكم ويخلي اللوحة تفضل "بتحمل" لمدة طويلة
@@ -327,7 +403,7 @@ async function renderMenteeDashboard(user, mentee) {
           if (b.MentorUID === mentorUid && (b.Status === "confirmed" || b.Status === "completed")) {
             const cell = document.getElementById(`meeting-${mentorUid}-${b.BookingID}`);
             if (cell) {
-              cell.innerHTML = `<a href="${escapeHtml(m.MeetingLink)}" target="_blank" class="btn btn-primary" style="padding:6px 14px">ادخل الميتينج</a>`;
+              cell.innerHTML = `<button type="button" class="btn btn-primary" style="padding:6px 14px" onclick="joinMeeting('${b.BookingID}','mentee','${escapeHtml(m.MeetingLink || "").replace(/'/g, "")}')">ادخل الميتينج</button>`;
             }
           }
         });
