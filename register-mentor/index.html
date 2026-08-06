@@ -1899,7 +1899,7 @@ document.getElementById("reg-form").addEventListener("submit", async (e) => {
     let profilePhotoUrl = "";
     if (selectedPhotoFile) {
       try {
-        const compressed = await compressImageFile(selectedPhotoFile);
+        const compressed = await compressImageFile(selectedPhotoFile, 1600, 0.72, true);
         const base64 = await fileToBase64(compressed);
         const uploadRes = await apiPost("uploadProfilePhoto", {
           uid: cred.user.uid, isMentor: true,
