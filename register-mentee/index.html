@@ -159,11 +159,12 @@ document.getElementById("reg-form").addEventListener("submit", async (e) => {
     let profilePhotoUrl = "";
     if (selectedPhotoFile) {
       try {
-        const base64 = await fileToBase64(selectedPhotoFile);
+        const compressed = await compressImageFile(selectedPhotoFile);
+        const base64 = await fileToBase64(compressed);
         const uploadRes = await apiPost("uploadProfilePhoto", {
           uid: cred.user.uid, isMentor: false,
-          imageBase64: base64, mimeType: selectedPhotoFile.type
-        });
+          imageBase64: base64, mimeType: compressed.type || selectedPhotoFile.type
+        }, API_TIMEOUT_MS_UPLOAD);
         if (uploadRes && uploadRes.success) profilePhotoUrl = uploadRes.url;
         else showToast("اتسجلت، بس مشكلة في رفع الصورة: " + (uploadRes.error || "خطأ غير معروف"), "error");
       } catch (photoErr) {

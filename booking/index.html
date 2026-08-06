@@ -324,8 +324,10 @@ async function submitBooking() {
 
   btn.disabled = true; btn.textContent = "بيتم الحجز...";
 
+  // ١) إنشاء الحجز نفسه أول حاجة
+  let bookingRes;
   try {
-    const bookingRes = await apiPost("createBooking", {
+    bookingRes = await apiPost("createBooking", {
       mentorUid: mentor.UID,
       mentorName: mentor.Name,
       menteeUid: currentUser.uid,
@@ -334,29 +336,70 @@ async function submitBooking() {
       slot: selectedSlot,
       price: mentor.Price
     });
-
-    if (proofInput && proofInput.files[0]) {
-      const base64 = await fileToBase64(proofInput.files[0]);
-      await apiPost("uploadPaymentProof", {
-        bookingId: bookingRes.bookingId,
-        imageBase64: base64,
-        mimeType: proofInput.files[0].type
-      });
-    }
-
-    box.innerHTML = `
-      <div class="form-title">تم الحجز!</div>
-      <p style="color:var(--gray)">
-        ${Number(mentor.Price) > 0
-          ? "فريق BUSLA هيراجع إيصال الدفع ويأكد استلام الفلوس. هتلاقي رابط الميتينج في لوحة حسابك بعد التأكيد. بعد ما تخلصوا الجلسة، أنت والمرشد هتأكدوا كل واحد من حسابه إن الجلسة اتعملت، وبعدها بوصلة تحول نصيب المرشد (بعد خصم عمولة 10%)."
-          : "الحجز اتأكد أوتوماتيك لأنها جلسة مجانية. هتلاقي رابط الميتينج في لوحة حسابك."}
-      </p>
-      <a href="dashboard/" class="btn btn-primary btn-block">روح للوحة حسابي</a>
-    `;
   } catch (err) {
+    // فشل الحجز نفسه (مش رفع الإيصال) - آمن نقول للمستخدم يجرب تاني من الأول
     showToast("حصل خطأ في الحجز، جرب تاني", "error");
     btn.disabled = false; btn.textContent = "تأكيد الحجز";
+    return;
   }
+
+  if (bookingRes && bookingRes.error) {
+    showToast(bookingRes.error, "error");
+    btn.disabled = false; btn.textContent = "تأكيد الحجز";
+    return;
+  }
+
+  // ٢) لو محتاج إثبات دفع، ارفعه كخطوة منفصلة. الحجز اتعمل بالفعل، فلو الخطوة دي فشلت
+  // (تايم آوت مثلاً)، ميصحش نقول "حصل خطأ في الحجز" ولا نخلي المستخدم يدوس تأكيد تاني
+  // (هيرفضله المعاد كمحجوز قبل كده). بدل كده بنديله زرار "أعد رفع الإيصال" بس، لنفس الحجز.
+  if (proofInput && proofInput.files[0]) {
+    const ok = await uploadProofWithRetry(bookingRes.bookingId, proofInput.files[0]);
+    if (!ok) return; // uploadProofWithRetry بيتكفل بعرض حالة إعادة المحاولة للمستخدم
+  }
+
+  showBookingSuccess();
+}
+
+async function uploadProofWithRetry(bookingId, file) {
+  try {
+    const compressed = await compressImageFile(file);
+    const base64 = await fileToBase64(compressed);
+    const res = await apiPost("uploadPaymentProof", {
+      bookingId: bookingId,
+      imageBase64: base64,
+      mimeType: compressed.type || file.type
+    }, API_TIMEOUT_MS_UPLOAD);
+    if (res && res.error) throw new Error(res.error);
+    return true;
+  } catch (err) {
+    box.innerHTML = `
+      <div class="form-title">الحجز اتعمل ✅ بس رفع إيصال الدفع اتأخر</div>
+      <p style="color:var(--gray)">
+        معادك محجوز بالفعل، بس صورة إيصال التحويل ماترفعتش (غالبًا بسبب بطء في الاتصال). دوس تاني عشان نرفعها من غير ما نعمل حجز جديد.
+      </p>
+      <button class="btn btn-primary btn-block" id="retry-proof-btn">أعد رفع الإيصال</button>
+      <a href="dashboard/" class="btn btn-ghost btn-block" style="margin-top:10px">روح للوحة حسابي دلوقتي</a>
+    `;
+    document.getElementById("retry-proof-btn").addEventListener("click", async () => {
+      const retryBtn = document.getElementById("retry-proof-btn");
+      retryBtn.disabled = true; retryBtn.textContent = "بيترفع...";
+      const ok = await uploadProofWithRetry(bookingId, file);
+      if (ok) showBookingSuccess();
+    });
+    return false;
+  }
+}
+
+function showBookingSuccess() {
+  box.innerHTML = `
+    <div class="form-title">تم الحجز!</div>
+    <p style="color:var(--gray)">
+      ${Number(mentor.Price) > 0
+        ? "فريق BUSLA هيراجع إيصال الدفع ويأكد استلام الفلوس. هتلاقي رابط الميتينج في لوحة حسابك بعد التأكيد. بعد ما تخلصوا الجلسة، أنت والمرشد هتأكدوا كل واحد من حسابه إن الجلسة اتعملت، وبعدها بوصلة تحول نصيب المرشد (بعد خصم عمولة 10%)."
+        : "الحجز اتأكد أوتوماتيك لأنها جلسة مجانية. هتلاقي رابط الميتينج في لوحة حسابك."}
+    </p>
+    <a href="dashboard/" class="btn btn-primary btn-block">روح للوحة حسابي</a>
+  `;
 }
 
 init();

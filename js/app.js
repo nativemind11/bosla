@@ -4,7 +4,14 @@
 // بيستخدم كاش محسّن في المتصفح (localStorage): لو فيه نسخة محفوظة من نفس الطلب بترجع فورًا
 // عشان الصفحة تظهر بسرعة، وفي نفس الوقت بيتم تحديثها في الخلفية من غير ما اليوزر يستنى.
 // كمان بيحط مهلة زمنية (timeout) عشان لو الباك إند اتعلق، الصفحة مش تفضل معلقة على "بيحمل..." للأبد.
-const API_TIMEOUT_MS = 15000;
+//
+// ملحوظة مهمة: Google Apps Script (اللي هو الباك إند بتاعنا) بطيء نسبيًا وبيعمل "cold start"
+// كل شوية (بياخد كام ثانية لوحده قبل ما ينفذ أي حاجة)، وده غير وقت تنفيذ الكود نفسه.
+// عشان كده لازم نديله مهلة كافية، خصوصًا في الطلبات اللي بتكتب بيانات أو بترفع صور
+// (زي رفع إيصال الدفع)، لأنها بتاخد وقت أطول بكتير من مجرد قراءة بيانات.
+const API_TIMEOUT_MS = 25000; // مهلة الطلبات العادية (قراءة GET)
+const API_TIMEOUT_MS_WRITE = 30000; // مهلة الطلبات اللي بتكتب بيانات (POST) عمومًا
+const API_TIMEOUT_MS_UPLOAD = 55000; // مهلة الطلبات اللي فيها رفع صورة (Drive + إيميل ممكن ياخدوا وقت أطول)
 const CACHE_DURATION_MS = 10 * 60 * 1000; // 10 دقايق (بدل 5)
 
 function withTimeout(promise, ms = API_TIMEOUT_MS) {
@@ -58,7 +65,8 @@ function clearApiCache() {
 }
 
 // نداء POST للباك إند (كتابة بيانات) - بنستخدم text/plain عشان نتجنب مشاكل CORS مع Apps Script
-async function apiPost(action, payload = {}) {
+// timeoutMs اختياري: مرره أعلى (API_TIMEOUT_MS_UPLOAD) للأكشنز اللي فيها رفع صورة
+async function apiPost(action, payload = {}, timeoutMs = API_TIMEOUT_MS_WRITE) {
   // نفس فكرة apiGet: لو فيه مستخدم مسجل دخول، نرفق تذكرة الدخول بتاعته مع الطلب
   let idToken = null;
   try {
@@ -69,7 +77,7 @@ async function apiPost(action, payload = {}) {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify({ action, ...payload, ...(idToken ? { idToken } : {}) })
-  }));
+  }), timeoutMs);
   const data = await res.json();
   clearApiCache(); // أي كتابة بيانات (حجز/تأكيد/تسجيل...) لازم تلغي الكاش عشان القراءة اللي بعدها تكون محدثة
   return data;
@@ -82,6 +90,48 @@ function fileToBase64(file) {
     reader.onload = () => resolve(reader.result.split(",")[1]);
     reader.onerror = reject;
     reader.readAsDataURL(file);
+  });
+}
+
+// بتضغط أي صورة (سكرين شوت إيصال أو صورة بروفايل) قبل ما نبعتها للباك إند:
+// بتصغّر أبعادها لحد أقصى وبتقلل جودة الـ JPEG شوية. الهدف: تقليل حجم الملف
+// اللي بيترفع، عشان الرفع يبقى أسرع وعشان Google Apps Script (اللي بطيء أصلاً)
+// ميستغرقش وقت طويل وهو بيعالج الصورة ويبعتها بالإيميل، وده كان بيسبب "طلب استغرق وقت طويل".
+// بترجع نفس الـ file الأصلي لو حصل أي خطأ أثناء الضغط (fallback آمن).
+function compressImageFile(file, maxDimension = 1600, quality = 0.72) {
+  return new Promise((resolve) => {
+    try {
+      if (!file || !file.type || file.type.indexOf("image/") !== 0) { resolve(file); return; }
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+      img.onload = () => {
+        try {
+          let { width, height } = img;
+          if (width > maxDimension || height > maxDimension) {
+            if (width >= height) { height = Math.round(height * (maxDimension / width)); width = maxDimension; }
+            else { width = Math.round(width * (maxDimension / height)); height = maxDimension; }
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width; canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob((blob) => {
+            URL.revokeObjectURL(objectUrl);
+            if (!blob) { resolve(file); return; }
+            // لو الضغط لسبب ما زوّد الحجم بدل ما يقلله، استخدم الملف الأصلي
+            if (blob.size >= file.size) { resolve(file); return; }
+            resolve(new File([blob], file.name || "image.jpg", { type: "image/jpeg" }));
+          }, "image/jpeg", quality);
+        } catch (e) {
+          URL.revokeObjectURL(objectUrl);
+          resolve(file);
+        }
+      };
+      img.onerror = () => { URL.revokeObjectURL(objectUrl); resolve(file); };
+      img.src = objectUrl;
+    } catch (e) {
+      resolve(file);
+    }
   });
 }
 

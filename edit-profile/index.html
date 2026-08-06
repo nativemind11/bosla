@@ -139,10 +139,11 @@ function photoUploadHtml(existingPhotoUrl, name) {
 async function resolveProfilePhotoUrl(uid, isMentor, oldUrl) {
   if (!selectedPhotoFile) return oldUrl || "";
   try {
-    const base64 = await fileToBase64(selectedPhotoFile);
+    const compressed = await compressImageFile(selectedPhotoFile);
+    const base64 = await fileToBase64(compressed);
     const uploadRes = await apiPost("uploadProfilePhoto", {
-      uid, isMentor, imageBase64: base64, mimeType: selectedPhotoFile.type
-    });
+      uid, isMentor, imageBase64: base64, mimeType: compressed.type || selectedPhotoFile.type
+    }, API_TIMEOUT_MS_UPLOAD);
     if (uploadRes && uploadRes.success) return uploadRes.url;
     showToast("مشكلة في رفع الصورة الجديدة: " + (uploadRes.error || "خطأ غير معروف") + " — هنحتفظ بصورتك القديمة", "error");
     return oldUrl || "";

@@ -313,8 +313,11 @@ async function renderMenteeDashboard(user, mentee) {
     ` : `<div class="empty-state">لسه معملتش أي حجز. <a href="mentors/" style="color:var(--accent-text)">تصفح المرشدين</a></div>`}
   `;
   
-  // تحميل روابط الميتينج بالخلفية (واحد واحد عشان ما نثقلش)
-  for (const mentorUid of [...new Set(bookings.map(b => b.MentorUID))]) {
+  // تحميل روابط الميتينج بالخلفية - كل المرشدين مع بعض (parallel) مش واحد واحد،
+  // عشان كل طلب لباك إند Google Apps Script بياخد كام ثانية لوحده، ولو عندك حجوزات
+  // مع أكتر من مرشد وعملناها واحد واحد بالتتابع الوقت هيتراكم ويخلي اللوحة تفضل "بتحمل" لمدة طويلة
+  const uniqueMentorUids = [...new Set(bookings.map(b => b.MentorUID))];
+  await Promise.all(uniqueMentorUids.map(async (mentorUid) => {
     try {
       const m = await apiGet("getMentor", { uid: mentorUid });
       if (m) {
@@ -338,7 +341,7 @@ async function renderMenteeDashboard(user, mentee) {
         }
       });
     }
-  }
+  }));
 }
 </script>
 </body>
