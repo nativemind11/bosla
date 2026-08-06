@@ -98,71 +98,37 @@ function fileToBase64(file) {
 // اللي بيترفع، عشان الرفع يبقى أسرع وعشان Google Apps Script (اللي بطيء أصلاً)
 // ميستغرقش وقت طويل وهو بيعالج الصورة ويبعتها بالإيميل، وده كان بيسبب "طلب استغرق وقت طويل".
 // بترجع نفس الـ file الأصلي لو حصل أي خطأ أثناء الضغط (fallback آمن).
-//
-// squareCrop=true (بيتستخدم لصور البروفايل بس، مش لإيصالات الدفع) بيقص من نص
-// الصورة مربع بحجم أصغر ضلع فيها قبل التصغير، بالظبط زي ما واتساب بتعمل، عشان
-// الصورة تطلع متمركزة صح جوه الدائرة بدل ما تتقص عشوائي حسب أبعاد الصورة الأصلية.
-//
-// بنحمّل الصورة بـ createImageBitmap مع imageOrientation:"from-image" (لو المتصفح
-// بيدعمها) بدل Image() العادية، عشان نحترم بيانات دوران EXIF اللي كاميرات الموبايل
-// بتحطها جوه الصورة - من غيرها الـ canvas بيرسم البيكسلات الخام زي ما هي (من غير
-// تدوير) فالصورة بتطلع مايلة/مقلوبة وبالتالي القصّ والعرض بيطلعوا غلط. ده كان
-// سبب إن الصور بتاعة بعض المستخدمين مبتتقصش كويس زي صور الواتس.
-function compressImageFile(file, maxDimension = 1600, quality = 0.72, squareCrop = false) {
+function compressImageFile(file, maxDimension = 1600, quality = 0.72) {
   return new Promise((resolve) => {
     try {
       if (!file || !file.type || file.type.indexOf("image/") !== 0) { resolve(file); return; }
-
-      const loadImageRespectingOrientation = () => {
-        if (typeof createImageBitmap === "function") {
-          return createImageBitmap(file, { imageOrientation: "from-image" }).catch(() => loadViaImageTag_());
-        }
-        return loadViaImageTag_();
-      };
-      const loadViaImageTag_ = () => new Promise((res, rej) => {
-        const img = new Image();
-        const objectUrl = URL.createObjectURL(file);
-        img.onload = () => { img._objectUrl = objectUrl; res(img); };
-        img.onerror = (e) => { URL.revokeObjectURL(objectUrl); rej(e); };
-        img.src = objectUrl;
-      });
-
-      loadImageRespectingOrientation().then((source) => {
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+      img.onload = () => {
         try {
-          const srcW = source.width, srcH = source.height;
-          let sx = 0, sy = 0, sw = srcW, sh = srcH;
-          if (squareCrop) {
-            const side = Math.min(srcW, srcH);
-            sx = Math.round((srcW - side) / 2);
-            sy = Math.round((srcH - side) / 2);
-            sw = side; sh = side;
+          let { width, height } = img;
+          if (width > maxDimension || height > maxDimension) {
+            if (width >= height) { height = Math.round(height * (maxDimension / width)); width = maxDimension; }
+            else { width = Math.round(width * (maxDimension / height)); height = maxDimension; }
           }
-
-          let outW = sw, outH = sh;
-          if (outW > maxDimension || outH > maxDimension) {
-            if (outW >= outH) { outH = Math.round(outH * (maxDimension / outW)); outW = maxDimension; }
-            else { outW = Math.round(outW * (maxDimension / outH)); outH = maxDimension; }
-          }
-
           const canvas = document.createElement("canvas");
-          canvas.width = outW; canvas.height = outH;
+          canvas.width = width; canvas.height = height;
           const ctx = canvas.getContext("2d");
-          ctx.drawImage(source, sx, sy, sw, sh, 0, 0, outW, outH);
-
-          if (source.close) source.close(); // ImageBitmap لازم تتقفل عشان تسيب الميموري
-          if (source._objectUrl) URL.revokeObjectURL(source._objectUrl);
-
+          ctx.drawImage(img, 0, 0, width, height);
           canvas.toBlob((blob) => {
+            URL.revokeObjectURL(objectUrl);
             if (!blob) { resolve(file); return; }
-            // لو الضغط لسبب ما زوّد الحجم بدل ما يقلله، استخدم الملف الأصلي - إلا لو
-            // كنا بنعمل قص مربع أصلاً (هنا لازم نستخدم النتيجة المقصوصة على أي حال)
-            if (blob.size >= file.size && !squareCrop) { resolve(file); return; }
+            // لو الضغط لسبب ما زوّد الحجم بدل ما يقلله، استخدم الملف الأصلي
+            if (blob.size >= file.size) { resolve(file); return; }
             resolve(new File([blob], file.name || "image.jpg", { type: "image/jpeg" }));
           }, "image/jpeg", quality);
         } catch (e) {
+          URL.revokeObjectURL(objectUrl);
           resolve(file);
         }
-      }).catch(() => resolve(file));
+      };
+      img.onerror = () => { URL.revokeObjectURL(objectUrl); resolve(file); };
+      img.src = objectUrl;
     } catch (e) {
       resolve(file);
     }
@@ -285,7 +251,7 @@ function populateFieldsSelect(selectEl) {
 }
 
 // تعبئة قائمة التخصصات (select) بناءً على المجال المختار
-function populateSpecializedSelect(fieldValue, selectEl) {
+function populateSpecializationsSelect(fieldValue, selectEl) {
   selectEl.innerHTML = '<option value="">اختر التخصص</option>';
   if (fieldValue && FIELDS[fieldValue]) {
     FIELDS[fieldValue].forEach(spec => {
@@ -530,4 +496,3 @@ function renderChatbot() {
 }
 
 document.addEventListener("DOMContentLoaded", renderChatbot);
-
