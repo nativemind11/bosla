@@ -139,7 +139,7 @@ function photoUploadHtml(existingPhotoUrl, name) {
 async function resolveProfilePhotoUrl(uid, isMentor, oldUrl) {
   if (!selectedPhotoFile) return oldUrl || "";
   try {
-    const compressed = await compressImageFile(selectedPhotoFile);
+    const compressed = await compressImageFile(selectedPhotoFile, 1600, 0.72, true);
     const base64 = await fileToBase64(compressed);
     const uploadRes = await apiPost("uploadProfilePhoto", {
       uid, isMentor, imageBase64: base64, mimeType: compressed.type || selectedPhotoFile.type
