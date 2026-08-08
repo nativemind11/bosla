@@ -9,7 +9,7 @@
 // كل شوية (بياخد كام ثانية لوحده قبل ما ينفذ أي حاجة)، وده غير وقت تنفيذ الكود نفسه.
 // عشان كده لازم نديله مهلة كافية، خصوصًا في الطلبات اللي بتكتب بيانات أو بترفع صور
 // (زي رفع إيصال الدفع)، لأنها بتاخد وقت أطول بكتير من مجرد قراءة بيانات.
-const API_TIMEOUT_MS = 25000; // مهلة الطلبات العادية (قراءة GET)
+const API_TIMEOUT_MS = 35000; // مهلة الطلبات العادية (قراءة GET) — زودناها شوية عشان لو Apps Script بطيء (cold start) الصفحة متفشلش من أول محاولة
 const API_TIMEOUT_MS_WRITE = 30000; // مهلة الطلبات اللي بتكتب بيانات (POST) عمومًا
 const API_TIMEOUT_MS_UPLOAD = 55000; // مهلة الطلبات اللي فيها رفع صورة (Drive + إيميل ممكن ياخدوا وقت أطول)
 const CACHE_DURATION_MS = 10 * 60 * 1000; // 10 دقايق (بدل 5)
@@ -293,6 +293,7 @@ function renderHeader() {
       <nav class="nav-links" id="nav-links">
         <a href="mentors/">لاقي مرشد</a>
         <a href="./#how">إزاي بتشتغل</a>
+        <a href="contact/">تواصل معنا</a>
       </nav>
       <div class="nav-auth" id="nav-auth">
         <button type="button" class="theme-toggle-btn" id="theme-toggle-btn" title="بدّل الوضع الليلي/النهاري" aria-label="بدّل الوضع الليلي/النهاري">
