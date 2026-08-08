@@ -293,7 +293,7 @@ function renderHeader() {
       <nav class="nav-links" id="nav-links">
         <a href="mentors/">لاقي مرشد</a>
         <a href="./#how">إزاي بتشتغل</a>
-        <a href="#" id="nav-contact-link">تواصل معنا</a>
+        <a href="contact/">تواصل معنا</a>
       </nav>
       <div class="nav-auth" id="nav-auth">
         <button type="button" class="theme-toggle-btn" id="theme-toggle-btn" title="بدّل الوضع الليلي/النهاري" aria-label="بدّل الوضع الليلي/النهاري">
@@ -304,17 +304,6 @@ function renderHeader() {
       </div>
     </div>
   `;
-  const contactLink = document.getElementById("nav-contact-link");
-  if (contactLink) {
-    contactLink.addEventListener("click", (e) => {
-      e.preventDefault();
-      const fab = document.getElementById("bosla-chatbot-fab");
-      const panel = document.getElementById("bosla-chatbot-panel");
-      if (fab && (!panel || !panel.classList.contains("open"))) {
-        fab.click();
-      }
-    });
-  }
   const themeBtn = document.getElementById("theme-toggle-btn");
   if (themeBtn) themeBtn.addEventListener("click", toggleTheme);
   auth.onAuthStateChanged(user => {
